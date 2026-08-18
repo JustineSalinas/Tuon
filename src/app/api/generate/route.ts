@@ -9,6 +9,12 @@ import {
   verifyRequest,
 } from "@/lib/firebase/admin";
 import {
+  RATE_LIMITS,
+  checkRateLimit,
+  clientIp,
+  rateLimitedResponse,
+} from "@/lib/rate-limit";
+import {
   AI_MODEL,
   MAX_OUTPUT_TOKENS,
   MIN_NOTE_CHARS,
@@ -69,6 +75,11 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
+
+  // Per-address ceiling. The per-account quota below bounds what one student
+  // costs; this bounds how many accounts one connection can create and spend.
+  const limit = await checkRateLimit(RATE_LIMITS.generate, clientIp(request));
+  if (!limit.allowed) return rateLimitedResponse(limit, "study sets");
 
   const caller = await verifyRequest(request);
   if (!caller) {

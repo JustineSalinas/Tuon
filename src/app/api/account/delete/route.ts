@@ -8,6 +8,12 @@ import {
   verifyAppCheck,
   verifyRequest,
 } from "@/lib/firebase/admin";
+import {
+  RATE_LIMITS,
+  checkRateLimit,
+  clientIp,
+  rateLimitedResponse,
+} from "@/lib/rate-limit";
 import { log } from "@/lib/observability/log";
 
 /**
@@ -76,6 +82,11 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
+
+  // Per-address ceiling. The per-account quota below bounds what one student
+  // costs; this bounds how many accounts one connection can create and spend.
+  const limit = await checkRateLimit(RATE_LIMITS.accountDelete, clientIp(request));
+  if (!limit.allowed) return rateLimitedResponse(limit, "deletion attempts");
 
   const caller = await verifyRequest(request);
   if (!caller) {

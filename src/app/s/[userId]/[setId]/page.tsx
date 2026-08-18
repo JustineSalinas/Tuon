@@ -55,5 +55,11 @@ export default async function SharedSetPage({ params }: PageProps) {
   const { userId, setId } = await params;
   const data = await getSharedSet(userId, setId);
 
-  return <SharedSetView data={data ? toPlainSharedSet(data) : null} />;
+  return (
+    <SharedSetView
+      data={data ? toPlainSharedSet(data) : null}
+      userId={userId}
+      setId={setId}
+    />
+  );
 }

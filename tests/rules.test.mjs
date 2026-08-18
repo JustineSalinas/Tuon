@@ -375,6 +375,18 @@ await check("review history is never shared", async () => {
 
 console.log("\nCatch-all");
 
+await check("the rate-limit ledger is invisible to clients", async () => {
+  // Server-owned: if a student could read or clear it, the anti-farming layer
+  // would be theirs to switch off.
+  await assertFails(getDoc(doc(alice, "rateLimits/generate_1.2.3.4_0")));
+  await assertFails(setDoc(doc(alice, "rateLimits/generate_1.2.3.4_0"), { count: 0 }));
+});
+
+await check("the moderation queue is invisible to clients", async () => {
+  await assertFails(getDocs(collection(alice, "reports")));
+  await assertFails(setDoc(doc(alice, "reports/forged"), { status: "closed" }));
+});
+
 await check("nothing outside /users is writable", async () => {
   await assertFails(setDoc(doc(alice, "config/flags"), { admin: true }));
 });

@@ -12,6 +12,7 @@ import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { PaperCreature } from "@/components/brand/paper-creature";
+import { ReportButton } from "@/components/study/report-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Flashcard, QuizQuestion, StudySet } from "@/lib/types";
@@ -32,7 +33,15 @@ export interface SharedSet {
  *
  * Nothing about the owner is shown beyond the set itself.
  */
-export function SharedSetView({ data }: { data: SharedSet | null }) {
+export function SharedSetView({
+  data,
+  userId,
+  setId,
+}: {
+  data: SharedSet | null;
+  userId: string;
+  setId: string;
+}) {
   const router = useRouter();
   const { user } = useAuth();
 
@@ -149,9 +158,12 @@ export function SharedSetView({ data }: { data: SharedSet | null }) {
             </motion.header>
 
             <section className="mt-10">
-              <h2 className="font-display text-lg font-semibold tracking-tight">
-                Flashcards
-              </h2>
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="font-display text-lg font-semibold tracking-tight">
+                  Flashcards
+                </h2>
+                <ReportButton userId={userId} setId={setId} />
+              </div>
               <div className="mt-3 divide-y rounded-xl border">
                 {data.flashcards.map((card, index) => (
                   <motion.div
