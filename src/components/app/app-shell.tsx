@@ -10,6 +10,7 @@ import {
   LogOut,
   Network,
   Plus,
+  TrendingUp,
   Settings,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ const NAV = [
   { href: "/app/sets", label: "Study sets", icon: Layers, exact: false },
   { href: "/app/calendar", label: "Calendar", icon: CalendarDays, exact: false },
   { href: "/app/graph", label: "Graph", icon: Network, exact: false },
+  { href: "/app/stats", label: "Retention", icon: TrendingUp, exact: false },
 ] as const;
 
 /** The bottom bar only has room for four; the rest live in the sidebar. */

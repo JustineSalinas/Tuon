@@ -18,7 +18,14 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useFlashcards, useReviewLogs, useStudySet } from "@/lib/hooks/use-firestore";
+import {
+  useFlashcards,
+  useQuizQuestions,
+  useReviewLogs,
+  useStudySet,
+} from "@/lib/hooks/use-firestore";
+import { ExportMenu } from "@/components/study/export-menu";
+import { ShareButton } from "@/components/study/share-button";
 import { useNow } from "@/lib/hooks/use-now";
 import { formatInterval } from "@/lib/srs/sm2";
 import { Button } from "@/components/ui/button";
@@ -43,6 +50,7 @@ export default function StudySetPage() {
 
   const { data: studySet, loading, notFound } = useStudySet(user?.uid, params.setId);
   const { data: cards, loading: cardsLoading } = useFlashcards(user?.uid, params.setId);
+  const { data: quizQuestions } = useQuizQuestions(user?.uid, params.setId);
   const { byFlashcardId } = useReviewLogs(user?.uid);
   const [deleting, setDeleting] = useState(false);
   const now = useNow(60_000);
@@ -106,6 +114,15 @@ export default function StudySetPage() {
             <ArrowLeft />
             Study sets
           </Button>
+
+        <div className="ml-auto flex items-center gap-2">
+          <ExportMenu
+            payload={
+              studySet ? { studySet, flashcards: cards, quizQuestions } : null
+            }
+          />
+          <ShareButton studySet={studySet} />
+        </div>
 
         <Dialog>
           <DialogTrigger render={<Button variant="ghost" size="icon" className="ml-auto" aria-label="Delete set" />}>

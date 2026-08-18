@@ -26,7 +26,7 @@ import {
   type ImportedPdf,
 } from "@/components/notes/pdf-import";
 import { isSeniorHigh } from "@/lib/curriculum";
-import { MAX_NOTE_CHARS, MIN_NOTE_CHARS } from "@/lib/ai/config";
+import { MIN_NOTE_CHARS, maxNoteCharsFor } from "@/lib/ai/config";
 import type { Note } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,8 @@ export function NoteEditor({ note }: { note?: Note }) {
   // Avoids a second create if autosave fires while the first is in flight.
   const creatingRef = useRef(false);
 
+  // The server enforces this too; showing it here just avoids surprises.
+  const maxNoteChars = maxNoteCharsFor(profile?.plan ?? "free");
   const seniorHigh = isSeniorHigh(profile?.educationLevel ?? null);
   const subjectOptions = profile?.courses ?? [];
 
@@ -130,7 +132,7 @@ export function NoteEditor({ note }: { note?: Note }) {
         const next = prev.trim() ? `${prev.trim()}
 
 ${text}` : text;
-        return next.slice(0, MAX_NOTE_CHARS);
+        return next.slice(0, maxNoteChars);
       });
       setTitle((prev) => prev.trim() || pdfTitle);
       dirtyRef.current = true;
@@ -141,10 +143,10 @@ ${text}` : text;
       if (clipped) parts.push("text was clipped to fit one note");
       toast.success(parts.join(" — "));
     },
-    [],
+    [maxNoteChars],
   );
 
-  const pdf = usePdfImport(handlePdfImported);
+  const pdf = usePdfImport(handlePdfImported, maxNoteChars);
 
   const linkAutocomplete = useLinkAutocomplete({
     setContent: (next) => {
@@ -324,7 +326,7 @@ ${text}` : text;
               id="content"
               value={content}
               onChange={(e) => {
-                setContent(e.target.value.slice(0, MAX_NOTE_CHARS));
+                setContent(e.target.value.slice(0, maxNoteChars));
                 markDirty();
                 linkAutocomplete.syncFromCaret();
               }}
@@ -363,7 +365,11 @@ ${text}` : text;
 
           <div className="text-muted-foreground flex items-center justify-between text-xs">
             <span className="tabular-nums">
-              {trimmedContent.length.toLocaleString()} characters
+              {trimmedContent.length.toLocaleString()}
+              {trimmedContent.length > maxNoteChars * 0.7
+                ? ` / ${maxNoteChars.toLocaleString()}`
+                : ""}{" "}
+              characters
             </span>
             {trimmedContent.length > 0 && trimmedContent.length < MIN_NOTE_CHARS ? (
               <span>

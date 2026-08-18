@@ -11,18 +11,21 @@ import {
   titleFromFilename,
   type PdfExtractResult,
 } from "@/lib/pdf/extract";
-import { MAX_NOTE_CHARS } from "@/lib/ai/config";
+
 import { cn } from "@/lib/utils";
 
 export interface ImportedPdf {
   title: string;
   text: string;
   result: PdfExtractResult;
-  /** True when the extracted text was clipped to fit MAX_NOTE_CHARS. */
+  /** True when the extracted text was clipped to fit the plan's note limit. */
   clipped: boolean;
 }
 
-export function usePdfImport(onImported: (imported: ImportedPdf) => void) {
+export function usePdfImport(
+  onImported: (imported: ImportedPdf) => void,
+  maxNoteChars: number,
+) {
   const [isDragging, setIsDragging] = useState(false);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -46,10 +49,10 @@ export function usePdfImport(onImported: (imported: ImportedPdf) => void) {
 
       try {
         const result = await extractPdfText(file, setProgress);
-        const clipped = result.text.length > MAX_NOTE_CHARS;
+        const clipped = result.text.length > maxNoteChars;
         onImported({
           title: result.title ?? titleFromFilename(file.name),
-          text: clipped ? result.text.slice(0, MAX_NOTE_CHARS) : result.text,
+          text: clipped ? result.text.slice(0, maxNoteChars) : result.text,
           result,
           clipped,
         });
@@ -66,7 +69,7 @@ export function usePdfImport(onImported: (imported: ImportedPdf) => void) {
         if (inputRef.current) inputRef.current.value = "";
       }
     },
-    [onImported],
+    [onImported, maxNoteChars],
   );
 
   const dragHandlers = {

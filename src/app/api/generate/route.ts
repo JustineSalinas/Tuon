@@ -5,9 +5,11 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminConfigError, adminDb, verifyRequest } from "@/lib/firebase/admin";
 import {
   AI_MODEL,
-  MAX_NOTE_CHARS,
   MAX_OUTPUT_TOKENS,
   MIN_NOTE_CHARS,
+  PLANS,
+  cooldownSecondsFor,
+  maxNoteCharsFor,
   normalisePlan,
 } from "@/lib/ai/config";
 import { ASSISTANT_PREFILL, SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompt";
@@ -22,6 +24,25 @@ export const maxDuration = 120;
 class QuotaExhaustedError extends Error {
   constructor(public resetsAt: Date | null) {
     super("Monthly AI generation limit reached.");
+  }
+}
+
+/**
+ * What "priority generation" actually is: paid plans wait less between sets.
+ * Enforced here rather than in the UI so it cannot be clicked around.
+ */
+class CooldownError extends Error {
+  constructor(public secondsRemaining: number) {
+    super("Still cooling down.");
+  }
+}
+
+class NoteTooLongError extends Error {
+  constructor(
+    public limit: number,
+    public actual: number,
+  ) {
+    super("Note exceeds the plan limit.");
   }
 }
 
@@ -93,6 +114,8 @@ export async function POST(request: Request) {
     educationLevel: EducationLevel | null;
     strand: Strand | null;
     courses: string[];
+    maxNoteChars: number;
+    plan: Plan;
   };
 
   try {
@@ -105,12 +128,33 @@ export async function POST(request: Request) {
         plan?: unknown;
         aiGenerationsUsedThisPeriod?: number;
         generationPeriodStart?: Timestamp;
+        lastGenerationAt?: Timestamp;
         educationLevel?: EducationLevel | null;
         strand?: Strand | null;
         courses?: string[];
       };
 
       const plan: Plan = normalisePlan(data.plan);
+
+      // Note length is plan-dependent, so it can only be checked once the
+      // profile has been read — hence inside the transaction rather than
+      // alongside the MIN_NOTE_CHARS check above.
+      const maxNoteChars = maxNoteCharsFor(plan);
+      if (content.length > maxNoteChars) {
+        throw new NoteTooLongError(maxNoteChars, content.length);
+      }
+
+      const cooldown = cooldownSecondsFor(plan);
+      if (cooldown > 0) {
+        const last = data.lastGenerationAt?.toDate();
+        if (last) {
+          const elapsed = (Date.now() - last.getTime()) / 1000;
+          if (elapsed < cooldown) {
+            throw new CooldownError(Math.ceil(cooldown - elapsed));
+          }
+        }
+      }
+
       const periodStart = data.generationPeriodStart?.toDate() ?? currentPeriodStart();
       const used = data.aiGenerationsUsedThisPeriod ?? 0;
       const quota = readQuota(plan, used, periodStart);
@@ -125,6 +169,7 @@ export async function POST(request: Request) {
         ...(rolledOver
           ? { generationPeriodStart: Timestamp.fromDate(currentPeriodStart()) }
           : {}),
+        lastGenerationAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
 
@@ -132,13 +177,35 @@ export async function POST(request: Request) {
         educationLevel: data.educationLevel ?? null,
         strand: data.strand ?? null,
         courses: data.courses ?? [],
+        maxNoteChars,
+        plan,
       };
     });
   } catch (error) {
+    if (error instanceof NoteTooLongError) {
+      return NextResponse.json(
+        {
+          error: `This note is ${error.actual.toLocaleString()} characters. Your plan allows ${error.limit.toLocaleString()} per study set — split it, or upgrade for longer notes.`,
+          code: "NOTE_TOO_LONG",
+          limit: error.limit,
+        },
+        { status: 422 },
+      );
+    }
+    if (error instanceof CooldownError) {
+      return NextResponse.json(
+        {
+          error: `Just a moment — you can generate again in ${error.secondsRemaining}s. ${PLANS.pro.name} removes the wait entirely.`,
+          code: "COOLDOWN",
+          retryAfterSeconds: error.secondsRemaining,
+        },
+        { status: 429, headers: { "Retry-After": String(error.secondsRemaining) } },
+      );
+    }
     if (error instanceof QuotaExhaustedError) {
       return NextResponse.json(
         {
-          error: "You have used all your free AI generations for this month.",
+          error: "That's all your study sets for this month.",
           code: "QUOTA_EXHAUSTED",
           resetsAt: error.resetsAt?.toISOString() ?? null,
         },
@@ -169,7 +236,7 @@ export async function POST(request: Request) {
 
   const userPrompt = buildUserPrompt({
     noteTitle: title,
-    noteContent: content.slice(0, MAX_NOTE_CHARS),
+    noteContent: content.slice(0, profileForPrompt.maxNoteChars),
     courseTag,
     educationLevel: profileForPrompt.educationLevel,
     strand: profileForPrompt.strand,

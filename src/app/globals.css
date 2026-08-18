@@ -50,6 +50,14 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
+  /* Ordinal ramp for charts: one hue, monotone lightness, validated against
+     each mode's surface (see scripts/validate_palette.js in the dataviz skill).
+     Used for ordered stages — new -> learning -> young -> mature. */
+  --color-seq-1: var(--seq-1);
+  --color-seq-2: var(--seq-2);
+  --color-seq-3: var(--seq-3);
+  --color-seq-4: var(--seq-4);
+
   /* Semantic extras used by review + quiz screens */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -108,6 +116,12 @@
   --chart-4: oklch(0.495 0.015 62);
   --chart-5: oklch(0.392 0.048 42);
 
+  /* light: light -> dark, light end clears the cream surface at 2.64:1 */
+  --seq-1: #CE9070;
+  --seq-2: #B36742;
+  --seq-3: #94461F;
+  --seq-4: #5F2C14;
+
   --radius: 0.75rem;
 
   --sidebar: oklch(0.955 0.009 84);
@@ -153,6 +167,12 @@
   --border: oklch(0.938 0.010 82 / 12%);
   --input: oklch(0.938 0.010 82 / 16%);
   --ring: oklch(0.678 0.128 45);
+
+  /* dark: the ramp's anchor flips so "more" stays the most prominent step */
+  --seq-1: #8C4426;
+  --seq-2: #B86338;
+  --seq-3: #D9986E;
+  --seq-4: #F2CDAE;
 
   --chart-1: oklch(0.678 0.128 45);
   --chart-2: oklch(0.685 0.078 148);

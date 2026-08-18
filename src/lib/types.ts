@@ -24,6 +24,8 @@ export interface UserProfile {
   aiGenerationsUsedThisPeriod: number;
   /** Start of the current monthly quota window. */
   generationPeriodStart: Timestamp;
+  /** Drives the per-plan cooldown between generations. */
+  lastGenerationAt?: Timestamp;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -49,6 +51,11 @@ export interface StudySet {
   flashcardCount: number;
   quizQuestionCount: number;
   source: "ai" | "manual";
+  /**
+   * When true, anyone holding the link can read this set and its cards.
+   * This flag is the real access gate — see firestore.rules.
+   */
+  isShared?: boolean;
   createdAt: Timestamp;
 }
 
