@@ -11,7 +11,9 @@
     "test": "tsx tests/run.mjs",
     "setup:key": "node scripts/set-service-account.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project tuon-rules-test \"tsx tests/rules.test.mjs\"",
-    "migrate:owner-ids": "node scripts/backfill-owner-ids.mjs"
+    "migrate:owner-ids": "node scripts/backfill-owner-ids.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",

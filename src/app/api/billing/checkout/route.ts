@@ -36,10 +36,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const limit = await checkRateLimit(
-    { ...RATE_LIMITS.bootstrap, scope: "checkout" },
-    clientIp(request),
-  );
+  const limit = await checkRateLimit(RATE_LIMITS.checkout, clientIp(request));
   if (!limit.allowed) return rateLimitedResponse(limit, "checkout attempts");
 
   const caller = await verifyRequest(request);

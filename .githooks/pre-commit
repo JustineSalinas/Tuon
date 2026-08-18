@@ -1,0 +1,9 @@
+#!/bin/sh
+# Committed hook — see package.json "prepare", which points core.hooksPath here
+# so a fresh clone gets it after `npm install` without a hook-manager
+# dependency.
+#
+# GitHub's push protection is not available on a private repo without a paid
+# plan, so this is the backstop. It refuses the commit rather than the push:
+# a secret in a commit is compromised even if the push is blocked.
+exec node scripts/check-secrets.mjs

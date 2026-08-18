@@ -30,6 +30,12 @@ jobs:
 
       - run: npm ci
 
+      # Runs against every tracked file, not just the diff — the pre-commit
+      # hook covers the diff, and this catches anything committed with
+      # --no-verify or from a clone that never ran `npm install`.
+      - name: Credential scan
+        run: npm run check:secrets -- --all
+
       - name: Typecheck
         run: npx tsc --noEmit
 

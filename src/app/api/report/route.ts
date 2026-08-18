@@ -44,10 +44,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const limit = await checkRateLimit(
-    { scope: "report", limit: 20, windowSeconds: 3600 },
-    clientIp(request),
-  );
+  const limit = await checkRateLimit(RATE_LIMITS.report, clientIp(request));
   if (!limit.allowed) return rateLimitedResponse(limit, "reports");
 
   let body: { userId?: unknown; setId?: unknown; reason?: unknown; detail?: unknown };

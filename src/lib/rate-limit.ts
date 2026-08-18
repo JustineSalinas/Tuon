@@ -39,20 +39,65 @@ export interface RateLimitResult {
   retryAfter: number;
 }
 
+/**
+ * Reads a threshold from the environment, falling back to the default.
+ *
+ * The thresholds are configurable rather than literal because they are the one
+ * piece of this file worth not publishing: knowing that bootstrap allows ten
+ * per hour per address tells someone exactly how many addresses they need to
+ * farm N free accounts. Probing for the number is possible but noisy — every
+ * block is logged — so keeping it out of the source removes a free
+ * reconnaissance step. Being able to tighten a limit under attack without a
+ * redeploy is the second reason.
+ *
+ * A malformed or absent value falls back rather than throwing: a typo in an
+ * env var must not take the whole app down, and the default is already a
+ * defensible number.
+ */
+function envLimit(name: string, fallback: number): number {
+  const parsed = Number(process.env[name]);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.floor(parsed);
+}
+
 export const RATE_LIMITS = {
   /**
    * Profile creation. A real person does this once; ten in an hour from one
    * address is someone farming free tiers.
    */
-  bootstrap: { scope: "bootstrap", limit: 10, windowSeconds: 3600 },
+  bootstrap: {
+    scope: "bootstrap",
+    limit: envLimit("RATE_LIMIT_BOOTSTRAP", 10),
+    windowSeconds: 3600,
+  },
   /**
    * Generation. The per-plan cap and cooldown already gate a single account;
    * this catches many accounts behind one address. Set well above what a
    * shared school or café connection would produce.
    */
-  generate: { scope: "generate", limit: 60, windowSeconds: 3600 },
+  generate: {
+    scope: "generate",
+    limit: envLimit("RATE_LIMIT_GENERATE", 60),
+    windowSeconds: 3600,
+  },
   /** Deleting an account should never be attempted in bulk. */
-  accountDelete: { scope: "account-delete", limit: 5, windowSeconds: 3600 },
+  accountDelete: {
+    scope: "account-delete",
+    limit: envLimit("RATE_LIMIT_ACCOUNT_DELETE", 5),
+    windowSeconds: 3600,
+  },
+  /** Reporting a shared set. Unauthenticated, so it needs its own ceiling. */
+  report: {
+    scope: "report",
+    limit: envLimit("RATE_LIMIT_REPORT", 20),
+    windowSeconds: 3600,
+  },
+  /** Starting a checkout. Rare per person, and it hits a paid API. */
+  checkout: {
+    scope: "checkout",
+    limit: envLimit("RATE_LIMIT_CHECKOUT", 10),
+    windowSeconds: 3600,
+  },
 } satisfies Record<string, RateLimitRule>;
 
 /**
