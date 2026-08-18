@@ -4,6 +4,7 @@ import { Fraunces, Geist_Mono, Inter } from "next/font/google";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { siteUrl } from "@/lib/site";
 
 import "./globals.css";
 
@@ -33,6 +34,25 @@ export const metadata: Metadata = {
   description:
     "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick. Built for Senior High and college students in the Philippines.",
   applicationName: "Tuón",
+  // Resolves every relative OG/canonical URL, including the generated
+  // opengraph-image. Without it Next emits relative paths, which several
+  // chat clients refuse to unfurl.
+  metadataBase: new URL(siteUrl()),
+  openGraph: {
+    type: "website",
+    siteName: "Tuón",
+    locale: "en_PH",
+    title: "Tuón — Turn your notes into study sets",
+    description:
+      "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tuón — Turn your notes into study sets",
+    description:
+      "Flashcards and quizzes from your own class notes, on a schedule that makes things stick.",
+  },
+  alternates: { canonical: "/" },
   keywords: [
     "flashcards",
     "spaced repetition",

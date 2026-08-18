@@ -6,7 +6,11 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, Clock, FileText, Layers, Sparkles } from "lucide-react";
 
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
-import { TuonMark, Wordmark } from "@/components/brand/logo";
+import { SiteHeader } from "@/components/marketing/site-header";
+import { SiteFooter } from "@/components/marketing/site-footer";
+import { TryIt } from "@/components/marketing/try-it";
+import { Faq } from "@/components/marketing/faq";
+import { TuonMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -27,29 +31,15 @@ export default function LandingPage() {
         <main className="flex-1">
           <Hero />
           <HowItWorks />
+          <SeeItWork />
           <BuiltForPH />
           <Pricing />
+          <FaqSection />
           <FinalCta />
         </main>
         <SiteFooter />
       </div>
     </SmoothScroll>
-  );
-}
-
-function SiteHeader() {
-  return (
-    <header className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 md:px-8">
-        <Link href="/">
-          <Wordmark />
-        </Link>
-        <nav className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" render={<Link href="/login" />}>Sign in</Button>
-          <Button size="sm" render={<Link href="/signup" />}>Get started</Button>
-        </nav>
-      </div>
-    </header>
   );
 }
 
@@ -145,6 +135,7 @@ function HowItWorks() {
 
   return (
     <Section
+      id="how"
       eyebrow="How it works"
       title="From notes to knowing it, in three steps"
     >
@@ -168,6 +159,37 @@ function HowItWorks() {
   );
 }
 
+function SeeItWork() {
+  return (
+    <Section
+      id="try"
+      eyebrow="See it work"
+      title="Try it before you sign up"
+      muted
+    >
+      <Reveal>
+        <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
+          A real note, and the study set Tuón actually produced from it. Flip
+          the cards, sit the quiz. No account, nothing to install.
+        </p>
+      </Reveal>
+      <Reveal delay={0.05}>
+        <TryIt />
+      </Reveal>
+    </Section>
+  );
+}
+
+function FaqSection() {
+  return (
+    <Section id="faq" eyebrow="Questions" title="The things people ask first">
+      <Reveal>
+        <Faq />
+      </Reveal>
+    </Section>
+  );
+}
+
 function BuiltForPH() {
   const points = [
     "Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
@@ -179,6 +201,7 @@ function BuiltForPH() {
 
   return (
     <Section
+      id="local"
       eyebrow="Built for here"
       title="It already knows your curriculum"
       muted
@@ -212,7 +235,7 @@ function Pricing() {
   const freeMonths = annualFreeMonths("plus");
 
   return (
-    <Section eyebrow="Pricing" title="Priced in pesos, capped honestly">
+    <Section id="pricing" eyebrow="Pricing" title="Priced in pesos, capped honestly">
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
           One <span className="text-foreground font-medium">study set</span> is{" "}
@@ -371,41 +394,25 @@ function FinalCta() {
   );
 }
 
-function SiteFooter() {
-  return (
-    <footer className="border-t">
-      <div className="text-muted-foreground mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between md:px-8">
-        <Wordmark className="text-foreground" markClassName="size-5" />
-        <p>Made in the Philippines, for Filipino students.</p>
-        <nav className="flex flex-wrap gap-x-5 gap-y-2">
-          <Link href="/privacy" className="hover:text-foreground">
-            Privacy
-          </Link>
-          <Link href="/terms" className="hover:text-foreground">
-            Terms
-          </Link>
-          <a href="mailto:hello@tuon.app" className="hover:text-foreground">
-            Contact
-          </a>
-        </nav>
-      </div>
-    </footer>
-  );
-}
-
 function Section({
+  id,
   eyebrow,
   title,
   children,
   muted,
 }: {
+  id?: string;
   eyebrow: string;
   title: string;
   children: React.ReactNode;
   muted?: boolean;
 }) {
   return (
-    <section className={muted ? "bg-secondary/40 border-t" : "border-t"}>
+    <section
+      id={id}
+      // Clears the sticky header, so an anchor does not land under it.
+      className={cn("scroll-mt-16", muted ? "bg-secondary/40 border-t" : "border-t")}
+    >
       <div className="mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28">
         <Reveal>
           <div className="text-primary text-xs font-medium tracking-widest uppercase">

@@ -10,7 +10,12 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
-import { TuonMark } from "@/components/brand/logo";
+import { AnimatedMark } from "@/components/brand/animated-mark";
+import {
+  PaperCreature,
+  type CreatureState,
+} from "@/components/brand/paper-creature";
+import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import {
   COLLEGE_PROGRAMS,
   EDUCATION_LEVELS,
@@ -163,7 +168,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-6 py-8">
       {/* Progress */}
       <header className="flex items-center justify-between">
-        <TuonMark className="text-primary size-6" />
+        <AnimatedMark className="text-primary size-6" />
         <div className="flex items-center gap-1.5" aria-hidden="true">
           {steps.map((step, index) => (
             <span
@@ -194,8 +199,9 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
           >
             {currentStep === "name" ? (
               <StepShell
+                creature="idle"
                 title="What should we call you?"
-                subtitle="This is how you will be greeted in the app."
+                subtitle={`This is how ${CREATURE_NAME} will greet you.`}
               >
                 <div className="space-y-2">
                   <Label htmlFor="displayName" className="sr-only">
@@ -338,6 +344,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
             {currentStep === "consent" ? (
               <StepShell
+                creature={canAdvance ? "celebrating" : "thinking"}
                 title="Before we start"
                 subtitle="Two quick things, and then your first study set."
               >
@@ -485,17 +492,31 @@ function StepShell({
   title,
   subtitle,
   children,
+  creature,
 }: {
   title: string;
   subtitle: string;
   children: React.ReactNode;
+  /** Shown beside the heading, where the creature has something to say. */
+  creature?: CreatureState;
 }) {
   return (
     <div>
-      <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        {title}
-      </h1>
-      <p className="text-muted-foreground mt-3">{subtitle}</p>
+      <div className="flex items-start gap-4">
+        {creature ? (
+          <PaperCreature
+            state={creature}
+            className="hidden size-20 shrink-0 sm:block"
+            title={CREATURE_ROLE}
+          />
+        ) : null}
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            {title}
+          </h1>
+          <p className="text-muted-foreground mt-3">{subtitle}</p>
+        </div>
+      </div>
       <div className="mt-8">{children}</div>
     </div>
   );

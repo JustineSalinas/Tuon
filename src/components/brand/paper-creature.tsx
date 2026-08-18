@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import {
   AnimatePresence,
   motion,
@@ -222,6 +224,10 @@ export function PaperCreature({
 }
 
 function Eyes({ state, reduce }: { state: CreatureState; reduce: boolean }) {
+  // Called before any early return: hooks must run in the same order every
+  // render, and "asleep" bails out below.
+  const gesture = useIdleGesture(state === "idle" && !reduce);
+
   // Asleep is two closed lines rather than dots — much readable at 24px.
   if (state === "asleep") {
     return (
@@ -236,8 +242,29 @@ function Eyes({ state, reduce }: { state: CreatureState; reduce: boolean }) {
   const wide = state === "correct" || state === "celebrating";
   const ry = squint ? 1.6 : wide ? 6 : 4.6;
 
+  // A fixed-interval blink reads as mechanical within about thirty seconds —
+  // roughly how long a review session keeps this on screen. The schedule is
+  // randomised instead, and every so often it blinks twice or glances aside.
+  const blinkKeyframes =
+    gesture === "double-blink"
+      ? [ry, 0.6, ry, 0.6, ry]
+      : gesture === "blink"
+        ? [ry, 0.6, ry]
+        : ry;
+
   return (
-    <g className="fill-foreground">
+    <motion.g
+      className="fill-foreground"
+      initial={false}
+      // A glance is the whole face shifting a couple of pixels, not the pupils
+      // sliding inside the eyes — at 24px the latter is invisible.
+      animate={{ x: gesture === "glance" ? [0, 3.5, 3.5, 0] : 0 }}
+      transition={
+        gesture === "glance"
+          ? { duration: 1.5, times: [0, 0.18, 0.8, 1], ease: "easeInOut" }
+          : { duration: 0.3 }
+      }
+    >
       {[52, 68].map((cx) => (
         <motion.ellipse
           key={cx}
@@ -245,25 +272,65 @@ function Eyes({ state, reduce }: { state: CreatureState; reduce: boolean }) {
           cy="63"
           rx={squint ? 5 : 3.6}
           initial={false}
-          animate={
-            reduce
-              ? { ry }
-              : {
-                  ry: state === "idle" ? [ry, 0.6, ry] : ry,
-                }
-          }
+          animate={reduce ? { ry } : { ry: blinkKeyframes }}
           transition={
             reduce
               ? { duration: 0 }
-              : state === "idle"
-                ? { duration: 0.22, repeat: Infinity, repeatDelay: 3.6 }
-                : SPRING
+              : typeof blinkKeyframes === "number"
+                ? SPRING
+                : { duration: gesture === "double-blink" ? 0.42 : 0.22 }
           }
           opacity="0.85"
         />
       ))}
-    </g>
+    </motion.g>
   );
+}
+
+type IdleGesture = "none" | "blink" | "double-blink" | "glance";
+
+/**
+ * Schedules the next small idle movement at an irregular interval.
+ *
+ * Randomising the *timing* matters more than adding more gestures: the tell
+ * that something is animated rather than alive is metronomic repetition.
+ */
+function useIdleGesture(enabled: boolean): IdleGesture {
+  const [gesture, setGesture] = useState<IdleGesture>("none");
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    let timer: ReturnType<typeof setTimeout>;
+
+    const schedule = () => {
+      // 2.4-7.4s apart, so two consecutive gaps are rarely the same length.
+      timer = setTimeout(
+        () => {
+          const roll = Math.random();
+          setGesture(roll < 0.62 ? "blink" : roll < 0.84 ? "double-blink" : "glance");
+          // Return to rest, then queue the next one.
+          timer = setTimeout(() => {
+            setGesture("none");
+            schedule();
+          }, 1600);
+        },
+        2400 + Math.random() * 5000,
+      );
+    };
+
+    schedule();
+    return () => {
+      clearTimeout(timer);
+      // Cleared on the way out rather than on the way in, so disabling never
+      // sets state during the render that disabled it.
+      setGesture("none");
+    };
+  }, [enabled]);
+
+  // Derived rather than stored: a disabled creature is never mid-gesture,
+  // and reading it this way needs no extra render to settle.
+  return enabled ? gesture : "none";
 }
 
 function ThinkingDots() {

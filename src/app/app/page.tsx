@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import { ArrowRight, FileText, Layers, Plus, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { PaperCreature } from "@/components/brand/paper-creature";
+import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import { useNotes, useReviewLogs, useStudySets } from "@/lib/hooks/use-firestore";
 import { useNow } from "@/lib/hooks/use-now";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
@@ -93,22 +95,45 @@ export default function DashboardPage() {
                       {totalFresh > 0 ? ` · ${totalFresh} never seen` : ""}
                     </p>
                   </div>
-                  {readyToReview[0] ? (
-                    <Button size="lg" render={<Link href={`/app/sets/${readyToReview[0].set.id}/review`} />}>
+                  <div className="flex items-center gap-3">
+                    {/* Tala reflects the day rather than decorating it: a
+                        backlog looks like a backlog before you read a number. */}
+                    <PaperCreature
+                      state={totalDue > 20 ? "overdue" : "idle"}
+                      className="hidden size-16 sm:block"
+                      title={CREATURE_ROLE}
+                    />
+                    {readyToReview[0] ? (
+                      <Button
+                        size="lg"
+                        render={
+                          <Link href={`/app/sets/${readyToReview[0].set.id}/review`} />
+                        }
+                      >
                         Start reviewing
                         <ArrowRight />
                       </Button>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </CardContent>
               </Card>
             ) : (
               <Card className="bg-secondary/40">
-                <CardContent className="py-1">
-                  <p className="font-medium">Nothing due right now.</p>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    Your next cards will come back when they are scheduled. Add a new
-                    note to get ahead.
-                  </p>
+                <CardContent className="flex items-center gap-4 py-1">
+                  <PaperCreature
+                    state="asleep"
+                    className="size-16 shrink-0"
+                    title={CREATURE_ROLE}
+                  />
+                  <div>
+                    <p className="font-medium">
+                      Nothing due right now — {CREATURE_NAME} is resting.
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      Your next cards come back when they are scheduled. Add a new
+                      note to get ahead.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}

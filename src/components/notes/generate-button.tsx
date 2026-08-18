@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Loader2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { AnimatedMark } from "@/components/brand/animated-mark";
 import { useQuota } from "@/components/app/quota-indicator";
 import { formatResetDate } from "@/lib/quota";
 import { PLANS, UPGRADE_TARGET } from "@/lib/ai/config";
@@ -138,7 +139,11 @@ export function GenerateStudySetButton({
           disabled={disabled || generating}
           className="min-w-52"
         >
-          {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}
+          {generating ? (
+            <AnimatedMark motion="focusing" className="size-4" />
+          ) : (
+            <Sparkles />
+          )}
           {generating ? "Generating…" : "Generate study set"}
         </Button>
 
