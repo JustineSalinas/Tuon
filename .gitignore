@@ -50,3 +50,8 @@ next-env.d.ts
 *firebase-adminsdk*.json
 *service-account*.json
 *serviceaccount*.json
+
+# Firebase emulator debug output
+firestore-debug.log
+firebase-debug.log
+ui-debug.log

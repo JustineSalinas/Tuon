@@ -3,28 +3,51 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /* =====================================================================
+       Identity
+       ===================================================================== */
+
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // A study set is readable by a stranger only when its owner has explicitly
-    // flipped `isShared`. Costs one document read per rule evaluation, which is
-    // the accepted price for parent-driven access on a subcollection.
-    //
-    // Note there is deliberately no share *token*: rules cannot read query
-    // parameters, so a token check would be client-side only — security
-    // theatre. The real gate is this flag, plus a URL containing two
-    // unguessable ids. Flipping the flag off revokes access immediately.
-    function isSharedSet(userId, studySetId) {
-      return get(/databases/$(database)/documents/users/$(userId)/studySets/$(studySetId))
-        .data.get('isShared', false) == true;
+    /* =====================================================================
+       Shape validation
+
+       Rules must check *what* is written, not only *who* writes it. Without
+       these, a signed-in client can write a 900KB note straight from devtools
+       — no AI call, so the generation quota never engages — and the storage
+       and read cost lands on us.
+
+       Note counts cannot be limited here (rules cannot count documents);
+       that is what App Check and signup rate limiting are for. These bounds
+       cap the per-document damage.
+       ===================================================================== */
+
+    function isText(value, maxLength) {
+      return value is string && value.size() <= maxLength;
     }
 
-    // Fields the user is allowed to change from the client.
-    // Everything else on the profile (plan, aiGenerationsUsedThisPeriod,
-    // generationPeriodStart, lastGenerationAt, email, createdAt) is
-    // server-owned and may only be written by the Admin SDK, which bypasses
-    // these rules entirely.
+    // Optional string: present and short, or explicitly null.
+    function isOptionalText(value, maxLength) {
+      return value == null || isText(value, maxLength);
+    }
+
+    function isTimestamp(value) {
+      return value is timestamp;
+    }
+
+    function isCount(value, maxValue) {
+      return value is int && value >= 0 && value <= maxValue;
+    }
+
+    /* --- users/{uid} ---------------------------------------------------- */
+
+    // Fields the user may change from the client. Everything else on the
+    // profile — plan, aiGenerationsUsedThisPeriod, generationPeriodStart,
+    // lastGenerationAt, email, createdAt — is server-owned and writable only
+    // by the Admin SDK, which bypasses these rules. Without this the paywall
+    // could be forged from the browser console.
     function onlyTouchesUserEditableFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'displayName',
@@ -32,48 +55,216 @@ service cloud.firestore {
         'strand',
         'courses',
         'onboardingCompleted',
+        'timeZone',
+        'dailyCardGoal',
+        'termsAcceptedVersion',
+        'termsAcceptedAt',
+        'isAdult',
+        'guardianConsent',
         'updatedAt'
       ]);
     }
 
+    function validProfileEdit() {
+      let d = request.resource.data;
+      return isText(d.displayName, 80)
+        && (d.educationLevel == null || d.educationLevel in ['grade_11', 'grade_12', 'college'])
+        && (d.strand == null || d.strand in ['stem', 'abm', 'humss', 'gas'])
+        && d.courses is list
+        && d.courses.size() <= 40
+        && d.onboardingCompleted is bool
+        && isOptionalText(d.get('timeZone', null), 64)
+        && (d.get('dailyCardGoal', 0) is int)
+        && validConsent();
+    }
+
+    // Consent is self-attested — nobody can verify a guardian from a browser.
+    // What the rules CAN guarantee is that the record is honest about when it
+    // was made: `termsAcceptedAt` must be the server's clock, not a date the
+    // client picked, so an acceptance cannot be backdated.
+    function validConsent() {
+      let d = request.resource.data;
+      return isOptionalText(d.get('termsAcceptedVersion', null), 32)
+        && (d.get('isAdult', false) is bool)
+        && (d.get('guardianConsent', false) is bool)
+        && (
+          // affectedKeys() is a Set: it answers hasAny/hasAll/hasOnly, not `in`.
+          // The affectedKeys guard matters — without it, every later profile
+          // edit would carry the original acceptance time forward and fail.
+          // `.get` rather than `.termsAcceptedAt` because reading a field that
+          // is not there is an evaluation error, not a false.
+          !d.diff(resource.data).affectedKeys().hasAny(['termsAcceptedAt'])
+          || d.get('termsAcceptedAt', null) == request.time
+        );
+    }
+
+    /* --- notes ----------------------------------------------------------- */
+
+    function validNote() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'title', 'content', 'courseTag', 'linkedTitles',
+          'createdAt', 'updatedAt', 'lastGeneratedAt'
+        ])
+        && d.keys().hasAll(['title', 'content'])
+        && isText(d.title, 140)
+        // Ceiling across every plan. The per-plan limit (30k/60k/120k) is
+        // enforced server-side in /api/generate, where the plan is known.
+        && isText(d.content, 120000)
+        && isOptionalText(d.get('courseTag', null), 80)
+        && (d.get('linkedTitles', []) is list)
+        && d.get('linkedTitles', []).size() <= 200;
+    }
+
+    /* --- study sets ------------------------------------------------------ */
+
+    function validStudySet() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'noteId', 'title', 'courseTag', 'flashcardCount', 'quizQuestionCount',
+          'source', 'isShared', 'createdAt'
+        ])
+        && d.keys().hasAll(['title', 'flashcardCount', 'quizQuestionCount'])
+        && isText(d.title, 140)
+        && isOptionalText(d.get('noteId', null), 64)
+        && isOptionalText(d.get('courseTag', null), 80)
+        && isCount(d.flashcardCount, 500)
+        && isCount(d.quizQuestionCount, 100)
+        && (d.get('source', 'manual') in ['ai', 'manual'])
+        && (d.get('isShared', false) is bool);
+    }
+
+    function validFlashcard() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['front', 'back', 'order'])
+        && d.keys().hasAll(['front', 'back'])
+        && isText(d.front, 400)
+        && isText(d.back, 1200)
+        && d.front.size() > 0
+        && d.back.size() > 0
+        && isCount(d.get('order', 0), 1000);
+    }
+
+    function validQuizQuestion() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['question', 'choices', 'correctIndex', 'order'])
+        && d.keys().hasAll(['question', 'choices', 'correctIndex'])
+        && isText(d.question, 600)
+        && d.choices is list
+        && d.choices.size() >= 2
+        && d.choices.size() <= 6
+        && d.correctIndex is int
+        && d.correctIndex >= 0
+        && d.correctIndex < d.choices.size()
+        && isCount(d.get('order', 0), 1000);
+    }
+
+    /* --- review logs ------------------------------------------------------
+       SM-2 runs on the client, so the client legitimately writes these.
+       Bounding the values stops a tampered client from writing nonsense
+       scheduling state (or gaming the retention stats).
+       -------------------------------------------------------------------- */
+
+    function validReviewLog() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'flashcardId', 'studySetId', 'easeFactor', 'intervalDays',
+          'repetitions', 'nextReviewAt', 'lastReviewedAt', 'lastRating'
+        ])
+        && isText(d.flashcardId, 64)
+        && isText(d.studySetId, 64)
+        && d.easeFactor is number
+        && d.easeFactor >= 1.3
+        && d.easeFactor <= 5.0
+        // 100 years is well past any real interval, and stops a client
+        // parking a card beyond the heat death of the schedule.
+        && isCount(d.intervalDays, 36500)
+        && isCount(d.repetitions, 10000)
+        && isTimestamp(d.nextReviewAt)
+        && d.lastRating in ['again', 'hard', 'good', 'easy'];
+    }
+
+    function validQuizAttempt() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['studySetId', 'studySetTitle', 'score', 'total', 'completedAt'])
+        && isText(d.studySetId, 64)
+        && isOptionalText(d.get('studySetTitle', null), 140)
+        && isCount(d.score, 1000)
+        && isCount(d.total, 1000)
+        && d.score <= d.total;
+    }
+
+    /* =====================================================================
+       Sharing
+
+       A study set is readable by a stranger only when its owner has flipped
+       `isShared`. Costs one document read per rule evaluation, which is the
+       accepted price for parent-driven access on a subcollection.
+
+       There is deliberately no share *token*: rules cannot read query
+       parameters, so a token check would be client-side only — security
+       theatre. The real gate is this flag plus a URL containing two
+       unguessable ids. Flipping it off revokes access immediately.
+       ===================================================================== */
+
+    function isSharedSet(userId, studySetId) {
+      return get(/databases/$(database)/documents/users/$(userId)/studySets/$(studySetId))
+        .data.get('isShared', false) == true;
+    }
+
+    /* =====================================================================
+       Collections
+       ===================================================================== */
+
     match /users/{userId} {
       allow get, list: if isOwner(userId);
 
-      // The profile document is bootstrapped server-side via the Admin SDK
-      // (see /api/profile/bootstrap) so that plan + quota start from a
-      // trusted state. Clients may never create it themselves.
+      // Bootstrapped server-side (/api/profile/bootstrap) so plan and quota
+      // start from a trusted state. Clients may never create it.
       allow create: if false;
-      allow update: if isOwner(userId) && onlyTouchesUserEditableFields();
+      allow update: if isOwner(userId)
+        && onlyTouchesUserEditableFields()
+        && validProfileEdit();
+      // Deletion goes through the Admin SDK so subcollections are removed too.
       allow delete: if false;
 
       match /notes/{noteId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validNote();
+        allow delete: if isOwner(userId);
       }
 
       match /studySets/{studySetId} {
-        // `get` may be satisfied by sharing; `list` never can — a stranger must
-        // not be able to enumerate someone's library even if one set is public.
+        // `get` may be satisfied by sharing; `list` never can — a stranger
+        // must not be able to enumerate a library even if one set is public.
         allow get: if isOwner(userId) || isSharedSet(userId, studySetId);
         allow list: if isOwner(userId);
-        allow create, update, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validStudySet();
+        allow delete: if isOwner(userId);
 
         match /flashcards/{flashcardId} {
           allow read: if isOwner(userId) || isSharedSet(userId, studySetId);
-          allow write: if isOwner(userId);
+          allow create, update: if isOwner(userId) && validFlashcard();
+          allow delete: if isOwner(userId);
         }
 
         match /quizQuestions/{questionId} {
           allow read: if isOwner(userId) || isSharedSet(userId, studySetId);
-          allow write: if isOwner(userId);
+          allow create, update: if isOwner(userId) && validQuizQuestion();
+          allow delete: if isOwner(userId);
         }
       }
 
       match /reviewLogs/{flashcardId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validReviewLog();
+        allow delete: if isOwner(userId);
       }
 
       match /quizAttempts/{attemptId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && validQuizAttempt();
+        allow update, delete: if isOwner(userId);
       }
     }
 

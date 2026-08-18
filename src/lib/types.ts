@@ -19,6 +19,15 @@ export interface UserProfile {
   strand: Strand | null;
   onboardingCompleted: boolean;
 
+  // --- consent (self-attested at onboarding; see lib/legal/consent.ts) -----
+  /** Which version of the terms and privacy notice was agreed to. */
+  termsAcceptedVersion?: string;
+  termsAcceptedAt?: Timestamp;
+  /** Self-declared 18-or-over. */
+  isAdult?: boolean;
+  /** A minor confirmed a parent or guardian reviewed and agreed. */
+  guardianConsent?: boolean;
+
   // --- server-owned; not writable from the client (see firestore.rules) ---
   plan: Plan;
   aiGenerationsUsedThisPeriod: number;

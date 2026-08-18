@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
@@ -17,14 +18,16 @@ import {
   getSubjectGroups,
   isSeniorHigh,
 } from "@/lib/curriculum";
+import { CONSENT_VERSION } from "@/lib/legal/consent";
 import type { EducationLevel, Strand } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
-type StepKey = "name" | "level" | "strand" | "subjects" | "program";
+type StepKey = "name" | "level" | "strand" | "subjects" | "program" | "consent";
 
 const TRANSITION = { duration: 0.28, ease: [0.22, 1, 0.36, 1] } as const;
 
@@ -42,12 +45,16 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   const [courses, setCourses] = useState<string[]>([]);
   const [customCourse, setCustomCourse] = useState("");
 
+  const [isAdult, setIsAdult] = useState<boolean | null>(null);
+  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
+  const [guardianConsent, setGuardianConsent] = useState(false);
+
   // --- Step sequence depends on the education level ------------------------
   const steps = useMemo<StepKey[]>(() => {
     if (educationLevel === null) return ["name", "level"];
     return isSeniorHigh(educationLevel)
-      ? ["name", "level", "strand", "subjects"]
-      : ["name", "level", "program"];
+      ? ["name", "level", "strand", "subjects", "consent"]
+      : ["name", "level", "program", "consent"];
   }, [educationLevel]);
 
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
@@ -65,6 +72,10 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
         return courses.length > 0;
       case "program":
         return courses.length === 1;
+      case "consent":
+        // A minor may not continue on their own say-so alone.
+        if (!agreedToPolicies || isAdult === null) return false;
+        return isAdult || guardianConsent;
       default:
         return false;
     }
@@ -121,6 +132,10 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
         strand: isSeniorHigh(educationLevel) ? strand : null,
         courses,
         onboardingCompleted: true,
+        termsAcceptedVersion: CONSENT_VERSION,
+        termsAcceptedAt: serverTimestamp(),
+        isAdult: isAdult === true,
+        guardianConsent: isAdult === false && guardianConsent,
         updatedAt: serverTimestamp(),
       });
       router.replace("/app");
@@ -320,6 +335,77 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                 </div>
               </StepShell>
             ) : null}
+
+            {currentStep === "consent" ? (
+              <StepShell
+                title="Before we start"
+                subtitle="Two quick things, and then your first study set."
+              >
+                <div className="space-y-5">
+                  <CheckRow
+                    checked={agreedToPolicies}
+                    onChange={setAgreedToPolicies}
+                    label={
+                      <>
+                        I have read and agree to the{" "}
+                        <Link
+                          href="/terms"
+                          target="_blank"
+                          className="text-primary underline underline-offset-4"
+                        >
+                          Terms of Use
+                        </Link>{" "}
+                        and{" "}
+                        <Link
+                          href="/privacy"
+                          target="_blank"
+                          className="text-primary underline underline-offset-4"
+                        >
+                          Privacy Notice
+                        </Link>
+                        .
+                      </>
+                    }
+                    hint="They open in a new tab — you won't lose your setup."
+                  />
+
+                  <div>
+                    <p className="text-sm font-medium">Are you 18 or older?</p>
+                    <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
+                      <SelectCard
+                        selected={isAdult === true}
+                        onClick={() => {
+                          setIsAdult(true);
+                          setGuardianConsent(false);
+                        }}
+                        title="Yes, I'm 18 or older"
+                      />
+                      <SelectCard
+                        selected={isAdult === false}
+                        onClick={() => setIsAdult(false)}
+                        title="No, I'm under 18"
+                      />
+                    </div>
+                  </div>
+
+                  {isAdult === false ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={TRANSITION}
+                      className="border-primary/30 bg-accent/30 rounded-xl border p-4"
+                    >
+                      <CheckRow
+                        checked={guardianConsent}
+                        onChange={setGuardianConsent}
+                        label="A parent or guardian has gone through this with me and agrees to Tuón holding my notes and study history."
+                        hint="They can email hello@tuon.app any time to see or delete your data."
+                      />
+                    </motion.div>
+                  ) : null}
+                </div>
+              </StepShell>
+            ) : null}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -462,6 +548,35 @@ function SelectCard({
         </span>
       </div>
     </button>
+  );
+}
+
+/** Checkbox with a wrapping label, for consent statements that run long. */
+function CheckRow({
+  checked,
+  onChange,
+  label,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <label className="flex cursor-pointer gap-3">
+      <Checkbox
+        checked={checked}
+        onCheckedChange={(next) => onChange(next === true)}
+        className="mt-0.5 shrink-0"
+      />
+      <span className="text-sm leading-relaxed">
+        {label}
+        {hint ? (
+          <span className="text-muted-foreground mt-1 block text-xs">{hint}</span>
+        ) : null}
+      </span>
+    </label>
   );
 }
 

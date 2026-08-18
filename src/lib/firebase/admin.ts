@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getAppCheck } from "firebase-admin/app-check";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -85,6 +86,27 @@ export function adminAuth() {
   return getAuth(adminApp());
 }
 
+/**
+ * Verifies the Firebase App Check token, proving the call came from our app.
+ *
+ * Enforcement is opt-in via APP_CHECK_ENFORCED so it can be switched on only
+ * once the client is issuing tokens — turning it on before that would lock
+ * every real user out.
+ */
+export async function verifyAppCheck(request: Request): Promise<boolean> {
+  if (process.env.APP_CHECK_ENFORCED !== "true") return true;
+
+  const token = request.headers.get("x-firebase-appcheck");
+  if (!token) return false;
+  try {
+    await getAppCheck(adminApp()).verifyToken(token);
+    return true;
+  } catch (error) {
+    console.error("[app-check] token rejected", error);
+    return false;
+  }
+}
+
 export function adminDb() {
   return getFirestore(adminApp());
 }
@@ -97,6 +119,7 @@ export async function verifyRequest(request: Request): Promise<{
   uid: string;
   email: string | null;
   name: string | null;
+  emailVerified: boolean;
 } | null> {
   const header = request.headers.get("authorization");
   if (!header?.startsWith("Bearer ")) return null;
@@ -110,6 +133,9 @@ export async function verifyRequest(request: Request): Promise<{
       uid: decoded.uid,
       email: decoded.email ?? null,
       name: (decoded.name as string | undefined) ?? null,
+      // Google sign-in returns already-verified addresses; email/password
+      // signups start unverified.
+      emailVerified: decoded.email_verified === true,
     };
   } catch (error) {
     // Swallowing this silently makes a legitimately signed-in user look

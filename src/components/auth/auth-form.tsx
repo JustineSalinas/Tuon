@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { FirebaseError } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
@@ -85,7 +86,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setPending("email");
     try {
       if (isSignup) {
-        await createUserWithEmailAndPassword(auth, email.trim(), password);
+        const credential = await createUserWithEmailAndPassword(
+          auth,
+          email.trim(),
+          password,
+        );
+        // Best effort: a failure here must not block signup, since the student
+        // can resend from settings. Verification gates AI generation, not the
+        // account itself.
+        await sendEmailVerification(credential.user).catch(() => {});
       } else {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       }
@@ -195,6 +204,20 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {pending === "google" ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
           Continue with Google
         </Button>
+
+        {isSignup ? (
+          <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
+            By creating an account you agree to our{" "}
+            <Link href="/terms" className="hover:text-foreground underline underline-offset-4">
+              Terms of Use
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="hover:text-foreground underline underline-offset-4">
+              Privacy Notice
+            </Link>
+            . If you are under 18, please read them with a parent or guardian.
+          </p>
+        ) : null}
 
         <p className="text-muted-foreground mt-8 text-center text-sm">
           {isSignup ? "Already have an account? " : "New to Tuón? "}

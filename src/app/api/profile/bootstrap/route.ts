@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
-import { adminConfigError, adminDb, verifyRequest } from "@/lib/firebase/admin";
+import {
+  adminConfigError,
+  adminDb,
+  verifyAppCheck,
+  verifyRequest,
+} from "@/lib/firebase/admin";
 import { currentPeriodStart } from "@/lib/quota";
 
 /**
@@ -18,6 +23,15 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "This server is not fully configured yet.", code: "SERVER_NOT_CONFIGURED" },
       { status: 503 },
+    );
+  }
+
+  // Attestation that the call came from our app, not a script with a token.
+  // No-op until APP_CHECK_ENFORCED is turned on.
+  if (!(await verifyAppCheck(request))) {
+    return NextResponse.json(
+      { error: "This request could not be verified. Please reload and try again." },
+      { status: 403 },
     );
   }
 

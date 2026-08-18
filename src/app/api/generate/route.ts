@@ -2,7 +2,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
-import { adminConfigError, adminDb, verifyRequest } from "@/lib/firebase/admin";
+import {
+  adminConfigError,
+  adminDb,
+  verifyAppCheck,
+  verifyRequest,
+} from "@/lib/firebase/admin";
 import {
   AI_MODEL,
   MAX_OUTPUT_TOKENS,
@@ -56,9 +61,33 @@ export async function POST(request: Request) {
     );
   }
 
+  // Attestation that the call came from our app, not a script with a token.
+  // No-op until APP_CHECK_ENFORCED is turned on.
+  if (!(await verifyAppCheck(request))) {
+    return NextResponse.json(
+      { error: "This request could not be verified. Please reload and try again." },
+      { status: 403 },
+    );
+  }
+
   const caller = await verifyRequest(request);
   if (!caller) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  }
+
+  // Verification gates the one endpoint that costs money. Signing in, writing
+  // notes, and reviewing all work unverified — this exists to stop a script
+  // minting throwaway accounts and farming free generations, not to obstruct
+  // a real student.
+  if (!caller.emailVerified) {
+    return NextResponse.json(
+      {
+        error:
+          "Please confirm your email address before generating a study set. Check your inbox for the link — you can resend it from Settings.",
+        code: "EMAIL_NOT_VERIFIED",
+      },
+      { status: 403 },
+    );
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {

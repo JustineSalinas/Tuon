@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
+import { VerifyEmailBanner } from "@/components/app/verify-email-banner";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -59,7 +60,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <DesktopSidebar pathname={pathname} />
       <MobileHeader />
 
-      <div className="flex-1 pb-20 md:pb-0">{children}</div>
+      <div className="flex-1 pb-20 md:pb-0">
+        <VerifyEmailBanner />
+        {children}
+      </div>
 
       <MobileNav pathname={pathname} />
     </div>

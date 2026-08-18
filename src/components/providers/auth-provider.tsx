@@ -12,7 +12,7 @@ import {
 import { onAuthStateChanged, signOut as firebaseSignOut, type User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 
-import { auth, db } from "@/lib/firebase/client";
+import { auth, db, getAppCheckToken } from "@/lib/firebase/client";
 import type { UserProfile } from "@/lib/types";
 
 interface AuthContextValue {
@@ -106,11 +106,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
+          const appCheckToken = await getAppCheckToken();
           const response = await fetch("/api/profile/bootstrap", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
+              ...(appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}),
             },
             body: JSON.stringify({ displayName: currentUser?.displayName ?? null }),
           });
@@ -155,13 +157,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const authedFetch = useCallback(async (input: string, init: RequestInit = {}) => {
     const current = auth.currentUser;
     if (!current) throw new Error("Not signed in.");
-    const token = await current.getIdToken();
+    const [token, appCheckToken] = await Promise.all([
+      current.getIdToken(),
+      // Null until App Check is configured; the server ignores the header
+      // until APP_CHECK_ENFORCED is on. Every authed route checks it, so this
+      // has to ride along on all of them, not just the bootstrap call.
+      getAppCheckToken(),
+    ]);
     return fetch(input, {
       ...init,
       headers: {
         "Content-Type": "application/json",
         ...(init.headers ?? {}),
         Authorization: `Bearer ${token}`,
+        ...(appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}),
       },
     });
   }, []);

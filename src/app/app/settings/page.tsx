@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useQuota } from "@/components/app/quota-indicator";
+import { DataAndAccount } from "@/components/settings/danger-zone";
 import {
   COLLEGE_PROGRAMS,
   educationLevelLabel,
@@ -216,6 +217,10 @@ function SettingsForm({
           </Button>
         </div>
       </section>
+
+      <Separator className="my-8" />
+
+      <DataAndAccount />
 
       <Separator className="my-8" />
 

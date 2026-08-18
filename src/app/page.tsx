@@ -377,6 +377,17 @@ function SiteFooter() {
       <div className="text-muted-foreground mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between md:px-8">
         <Wordmark className="text-foreground" markClassName="size-5" />
         <p>Made in the Philippines, for Filipino students.</p>
+        <nav className="flex flex-wrap gap-x-5 gap-y-2">
+          <Link href="/privacy" className="hover:text-foreground">
+            Privacy
+          </Link>
+          <Link href="/terms" className="hover:text-foreground">
+            Terms
+          </Link>
+          <a href="mailto:hello@tuon.app" className="hover:text-foreground">
+            Contact
+          </a>
+        </nav>
       </div>
     </footer>
   );

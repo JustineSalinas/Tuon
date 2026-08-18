@@ -13,5 +13,14 @@
         "supportEmail": "ajsalinas005@gmail.com"
       }
     }
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
   }
 }

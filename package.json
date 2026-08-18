@@ -9,7 +9,8 @@
     "lint": "eslint",
     "postinstall": "node scripts/copy-pdf-worker.mjs",
     "test": "tsx tests/run.mjs",
-    "setup:key": "node scripts/set-service-account.mjs"
+    "setup:key": "node scripts/set-service-account.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project tuon-rules-test \"tsx tests/rules.test.mjs\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
@@ -34,6 +35,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
