@@ -10,8 +10,12 @@ import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useQuota } from "@/components/app/quota-indicator";
 import { DataAndAccount } from "@/components/settings/danger-zone";
+import { AccountSecurity } from "@/components/settings/account-security";
+import { StudyPreferences } from "@/components/settings/study-preferences";
 import {
   COLLEGE_PROGRAMS,
+  EDUCATION_LEVELS,
+  STRANDS,
   educationLevelLabel,
   getSubjectGroups,
   isSeniorHigh,
@@ -61,6 +65,12 @@ function SettingsForm({
   const [customCourse, setCustomCourse] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Students change strand and they graduate; onboarding is not the last word.
+  const [editingLevel, setEditingLevel] = useState(false);
+  const [level, setLevel] = useState(profile.educationLevel);
+  const [strand, setStrand] = useState(profile.strand);
+  const levelValid = level !== null && (!isSeniorHigh(level) || strand !== null);
+
   const seniorHigh = isSeniorHigh(profile.educationLevel);
   const dirty =
     displayName.trim() !== (profile.displayName ?? "") ||
@@ -78,6 +88,23 @@ function SettingsForm({
       toast.success("Settings saved.");
     } catch {
       toast.error("Could not save your settings.");
+    }
+    setSaving(false);
+  }
+
+  async function saveLevel() {
+    if (!user || !levelValid) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        educationLevel: level,
+        strand: isSeniorHigh(level) ? strand : null,
+        updatedAt: serverTimestamp(),
+      });
+      setEditingLevel(false);
+      toast.success("Education level updated.");
+    } catch {
+      toast.error("Could not save that change.");
     }
     setSaving(false);
   }
@@ -127,14 +154,79 @@ function SettingsForm({
 
           <div className="space-y-2">
             <Label>Education level</Label>
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Badge variant="secondary">
-                {educationLevelLabel(profile.educationLevel)}
-              </Badge>
-              {strandLabel(profile.strand) ? (
-                <Badge variant="secondary">{strandLabel(profile.strand)}</Badge>
-              ) : null}
-            </div>
+            {editingLevel ? (
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {EDUCATION_LEVELS.map((option) => (
+                    <Chip
+                      key={option.value}
+                      label={option.label}
+                      selected={level === option.value}
+                      onClick={() => {
+                        setLevel(option.value);
+                        // Strand only means anything in Senior High, and the
+                        // subject list depends on it — so both reset together.
+                        if (!isSeniorHigh(option.value)) setStrand(null);
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {isSeniorHigh(level) ? (
+                  <div className="flex flex-wrap gap-2 border-t pt-3">
+                    {STRANDS.map((option) => (
+                      <Chip
+                        key={option.value}
+                        label={option.label}
+                        selected={strand === option.value}
+                        onClick={() => setStrand(option.value)}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Changing your strand changes which subjects are offered. Your
+                  notes and study sets keep whatever tag they already have —
+                  nothing is retagged or deleted.
+                </p>
+
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveLevel} disabled={!levelValid || saving}>
+                    {saving ? <Loader2 className="animate-spin" /> : <Check />}
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingLevel(false);
+                      setLevel(profile.educationLevel);
+                      setStrand(profile.strand);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="secondary">
+                  {educationLevelLabel(profile.educationLevel)}
+                </Badge>
+                {strandLabel(profile.strand) ? (
+                  <Badge variant="secondary">{strandLabel(profile.strand)}</Badge>
+                ) : null}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-auto"
+                  onClick={() => setEditingLevel(true)}
+                >
+                  Change
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -217,6 +309,14 @@ function SettingsForm({
           </Button>
         </div>
       </section>
+
+      <Separator className="my-8" />
+
+      <StudyPreferences />
+
+      <Separator className="my-8" />
+
+      <AccountSecurity />
 
       <Separator className="my-8" />
 

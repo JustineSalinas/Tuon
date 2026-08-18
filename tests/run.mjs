@@ -4,3 +4,4 @@ import "./sm2.test.mjs";
 import "./parser.test.mjs";
 import "./pricing.test.mjs";
 import "./features.test.mjs";
+import "./preferences.test.mjs";

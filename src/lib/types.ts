@@ -19,6 +19,16 @@ export interface UserProfile {
   strand: Strand | null;
   onboardingCompleted: boolean;
 
+  // --- scheduling preferences ---------------------------------------------
+  /**
+   * IANA zone deciding what "due today" means. Absent means Asia/Manila.
+   * A wrong value shifts every review date silently, so it is stored rather
+   * than read from the device on each render.
+   */
+  timeZone?: string;
+  /** Cards the student aims to review in a session. */
+  dailyCardGoal?: number;
+
   // --- consent (self-attested at onboarding; see lib/legal/consent.ts) -----
   /** Which version of the terms and privacy notice was agreed to. */
   termsAcceptedVersion?: string;

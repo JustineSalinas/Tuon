@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { doc, serverTimestamp, setDoc, Timestamp } from "firebase/firestore";
-import { Loader2, RotateCcw, X } from "lucide-react";
+import { Loader2, Plus, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { usePreferences } from "@/lib/hooks/use-preferences";
 import { useNow } from "@/lib/hooks/use-now";
 import {
   bucketByDue,
@@ -72,6 +73,7 @@ type Mode = "loading" | "empty" | "reviewing" | "done";
 export function FlashcardReview({ studySetId }: { studySetId?: string }) {
   const { user } = useAuth();
   const { cards, setsById, loading } = useReviewCards(user?.uid, studySetId);
+  const { dailyCardGoal } = usePreferences();
   const reduceMotion = useReducedMotion();
   // Frozen for the session: the queue must not shift while the student rates.
   const now = useNow();
@@ -95,13 +97,29 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     return [...due, ...fresh];
   }, [cards, loading, now]);
 
-  // Seed the session queue exactly once.
+  // Seed the session queue exactly once, capped at the student's daily goal.
+  //
+  // The cap is the point of the setting: 300 cards after a missed week is the
+  // moment people quit. Nothing is dropped — the rest simply stay due, and
+  // "Keep going" extends the same session rather than starting a new one.
   const seeded = useRef(false);
   useEffect(() => {
     if (seeded.current || loading) return;
     seeded.current = true;
-    setQueue(dueCards);
-  }, [dueCards, loading]);
+    setQueue(dueCards.slice(0, dailyCardGoal));
+  }, [dueCards, loading, dailyCardGoal]);
+
+  const heldBack = Math.max(0, dueCards.length - (queue?.length ?? 0));
+
+  /** Adds the next batch to the running session, keeping progress intact. */
+  const extendSession = useCallback(() => {
+    setQueue((prev) => {
+      if (!prev) return prev;
+      const seen = new Set(prev.map((card) => card.id));
+      const next = dueCards.filter((card) => !seen.has(card.id)).slice(0, dailyCardGoal);
+      return [...prev, ...next];
+    });
+  }, [dueCards, dailyCardGoal]);
 
   const currentCard = queue?.[position] ?? null;
 
@@ -281,6 +299,8 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
           reviewed={reviewed}
           cramming={cramming}
           onCram={startCram}
+          heldBack={heldBack}
+          onKeepGoing={extendSession}
         />
       ) : (
         <>
@@ -462,12 +482,17 @@ function SessionComplete({
   reviewed,
   cramming,
   onCram,
+  heldBack,
+  onKeepGoing,
 }: {
   exitHref: string;
   tally: Record<SrsRating, number>;
   reviewed: number;
   cramming: boolean;
   onCram: () => void;
+  /** Due cards left over the daily goal. */
+  heldBack: number;
+  onKeepGoing: () => void;
 }) {
   return (
     <motion.div
@@ -500,8 +525,27 @@ function SessionComplete({
           ))}
         </div>
 
+        {heldBack > 0 ? (
+          <p className="text-muted-foreground mt-5 text-sm leading-relaxed">
+            {heldBack} more {heldBack === 1 ? "card is" : "cards are"} still due.
+            They keep until you want them — stopping here is a finished session,
+            not an unfinished one.
+          </p>
+        ) : null}
+
         <div className="mt-7 flex flex-col gap-2">
-          <Button render={<Link href={exitHref} />}>Done</Button>
+          {heldBack > 0 ? (
+            <Button onClick={onKeepGoing}>
+              <Plus />
+              Keep going
+            </Button>
+          ) : null}
+          <Button
+            variant={heldBack > 0 ? "outline" : "default"}
+            render={<Link href={exitHref} />}
+          >
+            Done
+          </Button>
           <Button variant="ghost" onClick={onCram}>
             <RotateCcw />
             Go through them again

@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "@/lib/firebase/client";
+import { DEFAULT_TIME_ZONE, dayKeyIn } from "@/lib/time-zone";
 import type { Flashcard, ReviewLog, StudySet } from "@/lib/types";
 
 export interface ReviewCard extends Flashcard {
@@ -184,28 +185,29 @@ export function bucketByDue(cards: ReviewCard[], now: number): DueBuckets {
   return { due, fresh, scheduled };
 }
 
-/** Local (Manila) YYYY-MM-DD key for a date, used by the calendar. */
-export function dayKey(date: Date): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(date);
+/**
+ * Local YYYY-MM-DD key for a date, used by the calendar.
+ *
+ * Takes the zone explicitly rather than reading the system clock: "due today"
+ * is a statement about the student's calendar day, and getting it from the
+ * machine is exactly how a schedule silently shifts by one.
+ */
+export function dayKey(date: Date, timeZone: string = DEFAULT_TIME_ZONE): string {
+  return dayKeyIn(date, timeZone);
 }
 
-/** How many cards fall due on each calendar day. */
-export function useForecast(cards: ReviewCard[]) {
+/** How many cards fall due on each calendar day, in the student's zone. */
+export function useForecast(cards: ReviewCard[], timeZone: string = DEFAULT_TIME_ZONE) {
   return useMemo(() => {
     const byDay = new Map<string, ReviewCard[]>();
     for (const card of cards) {
       const next = card.log?.nextReviewAt?.toDate?.();
       if (!next) continue;
-      const key = dayKey(next);
+      const key = dayKeyIn(next, timeZone);
       const bucket = byDay.get(key);
       if (bucket) bucket.push(card);
       else byDay.set(key, [card]);
     }
     return byDay;
-  }, [cards]);
+  }, [cards, timeZone]);
 }

@@ -56,3 +56,24 @@ export async function deleteStudySetDeep(
   // rather than a set that has vanished with its children left behind.
   await deleteDoc(setRef);
 }
+
+/**
+ * Forgets every scheduling record for a set, keeping the cards.
+ *
+ * Re-studying a subject from scratch — a repeated course, a board review, a
+ * summer refresher — otherwise has no path: the cards are all "mature" and
+ * will not come up for a month. This resets the SM-2 state without touching
+ * the material.
+ */
+export async function resetStudySetProgress(
+  userId: string,
+  studySetId: string,
+): Promise<number> {
+  const setRef = doc(db, "users", userId, "studySets", studySetId);
+  const cards = await getDocs(collection(setRef, "flashcards"));
+
+  await deleteAll(
+    cards.docs.map((card) => doc(db, "users", userId, "reviewLogs", card.id)),
+  );
+  return cards.size;
+}

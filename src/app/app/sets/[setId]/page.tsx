@@ -11,11 +11,15 @@ import {
   Layers,
   ListChecks,
   Loader2,
+  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { deleteStudySetDeep } from "@/lib/firebase/delete-set";
+import {
+  deleteStudySetDeep,
+  resetStudySetProgress,
+} from "@/lib/firebase/delete-set";
 import { useAuth } from "@/components/providers/auth-provider";
 import {
   useFlashcards,
@@ -52,6 +56,7 @@ export default function StudySetPage() {
   const { data: quizQuestions } = useQuizQuestions(user?.uid, params.setId);
   const { byFlashcardId } = useReviewLogs(user?.uid);
   const [deleting, setDeleting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const now = useNow(60_000);
 
   const stats = useMemo(() => {
@@ -67,6 +72,18 @@ export default function StudySetPage() {
     }
     return { due, fresh, scheduled, pending: due + fresh };
   }, [cards, byFlashcardId, now]);
+
+  async function handleReset() {
+    if (!user || !studySet) return;
+    setResetting(true);
+    try {
+      const count = await resetStudySetProgress(user.uid, studySet.id);
+      toast.success(`${count} ${count === 1 ? "card is" : "cards are"} due again.`);
+    } catch {
+      toast.error("Could not reset this set's progress.");
+    }
+    setResetting(false);
+  }
 
   async function handleDelete() {
     if (!user || !studySet) return;
@@ -121,7 +138,44 @@ export default function StudySetPage() {
         </div>
 
         <Dialog>
-          <DialogTrigger render={<Button variant="ghost" size="icon" className="ml-auto" aria-label="Delete set" />}>
+          <DialogTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-auto"
+                aria-label="Reset progress"
+              />
+            }
+          >
+            <RotateCcw className="text-muted-foreground size-4" />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Start this set over?</DialogTitle>
+              <DialogDescription>
+                Every card in this set becomes due again and forgets how well
+                you knew it. The cards themselves are untouched — this only
+                clears the schedule, for when you are studying a subject from
+                scratch.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+              <DialogClose
+                render={
+                  <Button onClick={handleReset} disabled={resetting}>
+                    {resetting ? <Loader2 className="animate-spin" /> : <RotateCcw />}
+                    Reset progress
+                  </Button>
+                }
+              />
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog>
+          <DialogTrigger render={<Button variant="ghost" size="icon" aria-label="Delete set" />}>
               <Trash2 className="text-muted-foreground size-4" />
             </DialogTrigger>
           <DialogContent>

@@ -7,6 +7,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { useNow } from "@/lib/hooks/use-now";
+import { usePreferences } from "@/lib/hooks/use-preferences";
 import {
   bucketByDue,
   dayKey,
@@ -25,17 +26,21 @@ const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 export default function CalendarPage() {
   const { user } = useAuth();
   const { cards, loading } = useReviewCards(user?.uid);
+  const { timeZone } = usePreferences();
   const now = useNow(60_000);
-  const forecast = useForecast(cards);
+  const forecast = useForecast(cards, timeZone);
 
   const [monthOffset, setMonthOffset] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
 
-  const todayKey = dayKey(new Date(now));
+  const todayKey = dayKey(new Date(now), timeZone);
   const buckets = useMemo(() => bucketByDue(cards, now), [cards, now]);
   const waiting = buckets.due.length + buckets.fresh.length;
 
-  const month = useMemo(() => buildMonth(now, monthOffset), [now, monthOffset]);
+  const month = useMemo(
+    () => buildMonth(now, monthOffset, timeZone),
+    [now, monthOffset, timeZone],
+  );
 
   const selectedCards = selected ? (forecast.get(selected) ?? []) : [];
 
@@ -272,7 +277,11 @@ interface MonthDay {
 }
 
 /** Builds a Sunday-aligned 6-week grid around the offset month. */
-function buildMonth(now: number, offset: number): { label: string; days: MonthDay[] } {
+function buildMonth(
+  now: number,
+  offset: number,
+  timeZone: string,
+): { label: string; days: MonthDay[] } {
   const base = new Date(now);
   const first = new Date(base.getFullYear(), base.getMonth() + offset, 1);
 
@@ -289,7 +298,7 @@ function buildMonth(now: number, offset: number): { label: string; days: MonthDa
     const date = new Date(gridStart);
     date.setDate(gridStart.getDate() + i);
     days.push({
-      key: dayKey(date),
+      key: dayKey(date, timeZone),
       dayOfMonth: date.getDate(),
       inMonth: date.getMonth() === first.getMonth(),
     });
