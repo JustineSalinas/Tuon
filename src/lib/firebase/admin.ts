@@ -111,7 +111,28 @@ export async function verifyRequest(request: Request): Promise<{
       email: decoded.email ?? null,
       name: (decoded.name as string | undefined) ?? null,
     };
-  } catch {
+  } catch (error) {
+    // Swallowing this silently makes a legitimately signed-in user look
+    // identical to no user at all, which is very hard to debug. Log the real
+    // reason, and call out clock skew by name — it is the most common cause
+    // and the least obvious, because sign-in succeeds (Google's clock) while
+    // verification fails (ours).
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String((error as { code?: unknown }).code)
+        : "unknown";
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (/expired|used too early|issued in the future|iat|exp/i.test(message)) {
+      console.error(
+        `[auth] Token rejected as expired/not-yet-valid (${code}). ` +
+          "This is usually a system clock problem, not a bad token — check that " +
+          "the server's clock is accurate. Detail: " +
+          message,
+      );
+    } else {
+      console.error(`[auth] verifyIdToken failed (${code}): ${message}`);
+    }
     return null;
   }
 }

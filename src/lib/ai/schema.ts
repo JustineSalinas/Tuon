@@ -30,6 +30,58 @@ const studySetSchema = z.object({
 const MIN_USABLE_FLASHCARDS = 4;
 const MIN_USABLE_QUESTIONS = 2;
 
+/**
+ * The shape the model is *constrained* to emit, via `output_config.format`.
+ *
+ * This replaces the old assistant-prefill trick, which newer models reject
+ * outright ("does not support assistant message prefill"). Structured outputs
+ * are also strictly stronger: the prefill only nudged the model toward JSON,
+ * whereas this guarantees the response parses and matches the shape.
+ *
+ * Note the JSON Schema subset: `additionalProperties: false` is required on
+ * every object, and count/length constraints (minItems, minLength) are not
+ * supported — `parseGeneratedStudySet` still enforces those.
+ */
+export const STUDY_SET_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    flashcards: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          front: { type: "string" },
+          back: { type: "string" },
+        },
+        required: ["front", "back"],
+        additionalProperties: false,
+      },
+    },
+    quiz: {
+      type: "object",
+      properties: {
+        questions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              question: { type: "string" },
+              choices: { type: "array", items: { type: "string" } },
+              correct_index: { type: "integer" },
+            },
+            required: ["question", "choices", "correct_index"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["questions"],
+      additionalProperties: false,
+    },
+  },
+  required: ["flashcards", "quiz"],
+  additionalProperties: false,
+} as const;
+
 export type ParseResult =
   | { ok: true; data: GeneratedStudySet }
   | { ok: false; error: string };

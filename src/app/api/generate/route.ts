@@ -12,8 +12,8 @@ import {
   maxNoteCharsFor,
   normalisePlan,
 } from "@/lib/ai/config";
-import { ASSISTANT_PREFILL, SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompt";
-import { parseGeneratedStudySet } from "@/lib/ai/schema";
+import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompt";
+import { STUDY_SET_JSON_SCHEMA, parseGeneratedStudySet } from "@/lib/ai/schema";
 import { currentPeriodStart, isPeriodExpired, readQuota } from "@/lib/quota";
 import { isSeniorHigh } from "@/lib/curriculum";
 import type { EducationLevel, Plan, Strand } from "@/lib/types";
@@ -252,12 +252,13 @@ export async function POST(request: Request) {
       model: AI_MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
       system: SYSTEM_PROMPT,
-      messages: [
-        { role: "user", content: userPrompt },
-        // Prefilling with an opening brace is the most reliable way to suppress
-        // prose and markdown fences. It is not echoed back, so re-add it below.
-        { role: "assistant", content: ASSISTANT_PREFILL },
-      ],
+      messages: [{ role: "user", content: userPrompt }],
+      // Constrains the response to the exact shape we parse, so the model
+      // cannot wrap it in prose or fences. Replaces the assistant prefill,
+      // which newer models reject with a 400.
+      output_config: {
+        format: { type: "json_schema", schema: STUDY_SET_JSON_SCHEMA },
+      },
     });
 
     if (message.stop_reason === "max_tokens") {
@@ -276,7 +277,7 @@ export async function POST(request: Request) {
       .map((block) => block.text)
       .join("");
 
-    rawText = ASSISTANT_PREFILL + text;
+    rawText = text;
   } catch (error) {
     await refund();
     const busy = error instanceof Anthropic.APIError && error.status === 429;

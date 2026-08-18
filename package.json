@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node scripts/copy-pdf-worker.mjs",
-    "test": "tsx tests/run.mjs"
+    "test": "tsx tests/run.mjs",
+    "setup:key": "node scripts/set-service-account.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",

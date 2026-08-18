@@ -45,3 +45,8 @@ next-env.d.ts
 # debugging artifacts from browser automation
 /.playwright-mcp/
 /*.png
+
+# downloaded service-account keys — never commit these
+*firebase-adminsdk*.json
+*service-account*.json
+*serviceaccount*.json

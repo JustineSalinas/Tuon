@@ -88,9 +88,9 @@ function escapeAttribute(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 
-/**
- * Prefilling the assistant turn with an opening brace is the most reliable way
- * to stop the model from wrapping its JSON in prose or fences. The brace is
- * stripped from the response, so it must be prepended back before parsing.
+/*
+ * There is deliberately no assistant prefill here. Current models reject a
+ * trailing assistant turn ("does not support assistant message prefill"), and
+ * `output_config.format` with STUDY_SET_JSON_SCHEMA does the job better —
+ * it constrains the response rather than merely steering it.
  */
-export const ASSISTANT_PREFILL = "{";
