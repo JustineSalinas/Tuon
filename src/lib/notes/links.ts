@@ -8,9 +8,13 @@ import type { Note } from "@/lib/types";
  * does not exist yet is a feature (it becomes a "create this" affordance),
  * not an error.
  *
- * Resolution happens on the client from the already-loaded notes list. That
- * costs nothing extra up to the low thousands of notes; past that this should
- * move to a stored `linkedTitles` array with an array-contains query.
+ * Each note stores the normalised titles it links to in `linkedTitles`, written
+ * at save time. Backlinks and the graph read that array instead of re-parsing
+ * every note's full text on every lookup, and it is what makes an
+ * array-contains query possible once the list stops fitting in memory.
+ *
+ * Notes saved before that field existed fall back to parsing, so the graph
+ * never silently loses edges during the migration.
  */
 
 /** Matches [[Title]] but not [[ ]] or nested brackets. */
@@ -52,6 +56,16 @@ export function resolveLinks(content: string, allNotes: Note[]): ResolvedLink[] 
   }));
 }
 
+/**
+ * The normalised titles a note links to. Prefers the stored array; parses only
+ * for notes written before it was persisted.
+ */
+export function linkedTitlesOf(note: Note): string[] {
+  if (note.linkedTitles?.length) return note.linkedTitles;
+  if (note.linkedTitles) return [];
+  return parseWikiLinks(note.content).map(normaliseTitle);
+}
+
 /** Notes that link *to* the given note. */
 export function findBacklinks(target: Note, allNotes: Note[]): Note[] {
   const key = normaliseTitle(target.title);
@@ -59,7 +73,7 @@ export function findBacklinks(target: Note, allNotes: Note[]): Note[] {
 
   return allNotes.filter((note) => {
     if (note.id === target.id) return false;
-    return parseWikiLinks(note.content).some((t) => normaliseTitle(t) === key);
+    return linkedTitlesOf(note).includes(key);
   });
 }
 
@@ -86,8 +100,8 @@ export function buildGraph(notes: Note[]): GraphData {
   const seenEdge = new Set<string>();
 
   for (const note of notes) {
-    for (const title of parseWikiLinks(note.content)) {
-      const target = byTitle.get(normaliseTitle(title));
+    for (const title of linkedTitlesOf(note)) {
+      const target = byTitle.get(title);
       if (!target || target.id === note.id) continue;
 
       // Collapse A->B and B->A into one undirected edge.

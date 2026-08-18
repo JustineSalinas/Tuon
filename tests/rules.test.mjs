@@ -22,8 +22,11 @@ import {
   updateDoc,
   deleteDoc,
   collection,
+  collectionGroup,
   getDocs,
+  query,
   serverTimestamp,
+  where,
 } from "firebase/firestore";
 
 const ALICE = "alice-uid";
@@ -218,6 +221,51 @@ await check("a non-string note title is rejected", async () => {
 await check("a flashcard with an empty front is rejected", async () => {
   await assertFails(
     setDoc(doc(alice, card(ALICE, "private1", "empty")), { front: "", back: "A" }),
+  );
+});
+
+await check("a card cannot be stamped with someone else's ownerId", async () => {
+  // This is the whole security argument for the collection-group query: if a
+  // card could claim a foreign owner, it would surface in that student's
+  // review queue.
+  await assertFails(
+    setDoc(doc(alice, card(ALICE, "private1", "forged")), {
+      front: "Q",
+      back: "A",
+      order: 0,
+      ownerId: MALLORY,
+    }),
+  );
+});
+
+await check("a card stamped with its real owner is accepted", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, card(ALICE, "private1", "owned")), {
+      front: "Q",
+      back: "A",
+      order: 0,
+      ownerId: ALICE,
+    }),
+  );
+});
+
+await check("a collection-group card query only returns your own cards", async () => {
+  await seed((db) =>
+    setDoc(doc(db, card(MALLORY, "mset", "m1")), { ...validCard, ownerId: MALLORY }),
+  );
+  const mine = await assertSucceeds(
+    getDocs(query(collectionGroup(alice, "flashcards"), where("ownerId", "==", ALICE))),
+  );
+  assert.ok(mine.size > 0, "own cards come back");
+  assert.ok(
+    mine.docs.every((d) => d.data().ownerId === ALICE),
+    "no other student's cards leak in",
+  );
+});
+
+await check("a collection-group query for someone else's cards is refused", async () => {
+  await assertFails(
+    getDocs(query(collectionGroup(alice, "flashcards"), where("ownerId", "==", MALLORY))),
   );
 });
 

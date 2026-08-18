@@ -6,7 +6,8 @@ import { motion } from "motion/react";
 import { FileText, Plus, Search, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
-import { useNotes } from "@/lib/hooks/use-firestore";
+import { usePagedNotes } from "@/lib/hooks/use-firestore";
+import { LoadMore } from "@/components/app/load-more";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function NotesPage() {
   const { user } = useAuth();
-  const { data: notes, loading } = useNotes(user?.uid);
+  const { data: notes, loading, hasMore, loadMore } = usePagedNotes(user?.uid);
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -99,6 +100,16 @@ export default function NotesPage() {
           ))}
         </div>
       )}
+
+      {!loading && notes.length > 0 ? (
+        <LoadMore
+          hasMore={hasMore}
+          loadMore={loadMore}
+          loadedCount={notes.length}
+          searching={search.trim().length > 0}
+          noun="notes"
+        />
+      ) : null}
     </main>
   );
 }

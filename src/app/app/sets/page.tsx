@@ -6,7 +6,8 @@ import { motion } from "motion/react";
 import { Layers, Plus, Search, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
-import { useReviewLogs, useStudySets } from "@/lib/hooks/use-firestore";
+import { usePagedStudySets, useReviewLogs } from "@/lib/hooks/use-firestore";
+import { LoadMore } from "@/components/app/load-more";
 import { useNow } from "@/lib/hooks/use-now";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudySetsPage() {
   const { user } = useAuth();
-  const { data: sets, loading } = useStudySets(user?.uid);
+  const { data: sets, loading, hasMore, loadMore } = usePagedStudySets(user?.uid);
   const { logs } = useReviewLogs(user?.uid);
   const [search, setSearch] = useState("");
   const now = useNow(60_000);
@@ -120,6 +121,16 @@ export default function StudySetsPage() {
           ))}
         </div>
       )}
+
+      {!loading && sets.length > 0 ? (
+        <LoadMore
+          hasMore={hasMore}
+          loadMore={loadMore}
+          loadedCount={sets.length}
+          searching={search.trim().length > 0}
+          noun="study sets"
+        />
+      ) : null}
     </main>
   );
 }

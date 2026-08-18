@@ -351,6 +351,9 @@ export async function POST(request: Request) {
         front: card.front,
         back: card.back,
         order: index,
+        // Denormalised so the review queue can pull every card the student
+        // owns in ONE collection-group query instead of one query per set.
+        ownerId: caller.uid,
       });
     });
 

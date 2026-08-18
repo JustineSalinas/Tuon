@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { deleteDoc, doc } from "firebase/firestore";
 import {
   ArrowLeft,
   BookOpen,
@@ -16,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { db } from "@/lib/firebase/client";
+import { deleteStudySetDeep } from "@/lib/firebase/delete-set";
 import { useAuth } from "@/components/providers/auth-provider";
 import {
   useFlashcards,
@@ -73,10 +72,7 @@ export default function StudySetPage() {
     if (!user || !studySet) return;
     setDeleting(true);
     try {
-      // Firestore does not cascade. The card and question subcollections are
-      // small, so deleting the parent leaves them orphaned but unreachable —
-      // acceptable for v1; a scheduled cleanup can sweep them later.
-      await deleteDoc(doc(db, "users", user.uid, "studySets", studySet.id));
+      await deleteStudySetDeep(user.uid, studySet.id);
       toast.success("Study set deleted.");
       router.replace("/app/sets");
     } catch {

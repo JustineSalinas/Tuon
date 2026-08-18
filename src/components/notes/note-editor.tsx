@@ -26,6 +26,7 @@ import {
   type ImportedPdf,
 } from "@/components/notes/pdf-import";
 import { isSeniorHigh } from "@/lib/curriculum";
+import { normaliseTitle, parseWikiLinks } from "@/lib/notes/links";
 import { MIN_NOTE_CHARS, maxNoteCharsFor } from "@/lib/ai/config";
 import type { Note } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -97,6 +98,10 @@ export function NoteEditor({ note }: { note?: Note }) {
       title: title.trim() || "Untitled note",
       content,
       courseTag: courseTag.trim() || null,
+      // Persisted so backlinks are an array-contains query rather than a
+      // re-parse of every note's full text on every lookup. Capped to match
+      // the rules; a note with 200 distinct links is already pathological.
+      linkedTitles: parseWikiLinks(content).map(normaliseTitle).slice(0, 200),
       updatedAt: serverTimestamp(),
     };
 

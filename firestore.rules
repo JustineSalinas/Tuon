@@ -134,15 +134,20 @@ service cloud.firestore {
         && (d.get('isShared', false) is bool);
     }
 
-    function validFlashcard() {
+    // `ownerId` is denormalised onto every card so the review queue can read
+    // them all in one collection-group query. It is therefore an access-control
+    // field, not a convenience: it MUST equal the owning path, or one student
+    // could plant a card that shows up in another student's queue.
+    function validFlashcard(userId) {
       let d = request.resource.data;
-      return d.keys().hasOnly(['front', 'back', 'order'])
+      return d.keys().hasOnly(['front', 'back', 'order', 'ownerId'])
         && d.keys().hasAll(['front', 'back'])
         && isText(d.front, 400)
         && isText(d.back, 1200)
         && d.front.size() > 0
         && d.back.size() > 0
-        && isCount(d.get('order', 0), 1000);
+        && isCount(d.get('order', 0), 1000)
+        && d.get('ownerId', userId) == userId;
     }
 
     function validQuizQuestion() {
@@ -244,7 +249,7 @@ service cloud.firestore {
 
         match /flashcards/{flashcardId} {
           allow read: if isOwner(userId) || isSharedSet(userId, studySetId);
-          allow create, update: if isOwner(userId) && validFlashcard();
+          allow create, update: if isOwner(userId) && validFlashcard(userId);
           allow delete: if isOwner(userId);
         }
 
@@ -266,6 +271,23 @@ service cloud.firestore {
         allow create: if isOwner(userId) && validQuizAttempt();
         allow update, delete: if isOwner(userId);
       }
+    }
+
+    /* =====================================================================
+       Collection-group read
+
+       The review queue, calendar, and stats all need every card the student
+       owns. Walking studySets one at a time cost one query per set; this
+       serves all of them in one. It grants nothing extra: `ownerId` is
+       pinned to the owning path by validFlashcard, so this matches exactly
+       the cards the per-set rule above already allows the owner to read.
+
+       Read only — writes still go through the path-scoped rule.
+       ===================================================================== */
+
+    match /{path=**}/flashcards/{flashcardId} {
+      allow read: if request.auth != null
+        && resource.data.get('ownerId', '') == request.auth.uid;
     }
 
     // Deny everything not explicitly matched above.

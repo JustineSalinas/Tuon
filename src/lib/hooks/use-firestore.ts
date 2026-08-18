@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   collection,
   doc,
+  limit as limitTo,
   onSnapshot,
   orderBy,
   query,
@@ -136,6 +137,68 @@ export function useStudySets(userId: string | undefined) {
     BY_CREATED_DESC,
     "createdAt:desc",
   );
+}
+
+/** How many rows a list screen loads before the student asks for more. */
+export const PAGE_SIZE = 30;
+
+export interface PagedState<T> extends CollectionState<T> {
+  /** True while more rows may exist beyond what is loaded. */
+  hasMore: boolean;
+  loadMore: () => void;
+}
+
+/**
+ * A list screen's view of a collection, capped to a page.
+ *
+ * Firestore bills per document read, and a live subscription over an entire
+ * collection re-reads it on every change — so an unbounded list makes every
+ * screen cost grow with the library. Widening `limit()` re-subscribes, which
+ * costs one extra read of the rows already held; that is far cheaper than
+ * never bounding it at all, and it keeps the list live.
+ *
+ * `hasMore` is inferred from a full page: if the query returned exactly the
+ * limit, there is probably more. It can be wrong by one page at the boundary,
+ * which costs the student one empty "Load more" and nothing else.
+ */
+function usePaged<T extends { id: string }>(
+  userId: string | undefined,
+  pathSegments: string[],
+  constraints: QueryConstraint[],
+  constraintKey: string,
+): PagedState<T> {
+  const [size, setSize] = useState(PAGE_SIZE);
+
+  // Reset paging when the user changes, or one account would inherit the
+  // other's scroll depth.
+  const [activeUser, setActiveUser] = useState(userId);
+  if (activeUser !== userId) {
+    setActiveUser(userId);
+    setSize(PAGE_SIZE);
+  }
+
+  const state = useUserCollection<T>(
+    userId,
+    pathSegments,
+    [...constraints, limitTo(size)],
+    `${constraintKey}|limit:${size}`,
+  );
+
+  const loadMore = useCallback(() => setSize((n) => n + PAGE_SIZE), []);
+
+  return {
+    ...state,
+    hasMore: state.data.length >= size,
+    loadMore,
+  };
+}
+
+export function usePagedNotes(userId: string | undefined) {
+  return usePaged<Note>(userId, ["notes"], BY_CREATED_DESC, "createdAt:desc");
+}
+
+export function usePagedStudySets(userId: string | undefined) {
+  return usePaged<StudySet>(userId, ["studySets"], BY_CREATED_DESC, "createdAt:desc");
 }
 
 export function useFlashcards(userId: string | undefined, studySetId: string | undefined) {

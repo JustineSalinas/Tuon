@@ -46,6 +46,12 @@ export interface Note {
   content: string;
   /** Grade 11-12: one of their selected subjects. College: free text. */
   courseTag: string | null;
+  /**
+   * Normalised titles this note links to, written at save time so backlinks
+   * and the graph never re-parse every note. Absent on notes saved before the
+   * field existed — see `linkedTitlesOf`.
+   */
+  linkedTitles?: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -74,6 +80,12 @@ export interface Flashcard {
   front: string;
   back: string;
   order: number;
+  /**
+   * Denormalised copy of the owning user id. Exists so the review queue can
+   * read every card in one collection-group query rather than one query per
+   * study set; the rules pin it to the owning path.
+   */
+  ownerId?: string;
 }
 
 /** Firestore: users/{userId}/studySets/{setId}/quizQuestions/{questionId} */

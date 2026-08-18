@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  collectionGroup,
+  getDocs,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
 
 import { db } from "@/lib/firebase/client";
 import type { Flashcard, ReviewLog, StudySet } from "@/lib/types";
@@ -57,11 +64,21 @@ export function useReviewCards(
 
     async function load(uid: string) {
       try {
-        const [setsSnapshot, logsSnapshot] = await Promise.all([
+        const [setsSnapshot, logsSnapshot, cardsSnapshot] = await Promise.all([
           getDocs(
             query(collection(db, "users", uid, "studySets"), orderBy("createdAt", "desc")),
           ),
           getDocs(collection(db, "users", uid, "reviewLogs")),
+          // One collection-group query for every card the student owns,
+          // instead of one query per study set. `ownerId` is stamped on each
+          // card at write time and pinned to the owning path by the rules.
+          getDocs(
+            query(
+              collectionGroup(db, "flashcards"),
+              where("ownerId", "==", uid),
+              orderBy("order", "asc"),
+            ),
+          ),
         ]);
 
         const logsByCardId = new Map<string, ReviewLog>();
@@ -75,33 +92,40 @@ export function useReviewCards(
 
         const setsById = new Map(sets.map((set) => [set.id, set]));
 
-        // One read per set. A student has tens of sets, not thousands, so the
-        // fan-out is cheap — and it keeps flashcards owner-scoped rather than
-        // needing a collection-group query across every user in the database.
-        const perSet = await Promise.all(
-          sets.map(async (set) => {
-            const cardsSnapshot = await getDocs(
-              query(
-                collection(db, "users", uid, "studySets", set.id, "flashcards"),
-                orderBy("order", "asc"),
-              ),
-            );
-            return cardsSnapshot.docs.map((d) => {
-              const card = { id: d.id, ...d.data() } as Flashcard;
-              return {
-                ...card,
-                studySetId: set.id,
-                studySetTitle: set.title,
-                courseTag: set.courseTag ?? null,
-                log: logsByCardId.get(d.id) ?? null,
-              } satisfies ReviewCard;
-            });
-          }),
+        const cards: ReviewCard[] = [];
+        for (const cardDoc of cardsSnapshot.docs) {
+          // The card's parent set is two segments up: .../studySets/{setId}/flashcards/{id}
+          const parentSetId = cardDoc.ref.parent.parent?.id;
+          if (!parentSetId) continue;
+
+          // Drops cards whose set was filtered out (single-set review) and any
+          // card left behind by a set that was deleted without its children.
+          const set = setsById.get(parentSetId);
+          if (!set) continue;
+
+          const card = { id: cardDoc.id, ...cardDoc.data() } as Flashcard;
+          cards.push({
+            ...card,
+            studySetId: set.id,
+            studySetTitle: set.title,
+            courseTag: set.courseTag ?? null,
+            log: logsByCardId.get(cardDoc.id) ?? null,
+          });
+        }
+
+        // The query returns cards interleaved across sets (it sorts by `order`
+        // globally). Regroup them per set, newest set first, so the queue
+        // reads the same way it did when each set was fetched separately.
+        const setPosition = new Map(sets.map((set, index) => [set.id, index]));
+        cards.sort(
+          (a, b) =>
+            (setPosition.get(a.studySetId) ?? 0) - (setPosition.get(b.studySetId) ?? 0) ||
+            a.order - b.order,
         );
 
         if (cancelled) return;
         setState({
-          cards: perSet.flat(),
+          cards,
           setsById,
           loading: false,
           error: null,
