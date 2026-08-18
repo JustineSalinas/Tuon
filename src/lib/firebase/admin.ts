@@ -1,0 +1,117 @@
+import "server-only";
+
+import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+
+/**
+ * Admin SDK — server only. Bypasses Firestore security rules, so it is the
+ * only thing allowed to write plan / quota fields on a user profile.
+ */
+
+function parseServiceAccount() {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!raw || raw.trim() === "") {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT_KEY is not set. Generate a private key at " +
+        "https://console.firebase.google.com/project/" +
+        `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}/settings/serviceaccounts/adminsdk` +
+        " and paste the full JSON into .env.local.",
+    );
+  }
+
+  let parsed: Record<string, string>;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON. It should be the entire " +
+        "downloaded service-account file on one line, wrapped in single quotes.",
+    );
+  }
+
+  // Env files often store the PEM with literal \n sequences.
+  if (parsed.private_key) {
+    parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+  }
+  return parsed;
+}
+
+/**
+ * Returns a human-readable reason the Admin SDK cannot start, or null when it
+ * is configured. Routes check this first so that a missing service-account key
+ * surfaces as "server not configured" rather than masquerading as a rejected
+ * token — the two are indistinguishable otherwise, which makes first-time
+ * setup very hard to debug.
+ */
+export function adminConfigError(): string | null {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!raw || raw.trim() === "") {
+    return "FIREBASE_SERVICE_ACCOUNT_KEY is not set.";
+  }
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
+      return "FIREBASE_SERVICE_ACCOUNT_KEY is missing project_id, client_email, or private_key.";
+    }
+  } catch {
+    return "FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON.";
+  }
+  return null;
+}
+
+let cachedApp: App | null = null;
+
+function adminApp(): App {
+  if (cachedApp) return cachedApp;
+  const existing = getApps();
+  if (existing.length) {
+    cachedApp = existing[0];
+    return cachedApp;
+  }
+  const serviceAccount = parseServiceAccount();
+  cachedApp = initializeApp({
+    credential: cert({
+      projectId: serviceAccount.project_id,
+      clientEmail: serviceAccount.client_email,
+      privateKey: serviceAccount.private_key,
+    }),
+    projectId: serviceAccount.project_id,
+  });
+  return cachedApp;
+}
+
+export function adminAuth() {
+  return getAuth(adminApp());
+}
+
+export function adminDb() {
+  return getFirestore(adminApp());
+}
+
+/**
+ * Verifies the Firebase ID token on an incoming request.
+ * Returns the uid, or null if the caller is not authenticated.
+ */
+export async function verifyRequest(request: Request): Promise<{
+  uid: string;
+  email: string | null;
+  name: string | null;
+} | null> {
+  const header = request.headers.get("authorization");
+  if (!header?.startsWith("Bearer ")) return null;
+
+  const idToken = header.slice("Bearer ".length).trim();
+  if (!idToken) return null;
+
+  try {
+    const decoded = await adminAuth().verifyIdToken(idToken);
+    return {
+      uid: decoded.uid,
+      email: decoded.email ?? null,
+      name: (decoded.name as string | undefined) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}

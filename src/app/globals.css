@@ -1,26 +1,237 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+/* ===========================================================================
+   Tuón — "Warm Ink"
+   Cream paper, warm charcoal ink, terracotta accent, sage for correctness.
+   Deliberately not edtech-blue: this should feel like a well-made notebook,
+   not a corporate dashboard.
+   =========================================================================== */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-fraunces);
+  --font-heading: var(--font-fraunces);
   --font-mono: var(--font-geist-mono);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Semantic extras used by review + quiz screens */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Paper + ink */
+  --background: oklch(0.973 0.007 84);        /* #FAF7F2 warm cream  */
+  --foreground: oklch(0.216 0.009 55);        /* #1F1B18 warm charcoal */
+  --paper: oklch(0.973 0.007 84);
+  --ink: oklch(0.216 0.009 55);
+
+  --card: oklch(0.995 0.004 84);              /* near-white, still warm */
+  --card-foreground: oklch(0.216 0.009 55);
+  --popover: oklch(0.995 0.004 84);
+  --popover-foreground: oklch(0.216 0.009 55);
+
+  /* Terracotta — the one loud colour, used sparingly */
+  --primary: oklch(0.575 0.126 42);           /* #C0603A */
+  --primary-foreground: oklch(0.985 0.006 84);
+
+  --secondary: oklch(0.938 0.010 82);         /* warm stone */
+  --secondary-foreground: oklch(0.30 0.011 55);
+
+  --muted: oklch(0.938 0.010 82);
+  --muted-foreground: oklch(0.495 0.015 62);  /* #6B6259 */
+
+  --accent: oklch(0.925 0.023 62);            /* faint terracotta wash */
+  --accent-foreground: oklch(0.42 0.085 42);
+
+  --destructive: oklch(0.545 0.174 27);
+  --success: oklch(0.545 0.062 148);          /* sage */
+  --success-foreground: oklch(0.985 0.006 84);
+  --warning: oklch(0.705 0.128 68);
+  --warning-foreground: oklch(0.24 0.02 60);
+
+  --border: oklch(0.892 0.011 78);
+  --input: oklch(0.892 0.011 78);
+  --ring: oklch(0.575 0.126 42);
+
+  --chart-1: oklch(0.575 0.126 42);
+  --chart-2: oklch(0.545 0.062 148);
+  --chart-3: oklch(0.705 0.128 68);
+  --chart-4: oklch(0.495 0.015 62);
+  --chart-5: oklch(0.392 0.048 42);
+
+  --radius: 0.75rem;
+
+  --sidebar: oklch(0.955 0.009 84);
+  --sidebar-foreground: oklch(0.216 0.009 55);
+  --sidebar-primary: oklch(0.575 0.126 42);
+  --sidebar-primary-foreground: oklch(0.985 0.006 84);
+  --sidebar-accent: oklch(0.925 0.023 62);
+  --sidebar-accent-foreground: oklch(0.42 0.085 42);
+  --sidebar-border: oklch(0.892 0.011 78);
+  --sidebar-ring: oklch(0.575 0.126 42);
+}
+
+.dark {
+  /* Lamplight, not black — warm dark for late-night sessions */
+  --background: oklch(0.178 0.007 58);        /* #14110F */
+  --foreground: oklch(0.938 0.010 82);        /* #F2EDE6 */
+  --paper: oklch(0.178 0.007 58);
+  --ink: oklch(0.938 0.010 82);
+
+  --card: oklch(0.228 0.009 58);
+  --card-foreground: oklch(0.938 0.010 82);
+  --popover: oklch(0.228 0.009 58);
+  --popover-foreground: oklch(0.938 0.010 82);
+
+  --primary: oklch(0.678 0.128 45);           /* lifted terracotta for contrast */
+  --primary-foreground: oklch(0.185 0.012 45);
+
+  --secondary: oklch(0.282 0.011 58);
+  --secondary-foreground: oklch(0.938 0.010 82);
+
+  --muted: oklch(0.282 0.011 58);
+  --muted-foreground: oklch(0.685 0.017 72);
+
+  --accent: oklch(0.322 0.030 48);
+  --accent-foreground: oklch(0.885 0.045 62);
+
+  --destructive: oklch(0.665 0.168 24);
+  --success: oklch(0.685 0.078 148);
+  --success-foreground: oklch(0.185 0.012 45);
+  --warning: oklch(0.775 0.122 72);
+  --warning-foreground: oklch(0.185 0.012 45);
+
+  --border: oklch(0.938 0.010 82 / 12%);
+  --input: oklch(0.938 0.010 82 / 16%);
+  --ring: oklch(0.678 0.128 45);
+
+  --chart-1: oklch(0.678 0.128 45);
+  --chart-2: oklch(0.685 0.078 148);
+  --chart-3: oklch(0.775 0.122 72);
+  --chart-4: oklch(0.685 0.017 72);
+  --chart-5: oklch(0.545 0.088 45);
+
+  --sidebar: oklch(0.208 0.008 58);
+  --sidebar-foreground: oklch(0.938 0.010 82);
+  --sidebar-primary: oklch(0.678 0.128 45);
+  --sidebar-primary-foreground: oklch(0.185 0.012 45);
+  --sidebar-accent: oklch(0.322 0.030 48);
+  --sidebar-accent-foreground: oklch(0.885 0.045 62);
+  --sidebar-border: oklch(0.938 0.010 82 / 12%);
+  --sidebar-ring: oklch(0.678 0.128 45);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+    color: var(--foreground);
+  }
+  /* Display type: optical sizing + a touch of softness in the serif */
+  .font-display,
+  h1.font-display,
+  h2.font-display {
+    font-variation-settings: "SOFT" 0, "WONK" 0;
+    letter-spacing: -0.015em;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Paper grain — marketing surfaces only. Deliberately NOT applied to the
+   study screens, where every millisecond of paint matters mid-review. */
+.paper-grain {
+  position: relative;
+}
+.paper-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+}
+.dark .paper-grain::before {
+  mix-blend-mode: screen;
+  opacity: 0.22;
+}
+
+/* Respect users who ask for less motion — Motion reads this too, but the
+   CSS-only transitions need it as well. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Thin, warm scrollbars */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
+  }
 }

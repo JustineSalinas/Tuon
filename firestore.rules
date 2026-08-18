@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Fields the user is allowed to change from the client.
+    // Everything else on the profile (plan, aiGenerationsUsedThisPeriod,
+    // generationPeriodStart, email, createdAt) is server-owned and may only be
+    // written by the Admin SDK, which bypasses these rules entirely.
+    function onlyTouchesUserEditableFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'displayName',
+        'educationLevel',
+        'strand',
+        'courses',
+        'onboardingCompleted',
+        'updatedAt'
+      ]);
+    }
+
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+
+      // The profile document is bootstrapped server-side via the Admin SDK
+      // (see /api/profile/bootstrap) so that plan + quota start from a
+      // trusted state. Clients may never create it themselves.
+      allow create: if false;
+      allow update: if isOwner(userId) && onlyTouchesUserEditableFields();
+      allow delete: if false;
+
+      match /notes/{noteId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /studySets/{studySetId} {
+        allow read, write: if isOwner(userId);
+
+        match /flashcards/{flashcardId} {
+          allow read, write: if isOwner(userId);
+        }
+
+        match /quizQuestions/{questionId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
+      match /reviewLogs/{flashcardId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /quizAttempts/{attemptId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Deny everything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
