@@ -44,10 +44,12 @@ service cloud.firestore {
     /* --- users/{uid} ---------------------------------------------------- */
 
     // Fields the user may change from the client. Everything else on the
-    // profile — plan, aiGenerationsUsedThisPeriod, generationPeriodStart,
-    // lastGenerationAt, email, createdAt — is server-owned and writable only
+    // profile — plan, planStatus, planExpiresAt, billingPeriod,
+    // aiGenerationsUsedThisPeriod, generationPeriodStart, lastGenerationAt,
+    // sessionsRevokedAt, email, createdAt — is server-owned and writable only
     // by the Admin SDK, which bypasses these rules. Without this the paywall
-    // could be forged from the browser console.
+    // could be forged from the browser console: the billing webhook is the
+    // only thing allowed to say that someone paid.
     function onlyTouchesUserEditableFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'displayName',
@@ -283,6 +285,16 @@ service cloud.firestore {
        the cards the per-set rule above already allows the owner to read.
 
        Read only — writes still go through the path-scoped rule.
+       ===================================================================== */
+
+    /* =====================================================================
+       Server-owned collections
+
+       `billingEvents` is the webhook's idempotency ledger and `reports` is the
+       moderation queue; `rateLimits` is the anti-farming counter. All three
+       are Admin-SDK-only — they fall through to the catch-all deny below, and
+       tests assert that. They are named here so it is a decision rather than
+       an omission.
        ===================================================================== */
 
     match /{path=**}/flashcards/{flashcardId} {

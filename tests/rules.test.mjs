@@ -387,6 +387,23 @@ await check("the moderation queue is invisible to clients", async () => {
   await assertFails(setDoc(doc(alice, "reports/forged"), { status: "closed" }));
 });
 
+await check("the billing ledger is invisible to clients", async () => {
+  // The webhook's idempotency claim. A client that could delete an entry could
+  // replay a paid event; one that could write a profile's plan would not even
+  // need to.
+  await assertFails(getDoc(doc(alice, "billingEvents/evt_1")));
+  await assertFails(setDoc(doc(alice, "billingEvents/evt_1"), { type: "payment.paid" }));
+});
+
+await check("a user cannot grant themselves a paid subscription", async () => {
+  await assertFails(
+    updateDoc(doc(alice, profile(ALICE)), { planStatus: "active" }),
+  );
+  await assertFails(
+    updateDoc(doc(alice, profile(ALICE)), { planExpiresAt: serverTimestamp() }),
+  );
+});
+
 await check("nothing outside /users is writable", async () => {
   await assertFails(setDoc(doc(alice, "config/flags"), { admin: true }));
 });

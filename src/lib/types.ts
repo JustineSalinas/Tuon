@@ -40,6 +40,12 @@ export interface UserProfile {
 
   // --- server-owned; not writable from the client (see firestore.rules) ---
   plan: Plan;
+  /** Subscription lifecycle. Only the PayMongo webhook writes these. */
+  planStatus?: "free" | "active" | "cancelled" | "past_due";
+  /** When paid access ends. Grace runs on past this; see plan-state.ts. */
+  planExpiresAt?: Timestamp;
+  billingPeriod?: "monthly" | "annual";
+  planUpdatedAt?: Timestamp;
   aiGenerationsUsedThisPeriod: number;
   /** Start of the current monthly quota window. */
   generationPeriodStart: Timestamp;

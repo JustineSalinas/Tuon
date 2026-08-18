@@ -26,6 +26,7 @@ import {
 import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompt";
 import { STUDY_SET_JSON_SCHEMA, parseGeneratedStudySet } from "@/lib/ai/schema";
 import { currentPeriodStart, isPeriodExpired, readQuota } from "@/lib/quota";
+import { effectiveAccess, readPlanState } from "@/lib/billing/plan-state";
 import { isSeniorHigh } from "@/lib/curriculum";
 import type { EducationLevel, Plan, Strand } from "@/lib/types";
 
@@ -174,7 +175,11 @@ export async function POST(request: Request) {
         courses?: string[];
       };
 
-      const plan: Plan = normalisePlan(data.plan);
+      // The *effective* plan, not the stored one: a subscription that lapsed
+      // (past its grace window) must fall back to free limits even though no
+      // job has rewritten the profile. A stored "is active" flag would go
+      // stale silently and keep serving Pro limits for free.
+      const plan: Plan = effectiveAccess(readPlanState(data)).plan;
 
       // Note length is plan-dependent, so it can only be checked once the
       // profile has been read — hence inside the transaction rather than

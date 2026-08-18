@@ -7,6 +7,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { formatResetDate, readQuota } from "@/lib/quota";
 import { PLANS, UPGRADE_TARGET } from "@/lib/ai/config";
 import { Progress } from "@/components/ui/progress";
+import { effectiveAccess, readPlanState } from "@/lib/billing/plan-state";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,7 +18,9 @@ export function useQuota() {
   const { profile } = useAuth();
   if (!profile) return null;
   return readQuota(
-    profile.plan,
+    // Mirrors the server: an expired plan shows free limits, so the meter
+    // never promises an allowance the API will refuse.
+    effectiveAccess(readPlanState(profile)).plan,
     profile.aiGenerationsUsedThisPeriod ?? 0,
     profile.generationPeriodStart?.toDate?.() ?? new Date(),
   );

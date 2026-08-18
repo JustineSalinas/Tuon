@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { Check, Loader2, LogOut, Plus, Sparkles, X } from "lucide-react";
+import { Check, Loader2, LogOut, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useQuota } from "@/components/app/quota-indicator";
+import { BillingCard } from "@/components/settings/billing-card";
 import { DataAndAccount } from "@/components/settings/danger-zone";
 import { AccountSecurity } from "@/components/settings/account-security";
 import { StudyPreferences } from "@/components/settings/study-preferences";
@@ -21,22 +21,11 @@ import {
   isSeniorHigh,
   strandLabel,
 } from "@/lib/curriculum";
-import {
-  GENERATION_EXPLAINER,
-  PLANS,
-  UPGRADE_TARGET,
-  annualFreeMonths,
-  isPaidPlan,
-  normalisePlan,
-} from "@/lib/ai/config";
-import { formatResetDate } from "@/lib/quota";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -135,7 +124,7 @@ function SettingsForm({
       <h1 className="font-display text-3xl font-semibold tracking-tight">Settings</h1>
 
       {/* Plan */}
-      <PlanCard profile={profile} />
+      <BillingCard profile={profile} />
 
       {/* Profile */}
       <section className="mt-8">
@@ -335,75 +324,6 @@ function SettingsForm({
         </Button>
       </div>
     </main>
-  );
-}
-
-function PlanCard({ profile }: { profile: UserProfile }) {
-  const quota = useQuota();
-  const plan = PLANS[normalisePlan(profile.plan)];
-  const upgrade = PLANS[UPGRADE_TARGET];
-  const paid = isPaidPlan(plan.id);
-
-  return (
-    <Card className="mt-8">
-      <CardContent className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="font-medium">
-              {paid ? `Tuón ${plan.name}` : "Free plan"}
-            </h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {plan.monthlyGenerations} AI study sets per month. Notes, PDF
-              imports, and flashcards you write yourself are always unlimited.
-            </p>
-          </div>
-          <Badge variant={paid ? "default" : "secondary"}>{plan.name}</Badge>
-        </div>
-
-        {quota ? (
-          <div>
-            <div className="flex items-baseline justify-between text-sm">
-              <span className="text-muted-foreground">Used this month</span>
-              <span className="tabular-nums">
-                {quota.used}/{quota.limit}
-              </span>
-            </div>
-            <Progress value={(quota.used / quota.limit) * 100} className="mt-2 h-1.5" />
-            <p className="text-muted-foreground mt-2 text-xs">
-              One study set is {GENERATION_EXPLAINER}. Resets{" "}
-              {formatResetDate(quota.resetsAt)}.
-            </p>
-          </div>
-        ) : null}
-
-        {!paid ? (
-          <>
-            <Separator />
-            <div className="bg-accent/40 rounded-xl p-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="text-primary size-4" />
-                <span className="font-medium">Tuón {upgrade.name}</span>
-                <span className="font-display ml-auto text-lg font-semibold">
-                  ₱{upgrade.phpMonthly}
-                  <span className="text-muted-foreground text-sm font-normal">
-                    /month
-                  </span>
-                </span>
-              </div>
-              <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                {upgrade.monthlyGenerations} study sets a month. Or ₱
-                {upgrade.phpAnnual?.toLocaleString("en-PH")} for the year —{" "}
-                {annualFreeMonths(UPGRADE_TARGET)} months free. Payments are not
-                live yet; GCash and Maya are coming through PayMongo.
-              </p>
-              <Button className="mt-3 w-full" disabled>
-                Coming soon
-              </Button>
-            </div>
-          </>
-        ) : null}
-      </CardContent>
-    </Card>
   );
 }
 
