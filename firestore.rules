@@ -71,7 +71,7 @@ service cloud.firestore {
     function validProfileEdit() {
       let d = request.resource.data;
       return isText(d.displayName, 80)
-        && (d.educationLevel == null || d.educationLevel in ['grade_11', 'grade_12', 'college'])
+        && (d.educationLevel == null || d.educationLevel in ['grade_11', 'grade_12', 'college', 'board_review'])
         && (d.strand == null || d.strand in [
           'stem', 'abm', 'humss', 'gas',
           'tvl_he', 'tvl_ict', 'tvl_ia', 'tvl_afa',

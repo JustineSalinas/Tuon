@@ -17,11 +17,13 @@ import {
 } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import {
+  BOARD_EXAMS,
   COLLEGE_PROGRAMS,
   EDUCATION_LEVELS,
   STRANDS,
   STRAND_TRACKS,
   getSubjectGroups,
+  isBoardReview,
   isSeniorHigh,
 } from "@/lib/curriculum";
 import { CONSENT_VERSION } from "@/lib/legal/consent";
@@ -273,7 +275,11 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") goNext();
                     }}
-                    placeholder="Start typing your school's name"
+                    placeholder={
+                      isBoardReview(educationLevel)
+                        ? "Your review centre or school"
+                        : "Start typing your school's name"
+                    }
                     maxLength={MAX_SCHOOL_LENGTH}
                     autoComplete="organization"
                     className="h-14 text-lg"
@@ -388,12 +394,23 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
             {currentStep === "program" ? (
               <StepShell
-                title="What course are you taking?"
-                subtitle="Your degree program. You will tag individual subjects on each note."
+                title={
+                  isBoardReview(educationLevel)
+                    ? "Which exam are you reviewing for?"
+                    : "What course are you taking?"
+                }
+                subtitle={
+                  isBoardReview(educationLevel)
+                    ? "You will tag individual subjects on each note."
+                    : "Your degree program. You will tag individual subjects on each note."
+                }
               >
                 <div className="max-h-[46vh] overflow-y-auto pr-1">
                   <div className="flex flex-wrap gap-2">
-                    {COLLEGE_PROGRAMS.map((program) => (
+                    {(isBoardReview(educationLevel)
+                      ? BOARD_EXAMS
+                      : COLLEGE_PROGRAMS
+                    ).map((program) => (
                       <Chip
                         key={program}
                         label={program}
@@ -405,12 +422,18 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
                   <CustomCourses
                     label="Not listed? Add it"
-                    placeholder="e.g. BS Marine Biology"
+                    placeholder={
+                      isBoardReview(educationLevel)
+                        ? "e.g. Geodetic Engineering"
+                        : "e.g. BS Marine Biology"
+                    }
                     value={customCourse}
                     onChange={setCustomCourse}
                     onAdd={addCustomCourse}
                     custom={
-                      courses[0] && !COLLEGE_PROGRAMS.includes(courses[0] as never)
+                      courses[0] &&
+                      !COLLEGE_PROGRAMS.includes(courses[0] as never) &&
+                      !BOARD_EXAMS.includes(courses[0] as never)
                         ? [courses[0]]
                         : []
                     }

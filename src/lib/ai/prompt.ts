@@ -2,7 +2,7 @@ import { QUIZ_CHOICES_PER_QUESTION, QUIZ_QUESTIONS, targetFlashcardCount } from 
 import { educationLevelLabel, isSeniorHigh, strandLabel } from "@/lib/curriculum";
 import type { EducationLevel, Strand } from "@/lib/types";
 
-export const SYSTEM_PROMPT = `You are the study-material generator for Tuón, a study app used by Filipino Senior High School (Grades 11-12) and college students.
+export const SYSTEM_PROMPT = `You are the study-material generator for Tuón, a study app used by Filipino Senior High School (Grades 11-12) students, college students, and people reviewing for PRC licensure exams and the Bar.
 
 Your job: turn a student's class notes into flashcards and a practice quiz.
 
@@ -80,7 +80,7 @@ export function buildUserPrompt({
 
 Generate exactly ${flashcardTarget} flashcards and exactly ${QUIZ_QUESTIONS} quiz questions from the note below.
 
-Pitch the difficulty at the stated education level: a Grade 11 student meeting this material for the first time needs different cards than a college student in a major course.
+Pitch the difficulty at the stated education level: a Grade 11 student meeting this material for the first time needs different cards than a college student in a major course. Someone reviewing for a board or licensure exam already knows the basics — give them the precise, examinable detail (figures, criteria, contraindications, exceptions) rather than definitions.
 
 <note title="${escapeAttribute(noteTitle)}">
 ${sanitiseNoteContent(noteContent)}

@@ -15,7 +15,47 @@ export const EDUCATION_LEVELS: {
   { value: "grade_11", label: "Grade 11", hint: "Senior High School" },
   { value: "grade_12", label: "Grade 12", hint: "Senior High School" },
   { value: "college", label: "College", hint: "Undergraduate" },
+  {
+    value: "board_review",
+    label: "Board or licensure review",
+    hint: "Reviewing for a PRC exam or the Bar",
+  },
 ];
+
+/**
+ * PRC licensure exams and the Bar. Single-select like a degree program: you
+ * review for one at a time. Free text covers the rest — PRC administers
+ * dozens more than it is useful to list.
+ */
+export const BOARD_EXAMS = [
+  "Nursing (NLE)",
+  "Licensure Exam for Teachers (LET)",
+  "Certified Public Accountant (CPALE)",
+  "Criminology (CLE)",
+  "Civil Engineering",
+  "Mechanical Engineering",
+  "Electrical Engineering",
+  "Electronics Engineering",
+  "Medical Technology (MTLE)",
+  "Midwifery",
+  "Pharmacy",
+  "Physical Therapy",
+  "Psychometrician",
+  "Social Work",
+  "Nutrition and Dietetics",
+  "Radiologic Technology",
+  "Agriculture",
+  "Architecture",
+  "Master Plumber",
+  "Real Estate Broker",
+  "Customs Broker",
+  "Marine Deck Officer",
+  "Marine Engineer Officer",
+  "Physician (PLE)",
+  "Dentistry",
+  "Veterinary Medicine",
+  "Bar Examination",
+] as const;
 
 export const STRANDS: {
   value: Strand;
@@ -279,6 +319,11 @@ export function getSubjectGroups(strand: Strand): SubjectGroup[] {
 
 export function isSeniorHigh(level: EducationLevel | null): boolean {
   return level === "grade_11" || level === "grade_12";
+}
+
+/** True when the picker should offer licensure exams rather than programs. */
+export function isBoardReview(level: EducationLevel | null): boolean {
+  return level === "board_review";
 }
 
 export function educationLevelLabel(level: EducationLevel | null): string {

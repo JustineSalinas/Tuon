@@ -181,6 +181,20 @@ await check("consent flags must be booleans", async () => {
   await assertFails(updateDoc(doc(alice, profile(ALICE)), { isAdult: "yes" }));
 });
 
+await check("every education level the app offers is accepted", async () => {
+  for (const educationLevel of ["grade_11", "grade_12", "college", "board_review"]) {
+    await assertSucceeds(
+      updateDoc(doc(alice, profile(ALICE)), { educationLevel }),
+    );
+  }
+});
+
+await check("an invented education level is rejected", async () => {
+  await assertFails(
+    updateDoc(doc(alice, profile(ALICE)), { educationLevel: "phd" }),
+  );
+});
+
 await check("every SHS track DepEd actually has is accepted", async () => {
   // Regression guard: the rules enumerate strands, so adding a track to
   // curriculum.ts without adding it here locks those students out silently.

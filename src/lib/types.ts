@@ -1,6 +1,16 @@
 import type { Timestamp } from "firebase/firestore";
 
-export type EducationLevel = "grade_11" | "grade_12" | "college";
+/**
+ * `board_review` covers licensure and board examinees, who are usually
+ * graduates rather than enrolled students. They were previously forced to
+ * claim "college" — and the Pro tier's own copy promises them board review,
+ * so the door was closed on people the pricing already invited.
+ */
+export type EducationLevel =
+  | "grade_11"
+  | "grade_12"
+  | "college"
+  | "board_review";
 /**
  * SHS track/strand. DepEd has four TRACKS; the Academic track is the one with
  * four strands under it, TVL has four, and Sports and Arts and Design have

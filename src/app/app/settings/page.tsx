@@ -13,11 +13,13 @@ import { DataAndAccount } from "@/components/settings/danger-zone";
 import { AccountSecurity } from "@/components/settings/account-security";
 import { StudyPreferences } from "@/components/settings/study-preferences";
 import {
+  BOARD_EXAMS,
   COLLEGE_PROGRAMS,
   EDUCATION_LEVELS,
   STRANDS,
   educationLevelLabel,
   getSubjectGroups,
+  isBoardReview,
   isSeniorHigh,
   strandLabel,
 } from "@/lib/curriculum";
@@ -260,7 +262,10 @@ function SettingsForm({
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {COLLEGE_PROGRAMS.map((program) => (
+                {(isBoardReview(profile.educationLevel)
+                  ? BOARD_EXAMS
+                  : COLLEGE_PROGRAMS
+                ).map((program) => (
                   <Chip
                     key={program}
                     label={program}
@@ -351,7 +356,12 @@ function isPreset(
   strand: string | null,
   seniorHigh: boolean,
 ): boolean {
-  if (!seniorHigh) return COLLEGE_PROGRAMS.includes(course as never);
+  if (!seniorHigh) {
+    return (
+      COLLEGE_PROGRAMS.includes(course as never) ||
+      BOARD_EXAMS.includes(course as never)
+    );
+  }
   if (!strand) return false;
   return getSubjectGroups(strand as never).some((group) =>
     group.subjects.some((s) => s === course),
