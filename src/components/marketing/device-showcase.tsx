@@ -1,7 +1,5 @@
 "use client";
 
-import { Smartphone, TabletSmartphone } from "lucide-react";
-
 /**
  * Scaled-down device silhouettes for the landing page.
  *
@@ -14,6 +12,39 @@ import { Smartphone, TabletSmartphone } from "lucide-react";
  * they are physical. No painted status bar — a fake one reads as doubled-up
  * against the real thing.
  */
+
+/**
+ * Platform marks for the "soon on" pills.
+ *
+ * These are nominative use — naming the platform an app is headed for — and
+ * NOT reproductions of the official "Download on the App Store" / "Get it on
+ * Google Play" badges, which are locked artwork you may only use to link to a
+ * live listing.
+ *
+ * BEFORE LAUNCH, replace these with the real badge assets from Apple's and
+ * Google's identity guideline pages. Both require their supplied artwork used
+ * unmodified; a hand-drawn approximation breaks the guidelines more surely
+ * than shipping no badge at all. These exist so the layout is right today.
+ */
+function AppleLogo({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M16.36 12.72c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.83-.81-3.01-.79-1.55.02-2.98.9-3.77 2.28-1.61 2.79-.41 6.92 1.15 9.19.76 1.11 1.67 2.35 2.86 2.31 1.15-.05 1.58-.74 2.97-.74 1.39 0 1.78.74 2.99.72 1.24-.02 2.02-1.13 2.78-2.24.87-1.29 1.23-2.54 1.25-2.6-.03-.01-2.39-.92-2.41-3.64zM14.1 5.98c.63-.77 1.06-1.83.94-2.9-.91.04-2.02.61-2.68 1.37-.59.68-1.1 1.77-.96 2.81 1.02.08 2.06-.52 2.7-1.28z" />
+    </svg>
+  );
+}
+
+/** Google Play's four-colour triangle. */
+function PlayStoreLogo({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M3.6 2.4a1.2 1.2 0 0 0-.5 1v17.2c0 .42.2.79.5 1l9.06-9.6L3.6 2.4z" fill="#34A853" />
+      <path d="M16.9 8.55 13.5 6.6 3.6 2.4a1.2 1.2 0 0 0-.14-.06l9.2 9.66 4.24-3.45z" fill="#4285F4" />
+      <path d="m12.66 12 -9.2 9.66c.05-.02.1-.04.14-.06l9.9-4.2 3.4-1.95L12.66 12z" fill="#EA4335" />
+      <path d="m16.9 8.55-4.24 3.45 4.24 3.45 3.4-1.95a1.2 1.2 0 0 0 0-3l-3.4-1.95z" fill="#FBBC04" />
+    </svg>
+  );
+}
 
 function MacBookMini() {
   return (
@@ -165,21 +196,21 @@ export function NativeAppsNotice() {
 
       <div className="flex shrink-0 gap-2.5">
         <div className="border-border bg-background flex h-[52px] items-center gap-2.5 rounded-xl border px-4">
-          <Smartphone className="text-muted-foreground size-5" strokeWidth={1.7} />
+          <AppleLogo />
           <div>
             <p className="text-muted-foreground text-[10.5px] tracking-wider uppercase">
               Soon on
             </p>
-            <p className="text-sm font-medium">iPhone</p>
+            <p className="text-sm font-medium">App Store</p>
           </div>
         </div>
         <div className="border-border bg-background flex h-[52px] items-center gap-2.5 rounded-xl border px-4">
-          <TabletSmartphone className="text-muted-foreground size-5" strokeWidth={1.7} />
+          <PlayStoreLogo />
           <div>
             <p className="text-muted-foreground text-[10.5px] tracking-wider uppercase">
               Soon on
             </p>
-            <p className="text-sm font-medium">Android</p>
+            <p className="text-sm font-medium">Google Play</p>
           </div>
         </div>
       </div>
