@@ -47,6 +47,52 @@ export const STRANDS: {
     full: "General Academic Strand",
     hint: "Humanities, economics, social science",
   },
+  {
+    value: "tvl_he",
+    label: "TVL — Home Economics",
+    full: "Tech-Voc Livelihood: Home Economics",
+    hint: "Cookery, baking, caregiving, tourism",
+  },
+  {
+    value: "tvl_ict",
+    label: "TVL — ICT",
+    full: "Tech-Voc Livelihood: Information and Communications Technology",
+    hint: "Programming, computer servicing, animation",
+  },
+  {
+    value: "tvl_ia",
+    label: "TVL — Industrial Arts",
+    full: "Tech-Voc Livelihood: Industrial Arts",
+    hint: "EIM, welding, automotive, plumbing",
+  },
+  {
+    value: "tvl_afa",
+    label: "TVL — Agri-Fishery",
+    full: "Tech-Voc Livelihood: Agri-Fishery Arts",
+    hint: "Crops, animals, aquaculture, food processing",
+  },
+  {
+    value: "sports",
+    label: "Sports",
+    full: "Sports Track",
+    hint: "Coaching, officiating, fitness, first aid",
+  },
+  {
+    value: "arts",
+    label: "Arts and Design",
+    full: "Arts and Design Track",
+    hint: "Media, visual, literary, dance, music, theatre",
+  },
+];
+
+/**
+ * Which DepEd track each strand sits under, for grouping the picker.
+ * Sports and Arts and Design are tracks with no strands beneath them.
+ */
+export const STRAND_TRACKS: { track: string; strands: Strand[] }[] = [
+  { track: "Academic", strands: ["stem", "abm", "humss", "gas"] },
+  { track: "Tech-Voc Livelihood", strands: ["tvl_he", "tvl_ict", "tvl_ia", "tvl_afa"] },
+  { track: "Sports and Arts", strands: ["sports", "arts"] },
 ];
 
 /** Taken by every SHS student regardless of strand. */
@@ -84,7 +130,75 @@ export const STRAND_SUBJECTS: Record<Strand, string[]> = {
     "Community Engagement",
   ],
   gas: ["Humanities", "Applied Economics", "Social Science"],
+
+  // TVL specialisations vary a lot by school — these are the common NC II
+  // qualifications, and the picker still takes free text for the rest.
+  tvl_he: [
+    "Cookery",
+    "Bread and Pastry Production",
+    "Food and Beverage Services",
+    "Housekeeping",
+    "Tourism Promotion Services",
+    "Caregiving",
+    "Dressmaking",
+    "Beauty Care and Nail Care",
+  ],
+  tvl_ict: [
+    "Computer Systems Servicing",
+    "Computer Programming",
+    "Animation",
+    "Illustration",
+    "Technical Drafting",
+    "Contact Center Services",
+    "Empowerment Technologies",
+  ],
+  tvl_ia: [
+    "Electrical Installation and Maintenance",
+    "Shielded Metal Arc Welding",
+    "Automotive Servicing",
+    "Electronics Products Assembly and Servicing",
+    "Refrigeration and Air-Conditioning Servicing",
+    "Carpentry",
+    "Masonry",
+    "Plumbing",
+  ],
+  tvl_afa: [
+    "Agricultural Crops Production",
+    "Animal Production",
+    "Organic Agriculture Production",
+    "Aquaculture",
+    "Fish Capture",
+    "Food Processing",
+    "Horticulture",
+  ],
+
+  sports: [
+    "Safety and First Aid",
+    "Human Movement",
+    "Fundamentals of Coaching",
+    "Sports Officiating and Activity Management",
+    "Fitness Testing and Basic Exercise Programming",
+    "Psychosocial Aspects of Sports and Exercise",
+    "Fitness Education",
+  ],
+  arts: [
+    "Creative Industries I: Arts and Design Appreciation and Production",
+    "Creative Industries II: Performing Arts",
+    "Physical and Personal Development in the Arts",
+    "Developing Filipino Identity in the Arts",
+    "Integrating the Elements and Principles of Organization in the Arts",
+    "Leadership and Management in Different Arts Fields",
+    "Apprenticeship and Exploration of Different Arts Fields",
+  ],
 };
+
+/** Shared by every TVL strand, whatever the specialisation. */
+export const TVL_COMMON_SUBJECTS = [
+  "Entrepreneurship",
+  "Practical Research 1",
+  "Practical Research 2",
+  "Work Immersion",
+] as const;
 
 /** College entrance exams — relevant to Grade 11-12 students. */
 export const EXAM_PREP_SUBJECTS = [
@@ -145,6 +259,16 @@ export function getSubjectGroups(strand: Strand): SubjectGroup[] {
       description: strandMeta?.full,
       subjects: STRAND_SUBJECTS[strand],
     },
+    // Every TVL strand carries these on top of its specialisation.
+    ...(strand.startsWith("tvl_")
+      ? [
+          {
+            label: "Also in every TVL strand",
+            description: undefined,
+            subjects: TVL_COMMON_SUBJECTS,
+          },
+        ]
+      : []),
     {
       label: "Entrance exam prep",
       description: "Optional",

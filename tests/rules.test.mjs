@@ -181,6 +181,22 @@ await check("consent flags must be booleans", async () => {
   await assertFails(updateDoc(doc(alice, profile(ALICE)), { isAdult: "yes" }));
 });
 
+await check("every SHS track DepEd actually has is accepted", async () => {
+  // Regression guard: the rules enumerate strands, so adding a track to
+  // curriculum.ts without adding it here locks those students out silently.
+  for (const strand of [
+    "stem", "abm", "humss", "gas",
+    "tvl_he", "tvl_ict", "tvl_ia", "tvl_afa",
+    "sports", "arts",
+  ]) {
+    await assertSucceeds(updateDoc(doc(alice, profile(ALICE)), { strand }));
+  }
+});
+
+await check("an invented strand is still rejected", async () => {
+  await assertFails(updateDoc(doc(alice, profile(ALICE)), { strand: "wizardry" }));
+});
+
 await check("a student can set and clear their school", async () => {
   await assertSucceeds(
     updateDoc(doc(alice, profile(ALICE)), { school: "Batangas State University" }),

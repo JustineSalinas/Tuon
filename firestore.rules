@@ -72,7 +72,11 @@ service cloud.firestore {
       let d = request.resource.data;
       return isText(d.displayName, 80)
         && (d.educationLevel == null || d.educationLevel in ['grade_11', 'grade_12', 'college'])
-        && (d.strand == null || d.strand in ['stem', 'abm', 'humss', 'gas'])
+        && (d.strand == null || d.strand in [
+          'stem', 'abm', 'humss', 'gas',
+          'tvl_he', 'tvl_ict', 'tvl_ia', 'tvl_afa',
+          'sports', 'arts'
+        ])
         && isOptionalText(d.get('school', null), 120)
         && d.courses is list
         && d.courses.size() <= 40

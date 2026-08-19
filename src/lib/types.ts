@@ -1,7 +1,24 @@
 import type { Timestamp } from "firebase/firestore";
 
 export type EducationLevel = "grade_11" | "grade_12" | "college";
-export type Strand = "stem" | "abm" | "humss" | "gas";
+/**
+ * SHS track/strand. DepEd has four TRACKS; the Academic track is the one with
+ * four strands under it, TVL has four, and Sports and Arts and Design have
+ * none. This is a flat union rather than a track+strand pair because that is
+ * the shape the profile already stores — the grouping lives in
+ * `curriculum.ts` instead.
+ */
+export type Strand =
+  | "stem"
+  | "abm"
+  | "humss"
+  | "gas"
+  | "tvl_he"
+  | "tvl_ict"
+  | "tvl_ia"
+  | "tvl_afa"
+  | "sports"
+  | "arts";
 export type Plan = "free" | "plus" | "pro";
 
 /** Firestore: users/{userId} */

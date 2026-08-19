@@ -20,6 +20,7 @@ import {
   COLLEGE_PROGRAMS,
   EDUCATION_LEVELS,
   STRANDS,
+  STRAND_TRACKS,
   getSubjectGroups,
   isSeniorHigh,
 } from "@/lib/curriculum";
@@ -306,19 +307,34 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
             {currentStep === "strand" ? (
               <StepShell
-                title="Which strand are you in?"
+                title="Which track are you in?"
                 subtitle="We will show the subjects that go with it."
               >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {STRANDS.map((option) => (
-                    <SelectCard
-                      key={option.value}
-                      selected={strand === option.value}
-                      onClick={() => handleStrandChange(option.value)}
-                      title={option.label}
-                      description={option.full}
-                      footnote={option.hint}
-                    />
+                {/* Ten options is a wall unless it is grouped the way DepEd
+                    groups them, so the picker mirrors the four tracks. */}
+                <div className="max-h-[46vh] space-y-6 overflow-y-auto pr-1">
+                  {STRAND_TRACKS.map((group) => (
+                    <div key={group.track}>
+                      <h3 className="text-muted-foreground mb-2 text-xs font-medium tracking-widest uppercase">
+                        {group.track}
+                      </h3>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {group.strands.map((value) => {
+                          const option = STRANDS.find((s) => s.value === value);
+                          if (!option) return null;
+                          return (
+                            <SelectCard
+                              key={option.value}
+                              selected={strand === option.value}
+                              onClick={() => handleStrandChange(option.value)}
+                              title={option.label}
+                              description={option.full}
+                              footnote={option.hint}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </StepShell>
