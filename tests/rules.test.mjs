@@ -181,6 +181,19 @@ await check("consent flags must be booleans", async () => {
   await assertFails(updateDoc(doc(alice, profile(ALICE)), { isAdult: "yes" }));
 });
 
+await check("a student can set and clear their school", async () => {
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { school: "Batangas State University" }),
+  );
+  await assertSucceeds(updateDoc(doc(alice, profile(ALICE)), { school: null }));
+});
+
+await check("an over-long school name is rejected", async () => {
+  await assertFails(
+    updateDoc(doc(alice, profile(ALICE)), { school: "x".repeat(121) }),
+  );
+});
+
 await check("ordinary profile edits still work after consent is on record", async () => {
   // The acceptance time is pinned to request.time, so an unchanged
   // termsAcceptedAt riding along on a later edit must not trip that check.

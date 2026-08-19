@@ -55,6 +55,7 @@ service cloud.firestore {
         'displayName',
         'educationLevel',
         'strand',
+        'school',
         'courses',
         'onboardingCompleted',
         'timeZone',
@@ -72,6 +73,7 @@ service cloud.firestore {
       return isText(d.displayName, 80)
         && (d.educationLevel == null || d.educationLevel in ['grade_11', 'grade_12', 'college'])
         && (d.strand == null || d.strand in ['stem', 'abm', 'humss', 'gas'])
+        && isOptionalText(d.get('school', null), 120)
         && d.courses is list
         && d.courses.size() <= 40
         && d.onboardingCompleted is bool

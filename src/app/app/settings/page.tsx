@@ -21,6 +21,7 @@ import {
   isSeniorHigh,
   strandLabel,
 } from "@/lib/curriculum";
+import { MAX_SCHOOL_LENGTH, normaliseSchool } from "@/lib/schools";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ function SettingsForm({
   const { user, signOut } = useAuth();
 
   const [displayName, setDisplayName] = useState(profile.displayName ?? "");
+  const [school, setSchool] = useState(profile.school ?? "");
   const [courses, setCourses] = useState<string[]>(profile.courses ?? []);
   const [customCourse, setCustomCourse] = useState("");
   const [saving, setSaving] = useState(false);
@@ -63,6 +65,7 @@ function SettingsForm({
   const seniorHigh = isSeniorHigh(profile.educationLevel);
   const dirty =
     displayName.trim() !== (profile.displayName ?? "") ||
+    normaliseSchool(school) !== (profile.school ?? "") ||
     JSON.stringify(courses) !== JSON.stringify(profile.courses ?? []);
 
   async function handleSave() {
@@ -71,6 +74,7 @@ function SettingsForm({
     try {
       await updateDoc(doc(db, "users", user.uid), {
         displayName: displayName.trim(),
+        school: normaliseSchool(school) || null,
         courses,
         updatedAt: serverTimestamp(),
       });
@@ -139,6 +143,21 @@ function SettingsForm({
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={60}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="school">School</Label>
+            <Input
+              id="school"
+              value={school}
+              onChange={(e) => setSchool(e.target.value)}
+              placeholder="Your school's name"
+              maxLength={MAX_SCHOOL_LENGTH}
+              autoComplete="organization"
+            />
+            <p className="text-muted-foreground text-xs">
+              Optional. Only you can see this.
+            </p>
           </div>
 
           <div className="space-y-2">

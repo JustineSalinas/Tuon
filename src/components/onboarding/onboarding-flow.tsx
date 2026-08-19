@@ -24,6 +24,7 @@ import {
   isSeniorHigh,
 } from "@/lib/curriculum";
 import { CONSENT_VERSION } from "@/lib/legal/consent";
+import { MAX_SCHOOL_LENGTH, normaliseSchool, suggestSchools } from "@/lib/schools";
 import type { EducationLevel, Strand } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,14 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
-type StepKey = "name" | "level" | "strand" | "subjects" | "program" | "consent";
+type StepKey =
+  | "name"
+  | "level"
+  | "school"
+  | "strand"
+  | "subjects"
+  | "program"
+  | "consent";
 
 const TRANSITION = { duration: 0.28, ease: [0.22, 1, 0.36, 1] } as const;
 
@@ -49,6 +57,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   const [strand, setStrand] = useState<Strand | null>(null);
   const [courses, setCourses] = useState<string[]>([]);
   const [customCourse, setCustomCourse] = useState("");
+  const [school, setSchool] = useState("");
 
   const [isAdult, setIsAdult] = useState<boolean | null>(null);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
@@ -58,8 +67,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   const steps = useMemo<StepKey[]>(() => {
     if (educationLevel === null) return ["name", "level"];
     return isSeniorHigh(educationLevel)
-      ? ["name", "level", "strand", "subjects", "consent"]
-      : ["name", "level", "program", "consent"];
+      ? ["name", "level", "school", "strand", "subjects", "consent"]
+      : ["name", "level", "school", "program", "consent"];
   }, [educationLevel]);
 
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
@@ -71,6 +80,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
         return displayName.trim().length >= 2;
       case "level":
         return educationLevel !== null;
+      case "school":
+        return true;
       case "strand":
         return strand !== null;
       case "subjects":
@@ -135,6 +146,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
         displayName: displayName.trim(),
         educationLevel,
         strand: isSeniorHigh(educationLevel) ? strand : null,
+        school: normaliseSchool(school) || null,
         courses,
         onboardingCompleted: true,
         termsAcceptedVersion: CONSENT_VERSION,
@@ -238,6 +250,56 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                       description={level.hint}
                     />
                   ))}
+                </div>
+              </StepShell>
+            ) : null}
+
+            {currentStep === "school" ? (
+              <StepShell
+                creature="idle"
+                title="Where do you study?"
+                subtitle="So your sets are grouped the way your school year is."
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="school" className="sr-only">
+                    School
+                  </Label>
+                  <Input
+                    id="school"
+                    autoFocus
+                    value={school}
+                    onChange={(e) => setSchool(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") goNext();
+                    }}
+                    placeholder="Start typing your school's name"
+                    maxLength={MAX_SCHOOL_LENGTH}
+                    autoComplete="organization"
+                    className="h-14 text-lg"
+                  />
+
+                  {/* Suggestions only — the typed value is always what saves.
+                      A fixed dropdown would tell most students their school
+                      does not count; there are thousands of them. */}
+                  {suggestSchools(school).length > 0 ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {suggestSchools(school).map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => setSchool(suggestion)}
+                          className="border-border bg-card hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-ring rounded-full border px-3.5 py-2 text-sm transition-all focus-visible:ring-[3px] focus-visible:outline-none"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <p className="text-muted-foreground pt-2 text-xs">
+                    Optional — you can leave this blank, and change it any time
+                    in Settings.
+                  </p>
                 </div>
               </StepShell>
             ) : null}

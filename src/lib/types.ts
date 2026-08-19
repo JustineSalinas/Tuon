@@ -17,6 +17,11 @@ export interface UserProfile {
   courses: string[];
   /** Only meaningful for grade_11 / grade_12. Null for college. */
   strand: Strand | null;
+  /**
+   * Free text, self-reported, optional. Not validated against any
+   * institution list — see lib/schools.ts for why.
+   */
+  school?: string | null;
   onboardingCompleted: boolean;
 
   // --- scheduling preferences ---------------------------------------------
