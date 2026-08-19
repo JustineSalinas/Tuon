@@ -10,6 +10,8 @@ import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { TryIt } from "@/components/marketing/try-it";
 import { Faq } from "@/components/marketing/faq";
+import { DeviceLineup, NativeAppsNotice } from "@/components/marketing/device-showcase";
+import { SetupFlow } from "@/components/marketing/setup-flow";
 import { TuonMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +34,7 @@ export default function LandingPage() {
           <Hero />
           <HowItWorks />
           <SeeItWork />
+          <EveryDevice />
           <BuiltForPH />
           <Pricing />
           <FaqSection />
@@ -190,6 +193,31 @@ function FaqSection() {
   );
 }
 
+function EveryDevice() {
+  return (
+    <Section
+      id="devices"
+      eyebrow="Every device you own"
+      title="Open it on whatever is in front of you"
+    >
+      <Reveal>
+        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
+          Tuón runs in the browser, so there is nothing to install and nothing
+          to sideload. Review on your phone on the jeep, write notes on the
+          library desktop — your schedule is the same in both, because it lives
+          with your account and not the device.
+        </p>
+      </Reveal>
+      <Reveal delay={0.05}>
+        <DeviceLineup />
+      </Reveal>
+      <Reveal delay={0.1}>
+        <NativeAppsNotice />
+      </Reveal>
+    </Section>
+  );
+}
+
 function BuiltForPH() {
   const points = [
     "Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
@@ -226,6 +254,10 @@ function BuiltForPH() {
           </ul>
         </Reveal>
       </div>
+
+      <Reveal delay={0.15}>
+        <SetupFlow />
+      </Reveal>
     </Section>
   );
 }
