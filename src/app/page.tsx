@@ -12,6 +12,9 @@ import { TryIt } from "@/components/marketing/try-it";
 import { Faq } from "@/components/marketing/faq";
 import { DeviceLineup, NativeAppsNotice } from "@/components/marketing/device-showcase";
 import { SetupFlow } from "@/components/marketing/setup-flow";
+import { ForgettingCurve } from "@/components/marketing/forgetting-curve";
+import { ByHand } from "@/components/marketing/by-hand";
+import { HeroPreview } from "@/components/marketing/hero-preview";
 import { TuonMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +35,10 @@ export default function LandingPage() {
         <SiteHeader />
         <main className="flex-1">
           <Hero />
+          <WhyItSticks />
           <HowItWorks />
           <SeeItWork />
+          <VersusByHand />
           <EveryDevice />
           <BuiltForPH />
           <Pricing />
@@ -52,26 +57,26 @@ function Hero() {
   return (
     <section className="paper-grain relative overflow-hidden border-b">
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-32">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)] lg:gap-16">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-3xl"
         >
           <Badge variant="secondary" className="gap-1.5">
             <Sparkles className="size-3" />
             Built for Filipino students
           </Badge>
 
-          <h1 className="font-display mt-6 text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-6xl md:text-7xl">
-            Your notes, turned into
-            <span className="text-primary"> everything you need to study.</span>
+          <h1 className="font-display mt-6 text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem]">
+            Cramming works.
+            <span className="text-primary"> For about three days.</span>
           </h1>
 
           <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-relaxed">
-            Paste your lecture notes. Tuón writes the flashcards and a practice quiz,
-            then schedules each card to come back right before you would have
-            forgotten it.
+            Paste your notes. Tuón writes the flashcards and a practice quiz, then
+            brings each card back right before you would have forgotten it — so the
+            reviewer you make tonight still works next semester.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -87,6 +92,9 @@ function Hero() {
             {PLANS.free.monthlyGenerations} AI study sets a month
           </p>
         </motion.div>
+
+          <HeroPreview />
+        </div>
 
         {/* Meaning of the name */}
         <motion.div
@@ -114,6 +122,50 @@ function Hero() {
         />
       ) : null}
     </section>
+  );
+}
+
+function WhyItSticks() {
+  return (
+    <Section
+      id="why"
+      eyebrow="Why you forget"
+      title="Studying once is the problem, not you"
+      muted
+    >
+      <Reveal>
+        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
+          Everyone forgets on roughly the same curve. The fix is not more hours
+          the night before — it is meeting the same card again just as it starts
+          to slip. That is the whole idea behind spaced repetition, and doing the
+          scheduling by hand is the part nobody keeps up.
+        </p>
+      </Reveal>
+      <Reveal delay={0.05}>
+        <ForgettingCurve />
+      </Reveal>
+    </Section>
+  );
+}
+
+function VersusByHand() {
+  return (
+    <Section
+      id="versus"
+      eyebrow="Versus doing it yourself"
+      title="You already know how to make a reviewer"
+    >
+      <Reveal>
+        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
+          Long bond paper, four colours of pen, an evening gone. It works — and
+          then the exam ends and it goes in the bin. Here is the same job, done
+          the other way.
+        </p>
+      </Reveal>
+      <Reveal delay={0.05}>
+        <ByHand />
+      </Reveal>
+    </Section>
   );
 }
 
@@ -416,10 +468,17 @@ function FinalCta() {
           <h2 className="font-display mx-auto mt-7 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             Stop making flashcards. Start remembering.
           </h2>
+          <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">
+            Start with one note tonight. You will have a set of flashcards before
+            you finish your coffee, and the first review lands tomorrow.
+          </p>
           <Button size="lg" className="mt-9 text-base" render={<Link href="/signup" />}>
               Create your free account
               <ArrowRight />
             </Button>
+          <p className="text-muted-foreground mt-4 text-sm">
+            Free forever for notes and flashcards · no card needed
+          </p>
         </Reveal>
       </div>
     </section>
