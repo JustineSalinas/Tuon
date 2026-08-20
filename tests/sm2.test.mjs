@@ -5,6 +5,7 @@ import {
   initialSrsState,
   scheduleNextReview,
   formatInterval,
+  previewIntervals,
 } from "../src/lib/srs/sm2.ts";
 
 import {
@@ -102,6 +103,18 @@ check("a long streak of Good grows intervals monotonically", () => {
   for (let i = 1; i < seen.length; i += 1) {
     assert.ok(seen[i] >= seen[i - 1], "intervals must not shrink on success");
   }
+});
+
+check("rating previews describe what happens next, not the stored date", () => {
+  // Again and Hard requeue inside the session, so labelling them with the
+  // persisted interval told the student "Tomorrow" about a card they were
+  // about to see again in a minute — and made all four buttons identical on
+  // a brand-new card.
+  const preview = previewIntervals(initialSrsState());
+  assert.equal(preview.again, "Again this session");
+  assert.equal(preview.hard, "Again this session");
+  assert.equal(preview.good, "Tomorrow");
+  assert.notEqual(preview.again, preview.good, "the buttons must differ");
 });
 
 check("formatInterval reads naturally", () => {

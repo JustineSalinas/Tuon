@@ -270,7 +270,14 @@ ${text}` : text;
               }}
             >
               <SelectTrigger id="courseTag" className="w-full">
-                <SelectValue placeholder="No subject" />
+                {/* Base UI renders the raw VALUE unless given a formatter —
+                    unlike Radix, which rendered the item's children. Without
+                    this the trigger literally read "__none__". */}
+                <SelectValue placeholder="No subject">
+                  {(value: string | null) =>
+                    !value || value === NO_TAG ? "No subject" : value
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_TAG}>No subject</SelectItem>

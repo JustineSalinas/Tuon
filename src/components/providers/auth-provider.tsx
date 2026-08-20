@@ -33,6 +33,16 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   /** fetch() with the caller's Firebase ID token attached. */
   authedFetch: (input: string, init?: RequestInit) => Promise<Response>;
+  /**
+   * Re-reads the account from Firebase and mints a fresh ID token.
+   *
+   * `emailVerified` is a CLAIM inside the ID token, and that token is
+   * cached for up to an hour. A student who clicks the link in their email
+   * — in another tab, or on their phone — comes back to a session that
+   * still says unverified, and stays blocked with nothing to click.
+   * Returns whether the address is verified as of now.
+   */
+  refreshVerification: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -150,6 +160,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRetryNonce((n) => n + 1);
   }, []);
 
+  const refreshVerification = useCallback(async () => {
+    const current = auth.currentUser;
+    if (!current) return false;
+    await current.reload();
+    // reload() updates the local User; the TOKEN still carries the old claim
+    // until forced, and the token is what /api/generate verifies.
+    await current.getIdToken(true);
+    setUser({ ...current } as typeof current);
+    return current.emailVerified;
+  }, []);
+
   const signOut = useCallback(async () => {
     await firebaseSignOut(auth);
   }, []);
@@ -185,6 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       retryProfile,
       signOut,
       authedFetch,
+      refreshVerification,
     }),
     [
       user,
@@ -195,6 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       retryProfile,
       signOut,
       authedFetch,
+      refreshVerification,
     ],
   );
 

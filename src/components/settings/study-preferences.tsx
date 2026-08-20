@@ -137,7 +137,13 @@ function TimeZoneRow() {
           disabled={saving}
         >
           <SelectTrigger className="min-w-56 flex-1">
-            <SelectValue />
+            {/* Same Base UI formatter requirement as the subject picker:
+                without it this reads "Asia/Manila" rather than its label. */}
+            <SelectValue>
+              {(value: string | null) =>
+                options.find((z) => z.value === value)?.label ?? value ?? ""
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {options.map((zone) => (

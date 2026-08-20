@@ -60,7 +60,10 @@ export function PaperCreature({
   const bodyTransition: Record<CreatureState, Transition> = {
     idle: { duration: 3.4, repeat: Infinity, ease: "easeInOut" },
     thinking: { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
-    correct: { ...SPRING },
+    // A hop needs three keyframes (up, then back), and Motion supports only
+    // two under a spring — pairing them threw on every correct answer. A
+    // back-out curve keeps the springy overshoot without the constraint.
+    correct: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] },
     wrong: { duration: 0.42 },
     asleep: { duration: 0.5 },
     overdue: { duration: 1.1, repeat: Infinity, ease: "easeInOut" },

@@ -144,6 +144,15 @@ export function formatInterval(days: number): string {
 /**
  * Preview of what each button would do, shown under the four rating buttons so
  * the student can see the consequence before committing.
+ *
+ * This describes what happens NEXT, which for a requeuing rating is not the
+ * persisted date. Again and Hard put the card back into the current session
+ * (see `shouldRequeueInSession`), so labelling them with the stored interval
+ * told the student "Tomorrow" about a card they were about to see in a minute.
+ * On a new card that also made all four buttons read identically, which makes
+ * the choice look like it does not matter.
+ *
+ * The stored schedule is untouched — only the label changed.
  */
 export function previewIntervals(
   state: SrsState,
@@ -152,7 +161,9 @@ export function previewIntervals(
   const ratings: SrsRating[] = ["again", "hard", "good", "easy"];
   return ratings.reduce(
     (acc, rating) => {
-      acc[rating] = formatInterval(scheduleNextReview(state, rating, now).intervalDays);
+      acc[rating] = shouldRequeueInSession(rating)
+        ? "Again this session"
+        : formatInterval(scheduleNextReview(state, rating, now).intervalDays);
       return acc;
     },
     {} as Record<SrsRating, string>,

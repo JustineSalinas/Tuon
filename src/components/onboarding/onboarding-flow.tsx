@@ -75,7 +75,13 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   }, [educationLevel]);
 
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
-  const isLastStep = stepIndex === steps.length - 1;
+
+  // Until a level is picked the remaining steps are unknown, so `steps` is
+  // only the two we are sure of. Claiming "2 / 2" there tells the student they
+  // are finished when four more screens are coming, and labels the button
+  // "Finish setup" when it does nothing of the sort.
+  const totalKnown = educationLevel !== null;
+  const isLastStep = totalKnown && stepIndex === steps.length - 1;
 
   const canAdvance = (() => {
     switch (currentStep) {
@@ -196,9 +202,12 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
               )}
             />
           ))}
+          {/* A faded tail while the length is still unknown, so the row does
+              not read as "two steps and done". */}
+          {!totalKnown ? <span className="bg-border/60 h-1.5 w-2 rounded-full" /> : null}
         </div>
         <span className="text-muted-foreground text-xs tabular-nums">
-          {stepIndex + 1} / {steps.length}
+          {totalKnown ? `${stepIndex + 1} / ${steps.length}` : `Step ${stepIndex + 1}`}
         </span>
       </header>
 

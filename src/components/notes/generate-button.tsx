@@ -36,7 +36,7 @@ export function GenerateStudySetButton({
   onBeforeGenerate?: () => Promise<void>;
 }) {
   const router = useRouter();
-  const { authedFetch } = useAuth();
+  const { authedFetch, refreshVerification } = useAuth();
   const quota = useQuota();
 
   const [generating, setGenerating] = useState(false);
@@ -63,10 +63,27 @@ export function GenerateStudySetButton({
       // Flush any pending autosave so the server reads the current text.
       await onBeforeGenerate?.();
 
-      const response = await authedFetch("/api/generate", {
+      let response = await authedFetch("/api/generate", {
         method: "POST",
         body: JSON.stringify({ noteId }),
       });
+
+      // `email_verified` is a claim baked into the ID token, and that token is
+      // cached for up to an hour. Someone who just clicked the link in their
+      // inbox is verified with Firebase but still carries a token that says
+      // otherwise. Refresh once and retry rather than telling them to go and
+      // do the thing they already did.
+      if (response.status === 403) {
+        const stale = (await response.clone().json().catch(() => ({}))) as {
+          code?: string;
+        };
+        if (stale.code === "EMAIL_NOT_VERIFIED" && (await refreshVerification())) {
+          response = await authedFetch("/api/generate", {
+            method: "POST",
+            body: JSON.stringify({ noteId }),
+          });
+        }
+      }
 
       const payload = (await response.json()) as {
         studySetId?: string;

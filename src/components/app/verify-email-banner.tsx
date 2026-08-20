@@ -17,8 +17,9 @@ import { Button } from "@/components/ui/button";
  * because that is the part that costs money and the part a script would farm.
  */
 export function VerifyEmailBanner() {
-  const { user } = useAuth();
+  const { user, refreshVerification } = useAuth();
   const [sending, setSending] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   // Google accounts arrive already verified.
@@ -37,6 +38,17 @@ export function VerifyEmailBanner() {
     setSending(false);
   }
 
+  async function recheck() {
+    setChecking(true);
+    const verified = await refreshVerification().catch(() => false);
+    setChecking(false);
+    if (!verified) {
+      toast.error("Still not confirmed. Open the link in the email first.");
+    }
+    // When it worked the banner unmounts on its own — `user.emailVerified`
+    // is now true — so there is nothing to announce.
+  }
+
   return (
     <div className="bg-warning/12 border-warning/30 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2.5 text-sm md:px-8">
       <MailCheck className="text-warning-foreground size-4 shrink-0" />
@@ -47,7 +59,10 @@ export function VerifyEmailBanner() {
         </span>
       </p>
       <div className="flex items-center gap-1">
-        <Button variant="outline" size="sm" onClick={resend} disabled={sending}>
+        <Button variant="outline" size="sm" onClick={recheck} disabled={checking}>
+          {checking ? "Checking…" : "I've confirmed it"}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={resend} disabled={sending}>
           {sending ? "Sending…" : "Resend"}
         </Button>
         <Button
