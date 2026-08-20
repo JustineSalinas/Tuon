@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAppCheck } from "firebase-admin/app-check";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -99,6 +98,15 @@ export async function verifyAppCheck(request: Request): Promise<boolean> {
   const token = request.headers.get("x-firebase-appcheck");
   if (!token) return false;
   try {
+    // Imported lazily, and this is load-bearing rather than tidiness.
+    // `firebase-admin/app-check` pulls in jwks-rsa, which `require()`s jose —
+    // now ESM-only. As a static top-level import that fails to bundle on
+    // Vercel's serverless runtime with ERR_REQUIRE_ESM, and because every API
+    // route imports this module, it took down the whole API in production
+    // while working perfectly in local dev. A dynamic import resolves the ESM
+    // chain, and since App Check is opt-in the module is not loaded at all
+    // until it is switched on.
+    const { getAppCheck } = await import("firebase-admin/app-check");
     await getAppCheck(adminApp()).verifyToken(token);
     return true;
   } catch (error) {
