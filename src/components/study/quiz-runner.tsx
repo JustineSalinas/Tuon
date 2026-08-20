@@ -193,6 +193,15 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
                         )}
                       </span>
                       <span className="pt-0.5 leading-relaxed">{choice}</span>
+                      {/* The tick and cross are the only signal that an answer
+                          was right or wrong, and an icon carries nothing to a
+                          screen reader — it would announce "FOR loop, disabled"
+                          either way. Say it in words. */}
+                      {reveal && isCorrect ? (
+                        <span className="sr-only">— correct answer</span>
+                      ) : reveal && isPicked ? (
+                        <span className="sr-only">— your answer, incorrect</span>
+                      ) : null}
                     </button>
                   );
                 })}
