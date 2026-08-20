@@ -29,6 +29,10 @@ function friendlyAuthError(error: unknown): string | null {
   if (!(error instanceof FirebaseError)) {
     return "Something went wrong. Please try again.";
   }
+  // The friendly text deliberately hides the code, which makes a production
+  // report of "something went wrong" undiagnosable. Keep the real one in the
+  // console so it can be read off a student's screen share.
+  console.error(`[auth] ${error.code}: ${error.message}`);
   switch (error.code) {
     case "auth/invalid-credential":
     case "auth/wrong-password":
@@ -51,6 +55,27 @@ function friendlyAuthError(error: unknown): string | null {
     case "auth/popup-closed-by-user":
     case "auth/cancelled-popup-request":
       return null; // User changed their mind; not an error worth showing.
+
+    // The most likely failure on a freshly deployed URL, and it used to fall
+    // through to "Something went wrong" — the least useful message for the
+    // most diagnosable problem. Every Vercel deployment also gets its own
+    // unique hostname, and only the stable alias is ever authorised, so this
+    // fires whenever someone opens a per-deployment link.
+    case "auth/unauthorized-domain":
+      return (
+        "This address is not authorised for sign-in. If you opened a preview " +
+        "or deployment link, use the main site address instead."
+      );
+    case "auth/operation-not-allowed":
+      return "That sign-in method is not enabled for this app.";
+
+    // A token for an account that no longer exists, or was signed out
+    // server-side. Clearing it is the fix, and the user cannot guess that.
+    case "auth/user-token-expired":
+    case "auth/invalid-user-token":
+    case "auth/user-disabled":
+      return "That session is no longer valid. Please sign in again.";
+
     default:
       return "Something went wrong. Please try again.";
   }
