@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 import {
+  adminAuth,
   adminConfigError,
   adminDb,
   verifyAppCheck,
@@ -14,6 +15,7 @@ import {
   rateLimitedResponse,
 } from "@/lib/rate-limit";
 import { currentPeriodStart } from "@/lib/quota";
+import { log } from "@/lib/observability/log";
 
 /**
  * Creates the user's profile document on first sign-in.
@@ -59,6 +61,27 @@ export async function POST(request: Request) {
     }
   } catch {
     // Body is optional.
+  }
+
+  // A Firebase ID token stays cryptographically valid for up to an hour after
+  // the account behind it is deleted. Account deletion removes the profile,
+  // the client's snapshot listener sees it vanish, and calls this route with
+  // that still-valid token — recreating a profile for a user who no longer
+  // exists, carrying their email, in a document nobody can ever reach or
+  // erase. That is an erasure failure, so the check is server-side rather
+  // than a guard in the client that deletes.
+  try {
+    await adminAuth().getUser(caller.uid);
+  } catch {
+    log.warn({
+      scope: "profile",
+      event: "bootstrap.user_gone",
+      uid: caller.uid,
+    });
+    return NextResponse.json(
+      { error: "This account no longer exists.", code: "USER_DELETED" },
+      { status: 401 },
+    );
   }
 
   const profileRef = adminDb().collection("users").doc(caller.uid);

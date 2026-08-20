@@ -104,7 +104,7 @@ function ExportRow() {
 
 function DeleteRow() {
   const router = useRouter();
-  const { user, authedFetch, signOut } = useAuth();
+  const { user, authedFetch, signOut, beginAccountDeletion } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -133,6 +133,10 @@ function DeleteRow() {
       } else {
         await reauthenticateWithPopup(current, new GoogleAuthProvider());
       }
+
+      // Stops the profile listener bootstrapping a replacement the moment
+      // the document disappears.
+      beginAccountDeletion();
 
       const response = await authedFetch("/api/account/delete", {
         method: "POST",

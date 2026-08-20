@@ -30,6 +30,13 @@ interface AuthContextValue {
   profileError: string | null;
   /** Retries profile bootstrap after a failure. */
   retryProfile: () => void;
+  /**
+   * Call before deleting an account. The profile listener otherwise sees
+   * the document vanish and helpfully bootstraps a replacement, undoing
+   * half the erasure. The server refuses that request too, but not making
+   * it is cleaner than relying on the round trip losing a race.
+   */
+  beginAccountDeletion: () => void;
   signOut: () => Promise<void>;
   /** fetch() with the caller's Firebase ID token attached. */
   authedFetch: (input: string, init?: RequestInit) => Promise<Response>;
@@ -58,6 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Guards against re-firing bootstrap while the first call is in flight, or
   // looping forever if it fails. Reset inside the effect, not during render.
   const bootstrapAttempted = useRef(false);
+  // Latches for the lifetime of the session; the account is going away.
+  const deletingAccount = useRef(false);
 
   const uid = user?.uid ?? null;
   const [activeUid, setActiveUid] = useState<string | null>(null);
@@ -105,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // No profile yet — first sign-in. The document is created server-side
         // so that plan and quota fields start from a state the client cannot
         // have tampered with.
+        if (deletingAccount.current) return;
         if (bootstrapAttempted.current) return;
         bootstrapAttempted.current = true;
 
@@ -160,6 +170,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRetryNonce((n) => n + 1);
   }, []);
 
+  const beginAccountDeletion = useCallback(() => {
+    deletingAccount.current = true;
+  }, []);
+
   const refreshVerification = useCallback(async () => {
     const current = auth.currentUser;
     if (!current) return false;
@@ -204,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileLoading,
       profileError,
       retryProfile,
+      beginAccountDeletion,
       signOut,
       authedFetch,
       refreshVerification,
@@ -215,6 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileLoading,
       profileError,
       retryProfile,
+      beginAccountDeletion,
       signOut,
       authedFetch,
       refreshVerification,
