@@ -58,6 +58,17 @@ class NoteTooLongError extends Error {
   }
 }
 
+/**
+ * Key for deciding "this is the same card".
+ *
+ * Front text only: a regeneration often rewords an answer while asking the
+ * same question, and treating that as a new card would duplicate it and split
+ * its review history in two.
+ */
+function normaliseFront(front: string): string {
+  return front.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 export async function POST(request: Request) {
   const configError = adminConfigError();
   if (configError) {
@@ -112,12 +123,20 @@ export async function POST(request: Request) {
 
   // --- Validate input ------------------------------------------------------
   let noteId: string;
+  /** When present, merge into this set instead of creating another one. */
+  let intoStudySetId: string | null = null;
   try {
-    const body = (await request.json()) as { noteId?: unknown };
+    const body = (await request.json()) as {
+      noteId?: unknown;
+      studySetId?: unknown;
+    };
     if (typeof body.noteId !== "string" || !body.noteId.trim()) {
       return NextResponse.json({ error: "A noteId is required." }, { status: 400 });
     }
     noteId = body.noteId.trim();
+    if (typeof body.studySetId === "string" && body.studySetId.trim()) {
+      intoStudySetId = body.studySetId.trim();
+    }
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
@@ -348,25 +367,89 @@ export async function POST(request: Request) {
   }
 
   // --- Persist -------------------------------------------------------------
+  //
+  // Two paths. A fresh note gets a new set. A note the student has since
+  // added to can regenerate INTO its existing set, which is the common case
+  // during a term: they append after each lecture and would otherwise choose
+  // between a stale set and a duplicate.
+  //
+  // The merge keeps every existing card. A card's id is the key its review
+  // log is stored under, so replacing cards would silently destroy the
+  // spaced-repetition history the student built — the one thing here that
+  // cannot be regenerated. New cards are appended; nothing is deleted.
   try {
-    const studySetRef = profileRef.collection("studySets").doc();
+    // Branch on the value, not a boolean derived from it — the latter does
+    // not narrow the type.
+    const studySetRef = intoStudySetId
+      ? profileRef.collection("studySets").doc(intoStudySetId)
+      : profileRef.collection("studySets").doc();
+    const isMerge = intoStudySetId !== null;
+
+    let existingFronts = new Set<string>();
+    let nextOrder = 0;
+
+    if (isMerge) {
+      const target = await studySetRef.get();
+      if (!target.exists) {
+        await refund();
+        return NextResponse.json(
+          { error: "That study set no longer exists." },
+          { status: 404 },
+        );
+      }
+      // Only ever merge a set back into the note it came from, or a student
+      // could fold one subject's cards into another's set.
+      if (target.get("noteId") !== noteId) {
+        await refund();
+        return NextResponse.json(
+          { error: "That study set was not made from this note." },
+          { status: 400 },
+        );
+      }
+
+      const cards = await studySetRef.collection("flashcards").get();
+      existingFronts = new Set(
+        cards.docs.map((d) => normaliseFront(String(d.get("front") ?? ""))),
+      );
+      nextOrder = cards.docs.reduce(
+        (max, d) => Math.max(max, Number(d.get("order") ?? 0) + 1),
+        0,
+      );
+    }
+
+    // Anything already present stays as it is, history and all.
+    const freshCards = parsed.data.flashcards.filter(
+      (card) => !existingFronts.has(normaliseFront(card.front)),
+    );
+
     const batch = db.batch();
 
-    batch.set(studySetRef, {
-      noteId,
-      title,
-      courseTag,
-      flashcardCount: parsed.data.flashcards.length,
-      quizQuestionCount: parsed.data.quiz.questions.length,
-      source: "ai",
-      createdAt: FieldValue.serverTimestamp(),
-    });
+    if (isMerge) {
+      batch.update(studySetRef, {
+        flashcardCount: existingFronts.size + freshCards.length,
+        quizQuestionCount: parsed.data.quiz.questions.length,
+      });
+      // The quiz carries no review history, so replacing it is free and keeps
+      // it matched to the note as it reads now.
+      const oldQuestions = await studySetRef.collection("quizQuestions").get();
+      oldQuestions.docs.forEach((d) => batch.delete(d.ref));
+    } else {
+      batch.set(studySetRef, {
+        noteId,
+        title,
+        courseTag,
+        flashcardCount: parsed.data.flashcards.length,
+        quizQuestionCount: parsed.data.quiz.questions.length,
+        source: "ai",
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
 
-    parsed.data.flashcards.forEach((card, index) => {
+    freshCards.forEach((card, index) => {
       batch.set(studySetRef.collection("flashcards").doc(), {
         front: card.front,
         back: card.back,
-        order: index,
+        order: nextOrder + index,
         // Denormalised so the review queue can pull every card the student
         // owns in ONE collection-group query instead of one query per set.
         ownerId: caller.uid,
@@ -388,7 +471,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       studySetId: studySetRef.id,
-      flashcardCount: parsed.data.flashcards.length,
+      merged: isMerge,
+      // What actually changed, so the client can say something true rather
+      // than "done".
+      addedCount: freshCards.length,
+      keptCount: existingFronts.size,
+      flashcardCount: existingFronts.size + freshCards.length,
       quizQuestionCount: parsed.data.quiz.questions.length,
     });
   } catch (error) {

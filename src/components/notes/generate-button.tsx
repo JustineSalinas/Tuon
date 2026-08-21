@@ -29,11 +29,18 @@ export function GenerateStudySetButton({
   disabled,
   hint,
   onBeforeGenerate,
+  existingSetId,
 }: {
   noteId: string | null;
   disabled?: boolean;
   hint?: string | null;
   onBeforeGenerate?: () => Promise<void>;
+  /**
+   * A set already generated from this note. Present means the student is
+   * revising a note they have generated before, which during a term is the
+   * normal case rather than the exception.
+   */
+  existingSetId?: string | null;
 }) {
   const router = useRouter();
   const { authedFetch, refreshVerification } = useAuth();
@@ -53,7 +60,7 @@ export function GenerateStudySetButton({
 
   const exhausted = quota?.exhausted ?? false;
 
-  async function handleGenerate() {
+  async function handleGenerate(intoExisting: boolean) {
     if (!noteId || generating) return;
     setError(null);
     setMessageIndex(0);
@@ -63,9 +70,13 @@ export function GenerateStudySetButton({
       // Flush any pending autosave so the server reads the current text.
       await onBeforeGenerate?.();
 
+      const body = JSON.stringify(
+        intoExisting && existingSetId ? { noteId, studySetId: existingSetId } : { noteId },
+      );
+
       let response = await authedFetch("/api/generate", {
         method: "POST",
-        body: JSON.stringify({ noteId }),
+        body,
       });
 
       // `email_verified` is a claim baked into the ID token, and that token is
@@ -78,15 +89,15 @@ export function GenerateStudySetButton({
           code?: string;
         };
         if (stale.code === "EMAIL_NOT_VERIFIED" && (await refreshVerification())) {
-          response = await authedFetch("/api/generate", {
-            method: "POST",
-            body: JSON.stringify({ noteId }),
-          });
+          response = await authedFetch("/api/generate", { method: "POST", body });
         }
       }
 
       const payload = (await response.json()) as {
         studySetId?: string;
+        merged?: boolean;
+        addedCount?: number;
+        keptCount?: number;
         flashcardCount?: number;
         quizQuestionCount?: number;
         error?: string;
@@ -98,9 +109,19 @@ export function GenerateStudySetButton({
         return;
       }
 
-      toast.success(
-        `${payload.flashcardCount} flashcards and ${payload.quizQuestionCount} quiz questions ready.`,
-      );
+      if (payload.merged) {
+        // Say what changed. "Done" would leave the student wondering whether
+        // their review history survived — which is the whole worry here.
+        toast.success(
+          payload.addedCount
+            ? `${payload.addedCount} new card${payload.addedCount === 1 ? "" : "s"} added. Your ${payload.keptCount} existing card${payload.keptCount === 1 ? "" : "s"} kept their progress.`
+            : "Nothing new to add — your note has not changed enough since last time.",
+        );
+      } else {
+        toast.success(
+          `${payload.flashcardCount} flashcards and ${payload.quizQuestionCount} quiz questions ready.`,
+        );
+      }
       router.push(`/app/sets/${payload.studySetId}`);
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
@@ -140,7 +161,7 @@ export function GenerateStudySetButton({
             <span>{error}</span>
             <button
               type="button"
-              onClick={handleGenerate}
+              onClick={() => void handleGenerate(Boolean(existingSetId))}
               className="font-medium underline underline-offset-4"
             >
               Try again
@@ -150,9 +171,13 @@ export function GenerateStudySetButton({
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
+        {/* Once a note has a set, updating it is the action a student wants
+            almost every time — they added this week's lecture and want the
+            same reviewer to cover it. Making a second set is still possible,
+            but it stops being the default. */}
         <Button
           size="lg"
-          onClick={handleGenerate}
+          onClick={() => void handleGenerate(Boolean(existingSetId))}
           disabled={disabled || generating}
           className="min-w-52"
         >
@@ -161,8 +186,22 @@ export function GenerateStudySetButton({
           ) : (
             <Sparkles />
           )}
-          {generating ? "Generating…" : "Generate study set"}
+          {generating
+            ? "Generating…"
+            : existingSetId
+              ? "Update the study set"
+              : "Generate study set"}
         </Button>
+
+        {existingSetId && !generating ? (
+          <Button
+            variant="ghost"
+            onClick={() => void handleGenerate(false)}
+            disabled={disabled}
+          >
+            Make a separate set
+          </Button>
+        ) : null}
 
         <div className="text-muted-foreground min-h-5 flex-1 text-sm">
           <AnimatePresence mode="wait">

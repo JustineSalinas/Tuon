@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useNotes } from "@/lib/hooks/use-firestore";
+import { useNotes, useStudySets } from "@/lib/hooks/use-firestore";
 import { useLinkAutocomplete } from "@/components/notes/link-autocomplete";
 import { NoteLinksPanel } from "@/components/notes/note-links-panel";
 import { GenerateStudySetButton } from "@/components/notes/generate-button";
@@ -73,6 +73,12 @@ export function NoteEditor({ note }: { note?: Note }) {
   );
   const [content, setContent] = useState(note?.content ?? "");
   const [courseTag, setCourseTag] = useState<string>(note?.courseTag ?? "");
+  // The set this note already produced, if any. Drives "update" versus
+  // "generate" on the button below.
+  const { data: allSets } = useStudySets(user?.uid);
+  const existingSetId =
+    noteId ? (allSets.find((set) => set.noteId === noteId)?.id ?? null) : null;
+
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [deleting, setDeleting] = useState(false);
 
@@ -397,6 +403,7 @@ ${text}` : text;
       <div className="bg-background/85 sticky bottom-0 -mx-4 mt-6 border-t px-4 py-4 backdrop-blur-md md:-mx-8 md:px-8">
         <GenerateStudySetButton
           noteId={noteId}
+          existingSetId={existingSetId}
           disabled={!canGenerate}
           onBeforeGenerate={async () => {
             if (dirtyRef.current) await persist();
