@@ -19,6 +19,7 @@ import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { VerifyEmailBanner } from "@/components/app/verify-email-banner";
 import { OfflineIndicator } from "@/components/app/offline-indicator";
+import { ReminderRunner } from "@/components/app/reminder-runner";
 import { ServiceWorkerRegistration } from "@/components/app/service-worker";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -64,6 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 pb-20 md:pb-0">
         <ServiceWorkerRegistration />
+        <ReminderRunner />
         <OfflineIndicator />
         <VerifyEmailBanner />
         {children}

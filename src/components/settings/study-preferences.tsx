@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DailyReminder } from "@/components/settings/daily-reminder";
 import {
   Select,
   SelectContent,
@@ -50,6 +51,8 @@ export function StudyPreferences() {
         <TimeZoneRow />
         <Separator />
         <DailyGoalRow />
+        <Separator />
+        <DailyReminder />
       </div>
     </section>
   );
