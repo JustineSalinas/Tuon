@@ -15,6 +15,8 @@ import { SetupFlow } from "@/components/marketing/setup-flow";
 import { ForgettingCurve } from "@/components/marketing/forgetting-curve";
 import { ByHand } from "@/components/marketing/by-hand";
 import { HeroPreview } from "@/components/marketing/hero-preview";
+import { PaperCreature } from "@/components/brand/paper-creature";
+import { TalaAside, TalaPerch } from "@/components/marketing/tala";
 import { TuonMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +95,12 @@ function Hero() {
           </p>
         </motion.div>
 
-          <HeroPreview />
+          {/* Tala waves from the corner of the preview — the first thing she
+              does on the page is say hello, before any feature does. */}
+          <div className="relative">
+            <TalaPerch className="-top-12 -right-3 size-24 lg:-top-14 lg:-right-6 lg:size-28" />
+            <HeroPreview />
+          </div>
         </div>
 
         {/* Meaning of the name */}
@@ -142,6 +149,12 @@ function WhyItSticks() {
         </p>
       </Reveal>
       <Reveal delay={0.05}>
+        <TalaAside state="asleep" className="mt-8">
+          A card you have not seen in three weeks is asleep. Tuón wakes it up
+          the day before you would have lost it.
+        </TalaAside>
+      </Reveal>
+      <Reveal delay={0.1}>
         <ForgettingCurve />
       </Reveal>
     </Section>
@@ -285,6 +298,16 @@ function BuiltForPH() {
       eyebrow="Built for here"
       title="It already knows your curriculum"
       muted
+      perch={
+        // Inside the section, not straddling its top border: the header is
+        // sticky, so anything perched on that border gets sliced in half the
+        // moment the section scrolls up under it.
+        <TalaPerch
+          state="thinking"
+          studying
+          className="top-6 right-8 size-24 lg:right-16 lg:size-28"
+        />
+      }
     >
       <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-16">
         <Reveal>
@@ -464,8 +487,8 @@ function FinalCta() {
     <section className="border-t">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
         <Reveal>
-          <TuonMark className="text-primary mx-auto size-9" />
-          <h2 className="font-display mx-auto mt-7 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+          <PaperCreature state="celebrating" className="mx-auto size-28" />
+          <h2 className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             Stop making flashcards. Start remembering.
           </h2>
           <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">
@@ -491,19 +514,26 @@ function Section({
   title,
   children,
   muted,
+  perch,
 }: {
   id?: string;
   eyebrow: string;
   title: string;
   children: React.ReactNode;
   muted?: boolean;
+  /** Optional <TalaPerch>, positioned against this section's own box. */
+  perch?: React.ReactNode;
 }) {
   return (
     <section
       id={id}
       // Clears the sticky header, so an anchor does not land under it.
-      className={cn("scroll-mt-16", muted ? "bg-secondary/40 border-t" : "border-t")}
+      className={cn(
+        "relative scroll-mt-16",
+        muted ? "bg-secondary/40 border-t" : "border-t",
+      )}
     >
+      {perch}
       <div className="mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28">
         <Reveal>
           <div className="text-primary text-xs font-medium tracking-widest uppercase">
