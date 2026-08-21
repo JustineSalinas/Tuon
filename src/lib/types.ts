@@ -162,6 +162,19 @@ export interface ReviewLog {
   lastRating: SrsRating;
 }
 
+/**
+ * Firestore: users/{userId}/cardReports/{flashcardId}
+ *
+ * A student saying a generated card is wrong. Keyed by flashcard id so one
+ * card cannot be reported twice by the same person. Read with a
+ * collection-group query when tuning the prompt against real failures.
+ */
+export interface CardReport {
+  studySetId: string;
+  flashcardId: string;
+  reportedAt: Timestamp;
+}
+
 /** Firestore: users/{userId}/quizAttempts/{attemptId} */
 export interface QuizAttempt {
   id: string;

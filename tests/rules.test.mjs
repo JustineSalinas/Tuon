@@ -365,6 +365,32 @@ await check("a valid review log is accepted", async () => {
   );
 });
 
+await check("a student can report a card as wrong", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/cardReports/c1`), {
+      studySetId: "private1",
+      flashcardId: "c1",
+      reportedAt: serverTimestamp(),
+    }),
+  );
+});
+
+await check("a report cannot claim to be about a different card", async () => {
+  // The doc id IS the flashcard id; a mismatch would corrupt the join the
+  // quality script relies on.
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/cardReports/c1`), {
+      studySetId: "private1",
+      flashcardId: "some-other-card",
+      reportedAt: serverTimestamp(),
+    }),
+  );
+});
+
+await check("a stranger cannot read someone else's card reports", async () => {
+  await assertFails(getDoc(doc(mallory, `users/${ALICE}/cardReports/c1`)));
+});
+
 console.log("\nSharing boundary");
 
 await check("anyone can read a shared set", async () => {

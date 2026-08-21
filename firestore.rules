@@ -197,6 +197,17 @@ service cloud.firestore {
         && d.lastRating in ['again', 'hard', 'good', 'easy'];
     }
 
+    // A student flagging a generated card as wrong. Tiny and append-only:
+    // the id IS the flashcard id, so one card cannot be reported twice, and
+    // there is nothing here worth forging.
+    function validCardReport(flashcardId) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['studySetId', 'flashcardId', 'reportedAt'])
+        && isText(d.studySetId, 64)
+        && d.flashcardId == flashcardId
+        && d.reportedAt == request.time;
+    }
+
     function validQuizAttempt() {
       let d = request.resource.data;
       return d.keys().hasOnly(['studySetId', 'studySetTitle', 'score', 'total', 'completedAt'])
@@ -271,6 +282,12 @@ service cloud.firestore {
       match /reviewLogs/{flashcardId} {
         allow read: if isOwner(userId);
         allow create, update: if isOwner(userId) && validReviewLog();
+        allow delete: if isOwner(userId);
+      }
+
+      match /cardReports/{flashcardId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validCardReport(flashcardId);
         allow delete: if isOwner(userId);
       }
 

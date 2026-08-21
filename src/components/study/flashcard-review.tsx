@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { CardFeedback } from "@/components/study/card-feedback";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { useNow } from "@/lib/hooks/use-now";
 import {
@@ -337,7 +338,25 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                   style={{ transform: reduceMotion ? undefined : "rotateY(180deg)" }}
                   hidden={reduceMotion ? !flipped : false}
                 >
-                  <FaceLabel>Answer</FaceLabel>
+                  <div className="flex items-start justify-between gap-3">
+                    <FaceLabel>Answer</FaceLabel>
+                    {/* Sits on the answer face only — judging a card before
+                        seeing its answer is judging half of it. Stops the
+                        flip, or tapping it would also rate the card. */}
+                    {user ? (
+                      <span
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <CardFeedback
+                          userId={user.uid}
+                          studySetId={currentCard!.studySetId}
+                          flashcardId={currentCard!.id}
+                          className="-mt-1 -mr-1"
+                        />
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-4 text-lg leading-relaxed text-pretty md:text-xl">
                     {currentCard!.back}
                   </p>
