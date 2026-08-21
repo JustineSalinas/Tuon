@@ -34,17 +34,12 @@ export default async function Image() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <svg width="52" height="52" viewBox="0 0 32 32" fill="none">
-            <circle
-              cx="16"
-              cy="16"
-              r="13"
-              stroke="#C0603A"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeDasharray="60 22"
-              opacity="0.45"
-            />
-            <circle cx="16" cy="16" r="5.5" fill="#C0603A" />
+            <path d="M4.5 17.5 A11.5 11.5 0 0 1 27.5 17.5" stroke="#C0603A" strokeWidth="2" strokeLinecap="round" opacity="0.45" />
+            <path d="M4.5 17.5 A11.5 11.5 0 0 0 27.5 17.5" stroke="#C0603A" strokeWidth="2" strokeLinecap="round" opacity="0.45" />
+            <path d="M8.5 8.5 L6.5 4.5 M23.5 8.5 L25.5 4.5" stroke="#C0603A" strokeWidth="2" strokeLinecap="round" opacity="0.45" />
+            <circle cx="12" cy="15" r="3.6" fill="#C0603A" />
+            <circle cx="20" cy="15" r="3.6" fill="#C0603A" />
+            <path d="M16 19.5 L14.6 21.8 H17.4 Z" fill="#C0603A" opacity="0.55" />
           </svg>
           <div style={{ fontSize: 44, fontWeight: 600, color: "#1F1B18" }}>Tuón</div>
         </div>

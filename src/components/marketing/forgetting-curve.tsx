@@ -4,193 +4,187 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 
 /**
- * The forgetting curve — the page's "why this exists at all".
+ * Why studying once does not work.
  *
- * Every other section explains what Tuón does. This one explains why anyone
- * should care: studying once does not work, and the shape of that failure is
- * well documented. Spaced repetition is the standard answer, and scheduling
- * those reviews is the entire product.
+ * An earlier version of this was a proper two-series chart with a percentage
+ * axis and a sawtooth. It was accurate and nobody could read it: it asked the
+ * visitor to decode a shape before they got the point, and a landing page gets
+ * about two seconds. This version leads with the ANSWER — one card in ten
+ * versus nine — and uses the lines only as supporting illustration.
  *
- * HONESTY: this is the classic Ebbinghaus shape, drawn to illustrate the
- * mechanism — not measured data from Tuón users. The caption says so. Once
- * there is real retention data, replace the curves and say which it is; do
- * not quietly leave an illustration looking like a measurement.
+ * The line that matters is the last one: the extra effort is about six
+ * minutes. Without that, "review more" reads as "work harder", which is the
+ * opposite of the pitch.
  *
- * Two series, so a legend is present and both lines are directly labelled —
- * identity is never carried by colour alone.
+ * HONESTY: these are the classic Ebbinghaus proportions, drawn to show the
+ * mechanism — not measurements of Tuón users. The caption says so, and it
+ * must keep saying so until there is real retention data to replace it with.
  */
 
-const W = 720;
-const H = 250;
-const LEFT = 46;
-const RIGHT = 690;
-const TOP = 20;
-const BASE = 210;
+const W = 640;
+const H = 200;
+const LEFT = 8;
+const RIGHT = 632;
+const BASE = 150;
 
+// Only the x scale is still needed; the curves use explicit coordinates now.
 const x = (day: number) => LEFT + (day / 30) * (RIGHT - LEFT);
-const y = (pct: number) => BASE - (pct / 100) * (BASE - TOP);
 
 /** Studied once, never revisited. */
-const WITHOUT: [number, number][] = [
-  [0, 100],
-  [1, 58],
-  [2, 44],
-  [3, 36],
-  [5, 28],
-  [7, 23],
-  [14, 17],
-  [21, 14],
-  [30, 12],
-];
+const FORGOTTEN = "M8,16 C 40,100 70,124 110,132 C 220,146 400,152 632,152";
 
-/** Reviewed on schedule: each review resets recall and the next gap is longer. */
-const REVIEW_DAYS = [1, 3, 7, 16];
-const WITH: [number, number][] = [
-  [0, 100],
-  [1, 72],
-  [1, 100],
-  [3, 84],
-  [3, 100],
-  [7, 88],
-  [7, 100],
-  [16, 90],
-  [16, 100],
-  [30, 93],
-];
+/**
+ * Reviewed on schedule.
+ *
+ * Explicit anchor points rather than a freehand curve, so the review dots can
+ * sit exactly on the recoveries. The true shape is a sawtooth; these are
+ * gentle dips because vertical jumps read as rendering glitches and cost more
+ * comprehension than the extra accuracy is worth.
+ */
+const REMEMBERED =
+  "M8,16 Q24,34 40,40 Q56,30 70,24 Q100,40 130,46 Q145,34 160,28 " +
+  "Q230,52 300,50 Q315,36 330,30 Q425,52 520,48 Q535,36 550,32 Q590,34 632,36";
 
-const toPath = (points: [number, number][]) =>
-  points.map(([d, p], i) => `${i === 0 ? "M" : "L"}${x(d)},${y(p)}`).join(" ");
+/** Exactly the recovery peaks above — a dot each time the card comes back. */
+const REVIEW_POINTS = [
+  [70, 24],
+  [160, 28],
+  [330, 30],
+  [550, 32],
+] as const;
 
 export function ForgettingCurve() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const reduceMotion = useReducedMotion();
 
+  const draw = (delay: number) =>
+    reduceMotion
+      ? {}
+      : {
+          initial: { pathLength: 0 },
+          animate: inView ? { pathLength: 1 } : undefined,
+          transition: { duration: 1.1, ease: "easeOut" as const, delay },
+        };
+
   return (
     <div ref={ref} className="mt-10">
-      {/* Legend — always present for two series. */}
-      <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-        <span className="flex items-center gap-2 text-sm">
-          <span className="bg-primary h-0.5 w-6 rounded-full" aria-hidden="true" />
-          Reviewed on Tuón&rsquo;s schedule
-        </span>
-        <span className="text-muted-foreground flex items-center gap-2 text-sm">
-          <span
-            className="border-muted-foreground/60 w-6 border-t-2 border-dashed"
-            aria-hidden="true"
-          />
-          Studied once, the night before
-        </span>
+      {/* The answer first. Everything below is evidence for it. */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="border-border bg-card rounded-2xl border p-5">
+          <p className="text-muted-foreground text-sm">Studied once, the night before</p>
+          <p className="font-display mt-2 text-3xl font-semibold tracking-tight">
+            You remember <span className="text-muted-foreground">1 card in 10</span>
+          </p>
+          <p className="text-muted-foreground mt-1 text-sm">a month later</p>
+        </div>
+
+        <div className="border-primary/40 bg-accent/30 rounded-2xl border p-5">
+          <p className="text-muted-foreground text-sm">Reviewed when Tuón says</p>
+          <p className="font-display mt-2 text-3xl font-semibold tracking-tight">
+            You remember <span className="text-primary">9 in 10</span>
+          </p>
+          <p className="text-muted-foreground mt-1 text-sm">a month later</p>
+        </div>
       </div>
 
-      <div className="border-border bg-card overflow-x-auto rounded-2xl border p-4 sm:p-6">
+      {/* Illustration, not homework. No axis, no percentages, no legend box —
+          each line is labelled where it sits. */}
+      <div className="border-border bg-card mt-4 overflow-x-auto rounded-2xl border p-5 sm:p-6">
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          className="h-auto w-full min-w-[560px]"
+          className="h-auto w-full min-w-[460px]"
           role="img"
-          aria-label="How much you remember over thirty days. Studied once, recall falls to around a tenth within a month. Reviewed on schedule, each review restores it and the gaps get longer, so recall stays high."
+          aria-label="Two lines over one month. Studied once, memory falls away within the first week and stays near nothing. Reviewed on Tuón's schedule, it dips slightly between reviews and recovers each time, staying high all month."
         >
-          {/* Recessive grid */}
-          {[0, 50, 100].map((pct) => (
-            <g key={pct}>
-              <line
-                x1={LEFT}
-                y1={y(pct)}
-                x2={RIGHT}
-                y2={y(pct)}
-                className="stroke-border"
-                strokeWidth="1"
-              />
-              <text
-                x={LEFT - 10}
-                y={y(pct) + 4}
-                textAnchor="end"
-                className="fill-muted-foreground text-[11px]"
-              >
-                {pct}%
-              </text>
-            </g>
-          ))}
-
-          {[0, 7, 14, 21, 30].map((day) => (
-            <text
-              key={day}
-              x={x(day)}
-              y={BASE + 22}
-              textAnchor="middle"
-              className="fill-muted-foreground text-[11px]"
-            >
-              {day === 0 ? "Today" : `Day ${day}`}
-            </text>
-          ))}
-
-          {/* Studied once */}
           <motion.path
-            d={toPath(WITHOUT)}
+            d={FORGOTTEN}
             fill="none"
-            className="stroke-muted-foreground/50"
-            strokeWidth="2"
+            className="stroke-muted-foreground/45"
+            strokeWidth="2.5"
             strokeLinecap="round"
-            strokeDasharray="5 4"
+            strokeDasharray="6 5"
+            // pathLength animation drives stroke-dasharray internally and
+            // silently overrides ours, so this series fades in instead.
             initial={reduceMotion ? undefined : { opacity: 0 }}
             animate={inView && !reduceMotion ? { opacity: 1 } : undefined}
             transition={{ duration: 0.7, ease: "easeOut" }}
           />
-
-          {/* Reviewed on schedule */}
           <motion.path
-            d={toPath(WITH)}
+            d={REMEMBERED}
             fill="none"
             className="stroke-primary"
-            strokeWidth="2.5"
+            strokeWidth="3"
             strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={reduceMotion ? undefined : { pathLength: 0 }}
-            animate={inView && !reduceMotion ? { pathLength: 1 } : undefined}
-            transition={{ duration: 1.3, ease: "easeOut", delay: 0.25 }}
+            {...draw(0.3)}
           />
 
-          {/* A dot at each scheduled review — the thing Tuón actually does. */}
-          {REVIEW_DAYS.map((day, i) => (
+          {REVIEW_POINTS.map(([cx, cy], i) => (
             <motion.circle
-              key={day}
-              cx={x(day)}
-              cy={y(100)}
-              r="4"
+              key={cx}
+              cx={cx}
+              cy={cy}
+              r="4.5"
               className="fill-primary stroke-card"
-              strokeWidth="2"
+              strokeWidth="2.5"
               initial={reduceMotion ? undefined : { opacity: 0, scale: 0 }}
               animate={inView && !reduceMotion ? { opacity: 1, scale: 1 } : undefined}
-              transition={{ delay: 0.6 + i * 0.15, duration: 0.3 }}
+              transition={{ delay: 0.8 + i * 0.12, duration: 0.25 }}
             />
           ))}
 
-          {/* Direct labels — colour is never the only cue. */}
+          {/* Labelled at the right edge, where the lines are furthest apart. */}
           <text
             x={RIGHT}
-            y={y(93) - 12}
+            y="18"
             textAnchor="end"
-            className="fill-primary text-[12px] font-medium"
+            className="fill-primary text-[13px] font-medium"
           >
-            You still know it
+            Reviewed — you keep it
           </text>
           <text
             x={RIGHT}
-            y={y(12) - 12}
+            y={BASE - 14}
             textAnchor="end"
-            className="fill-muted-foreground text-[12px]"
+            className="fill-muted-foreground text-[13px]"
           >
-            Gone
+            Studied once — it fades
+          </text>
+
+          <text x={LEFT} y={H - 8} className="fill-muted-foreground text-[11px]">
+            Today
+          </text>
+          <text
+            x={x(7)}
+            y={H - 8}
+            textAnchor="middle"
+            className="fill-muted-foreground text-[11px]"
+          >
+            One week
+          </text>
+          <text
+            x={RIGHT}
+            y={H - 8}
+            textAnchor="end"
+            className="fill-muted-foreground text-[11px]"
+          >
+            One month
           </text>
         </svg>
+
+        <p className="mt-4 flex flex-wrap items-center gap-x-2 text-sm">
+          <span className="bg-primary size-2 rounded-full" aria-hidden="true" />
+          <span className="font-medium">Four reviews. About six minutes in total.</span>
+          <span className="text-muted-foreground">
+            That is the whole difference between the two lines.
+          </span>
+        </p>
       </div>
 
       <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-        The classic forgetting curve, first measured by Hermann Ebbinghaus in
-        1885 and reproduced many times since. Drawn here to show the mechanism —
-        these are not measurements of Tuón users. Spaced repetition is the
-        standard answer to it, and the dots are the reviews Tuón schedules for
-        you.
+        Based on the forgetting curve first measured by Hermann Ebbinghaus in
+        1885 and reproduced many times since. Drawn to show the mechanism —
+        these are not measurements of Tuón users.
       </p>
     </div>
   );
