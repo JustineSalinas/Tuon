@@ -18,6 +18,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { VerifyEmailBanner } from "@/components/app/verify-email-banner";
+import { OfflineIndicator } from "@/components/app/offline-indicator";
+import { ServiceWorkerRegistration } from "@/components/app/service-worker";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -61,6 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MobileHeader />
 
       <div className="flex-1 pb-20 md:pb-0">
+        <ServiceWorkerRegistration />
+        <OfflineIndicator />
         <VerifyEmailBanner />
         {children}
       </div>

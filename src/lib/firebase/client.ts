@@ -1,6 +1,11 @@
 import { getApp, getApps, initializeApp, type FirebaseOptions } from "firebase/app";
 import { GoogleAuthProvider, getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,7 +20,36 @@ const firebaseConfig: FirebaseOptions = {
 export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(firebaseApp);
-export const db = getFirestore(firebaseApp);
+/**
+ * Firestore with an on-device cache.
+ *
+ * This is what makes "reviewing on the jeep" true rather than aspirational.
+ * Cards and their schedules are served from IndexedDB when the network is
+ * gone, and ratings made offline are queued and replayed on reconnect — so a
+ * student loses signal mid-session and simply keeps going.
+ *
+ * The multi-tab manager matters because students leave the app open on a
+ * library desktop and a phone at once; without it the second tab fails to
+ * acquire the persistence lock and silently falls back to memory-only.
+ */
+function createDb() {
+  // No IndexedDB on the server, and nothing to cache there anyway.
+  if (typeof window === "undefined") return getFirestore(firebaseApp);
+  try {
+    return initializeFirestore(firebaseApp, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
+  } catch {
+    // Already initialised — fast refresh re-runs this module, and
+    // initializeFirestore throws on a second call for the same app. The
+    // existing instance already has the cache, so reuse it.
+    return getFirestore(firebaseApp);
+  }
+}
+
+export const db = createDb();
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
