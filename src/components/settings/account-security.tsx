@@ -17,6 +17,7 @@ import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -166,9 +167,8 @@ function EmailRow() {
           {usesPassword ? (
             <div className="space-y-2">
               <Label htmlFor="email-password">Your current password</Label>
-              <Input
+              <PasswordInput
                 id="email-password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -259,9 +259,8 @@ function PasswordRow() {
         <div className="mt-4 space-y-3 rounded-xl border p-4">
           <div className="space-y-2">
             <Label htmlFor="current-password">Current password</Label>
-            <Input
+            <PasswordInput
               id="current-password"
-              type="password"
               autoComplete="current-password"
               value={current}
               onChange={(e) => setCurrent(e.target.value)}
@@ -269,9 +268,8 @@ function PasswordRow() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="next-password">New password</Label>
-            <Input
+            <PasswordInput
               id="next-password"
-              type="password"
               autoComplete="new-password"
               placeholder="At least 6 characters"
               value={next}

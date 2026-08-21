@@ -16,6 +16,7 @@ import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -219,9 +220,8 @@ function DeleteRow() {
             {usesPassword ? (
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Your password</Label>
-                <Input
+                <PasswordInput
                   id="confirm-password"
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"

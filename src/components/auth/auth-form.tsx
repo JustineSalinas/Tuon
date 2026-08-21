@@ -18,6 +18,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
@@ -185,10 +186,21 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="password">Password</Label>
+              {/* Sign-in only: on the signup form there is no account to
+                  recover yet, and offering it there just adds doubt. */}
+              {!isSignup ? (
+                <Link
+                  href="/reset-password"
+                  className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4"
+                >
+                  Forgot password?
+                </Link>
+              ) : null}
+            </div>
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete={isSignup ? "new-password" : "current-password"}
               required
               placeholder={isSignup ? "At least 6 characters" : "Your password"}
