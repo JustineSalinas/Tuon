@@ -38,6 +38,77 @@ export interface SrsState {
 
 export interface SrsSchedule extends SrsState {
   nextReviewAt: Date;
+  /**
+   * Days from `now` until `nextReviewAt` — the gap the student will ACTUALLY
+   * experience.
+   *
+   * Normally this equals `intervalDays`. It diverges when an exam date pulls
+   * the review forward (see `clampToExam`), and the two must not be confused:
+   * `intervalDays` is what SM-2 believes about the memory and is what gets
+   * persisted, `dueInDays` is what the interface should show. Labelling a
+   * button "3 months" for a card that comes back in 54 days is a lie the
+   * student cannot detect and would quietly stop trusting.
+   */
+  dueInDays: number;
+}
+
+/**
+ * Fraction of the runway to an exam that a pulled-forward review may consume.
+ *
+ * Below 1 so the card lands with time to spare and can be seen again; the
+ * repeated application produces gaps that shrink geometrically as the date
+ * approaches (90 days out -> 54 -> 21 -> 9 -> 3 -> 1), which is the behaviour
+ * a reviewee wants and roughly what a review centre's schedule looks like.
+ */
+const EXAM_RUNWAY_FRACTION = 0.6;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Parses a stored `YYYY-MM-DD` exam date into local midnight on that day.
+ *
+ * Built from parts rather than `new Date(value)`, which reads a bare date as
+ * UTC midnight — 8am in Manila. That is enough to move `daysUntil` by a whole
+ * day near the boundary, and being one day wrong about an exam is exactly the
+ * failure this feature exists to prevent.
+ */
+export function parseExamDate(
+  value: string | null | undefined,
+): Date | null {
+  if (!value) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return null;
+  const parsed = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/** Whole days from `now` until `date`, rounded up. Negative once past. */
+export function daysUntil(date: Date, now: Date = new Date()): number {
+  return Math.ceil((date.getTime() - now.getTime()) / DAY_MS);
+}
+
+/**
+ * Pulls an interval back so the card is seen again BEFORE a fixed exam date.
+ *
+ * Plain SM-2 has no upper bound: `interval x easeFactor` reaches 100+ days
+ * after about six good recalls. For a student that is correct — they will meet
+ * the material again next semester. For someone sitting the CPALE in 90 days
+ * it is a silent failure, and it fails hardest on exactly the cards they were
+ * most confident about, because those are the ones with the longest intervals.
+ *
+ * Returns the unchanged interval when there is no exam, when it has passed, or
+ * when the card already fits inside the runway.
+ */
+export function clampToExam(
+  intervalDays: number,
+  now: Date,
+  examDate: Date | null | undefined,
+): number {
+  if (!examDate || Number.isNaN(examDate.getTime())) return intervalDays;
+  const daysLeft = daysUntil(examDate, now);
+  if (daysLeft <= 0) return intervalDays;
+  if (intervalDays < daysLeft) return intervalDays;
+  return Math.max(1, Math.floor(daysLeft * EXAM_RUNWAY_FRACTION));
 }
 
 export function initialSrsState(): SrsState {
@@ -51,14 +122,18 @@ export function initialSrsState(): SrsState {
 /**
  * Applies one review to a card's scheduling state.
  *
- * @param state  current scheduling state (use `initialSrsState()` for new cards)
- * @param rating the student's self-assessment
- * @param now    injectable clock, for deterministic tests
+ * @param state    current scheduling state (use `initialSrsState()` for new cards)
+ * @param rating   the student's self-assessment
+ * @param now      injectable clock, for deterministic tests
+ * @param examDate optional fixed date the material must be ready for. Only
+ *                 pulls reviews FORWARD; it never delays one, and it never
+ *                 touches the ease factor or repetition count.
  */
 export function scheduleNextReview(
   state: SrsState,
   rating: SrsRating,
   now: Date = new Date(),
+  examDate?: Date | null,
 ): SrsSchedule {
   const quality = RATING_QUALITY[rating];
   const passed = quality >= PASSING_QUALITY;
@@ -94,11 +169,19 @@ export function scheduleNextReview(
   // Guard against a degenerate 0-day interval looping a card forever.
   intervalDays = Math.max(1, intervalDays);
 
+  // The exam clamp deliberately does NOT write back into `intervalDays`.
+  // That field is SM-2's belief about the memory and gets persisted; if the
+  // clamp overwrote it, every pulled-forward review would also shrink the
+  // model, and the card would come back at a beginner interval once the exam
+  // was over. Only the due date moves.
+  const dueInDays = clampToExam(intervalDays, now, examDate);
+
   return {
     easeFactor: Number(nextEaseFactor.toFixed(4)),
     intervalDays,
     repetitions,
-    nextReviewAt: addDays(now, intervalDays),
+    dueInDays,
+    nextReviewAt: addDays(now, dueInDays),
   };
 }
 
@@ -157,13 +240,14 @@ export function formatInterval(days: number): string {
 export function previewIntervals(
   state: SrsState,
   now: Date = new Date(),
+  examDate?: Date | null,
 ): Record<SrsRating, string> {
   const ratings: SrsRating[] = ["again", "hard", "good", "easy"];
   return ratings.reduce(
     (acc, rating) => {
       acc[rating] = shouldRequeueInSession(rating)
         ? "Again this session"
-        : formatInterval(scheduleNextReview(state, rating, now).intervalDays);
+        : formatInterval(scheduleNextReview(state, rating, now, examDate).dueInDays);
       return acc;
     },
     {} as Record<SrsRating, string>,

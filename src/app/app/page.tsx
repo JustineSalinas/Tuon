@@ -3,13 +3,21 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, FileText, Layers, Plus, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarClock,
+  FileText,
+  Layers,
+  Plus,
+  Sparkles,
+} from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import { useNotes, useReviewLogs, useStudySets } from "@/lib/hooks/use-firestore";
 import { useNow } from "@/lib/hooks/use-now";
+import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,6 +70,10 @@ export default function DashboardPage() {
         <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight">
           {firstName}
         </h1>
+        <ExamCountdown
+          examDate={profile?.examDate}
+          examName={profile?.courses?.[0]}
+        />
       </motion.header>
 
       {loading ? (
@@ -314,4 +326,33 @@ function greeting(): string {
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
+}
+
+/**
+ * Days left until a board or licensure exam.
+ *
+ * Shown because the date is not decoration — it is actively changing how every
+ * card is scheduled (see `clampToExam` in lib/srs/sm2.ts), and a setting that
+ * silently alters behaviour should be visible where the behaviour happens.
+ * Renders nothing for the students who have no such date, which is most of
+ * them.
+ */
+function ExamCountdown({
+  examDate,
+  examName,
+}: {
+  examDate?: string | null;
+  examName?: string | null;
+}) {
+  const parsed = parseExamDate(examDate);
+  if (!parsed) return null;
+  const left = daysUntil(parsed);
+  if (left <= 0) return null;
+
+  return (
+    <p className="text-primary mt-2 flex items-center gap-1.5 text-sm font-medium">
+      <CalendarClock className="size-4 shrink-0" />
+      {(examName?.trim() || "Your exam")} in {left} {left === 1 ? "day" : "days"}
+    </p>
+  );
 }

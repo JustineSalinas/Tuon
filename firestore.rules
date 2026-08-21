@@ -56,6 +56,7 @@ service cloud.firestore {
         'educationLevel',
         'strand',
         'school',
+        'examDate',
         'courses',
         'onboardingCompleted',
         'timeZone',
@@ -78,6 +79,9 @@ service cloud.firestore {
           'sports', 'arts'
         ])
         && isOptionalText(d.get('school', null), 120)
+        // YYYY-MM-DD or absent. A malformed value would silently disable the
+        // exam clamp rather than erroring, so it is checked here.
+        && (d.get('examDate', null) == null || d.examDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
         && d.courses is list
         && d.courses.size() <= 40
         && d.onboardingCompleted is bool

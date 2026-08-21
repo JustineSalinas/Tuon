@@ -16,6 +16,7 @@ import {
   type CreatureState,
 } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
+import { ExamDateField } from "@/components/profile/exam-date-field";
 import {
   BOARD_EXAMS,
   COLLEGE_PROGRAMS,
@@ -61,6 +62,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   const [courses, setCourses] = useState<string[]>([]);
   const [customCourse, setCustomCourse] = useState("");
   const [school, setSchool] = useState("");
+  const [examDate, setExamDate] = useState<string | null>(null);
 
   const [isAdult, setIsAdult] = useState<boolean | null>(null);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
@@ -157,6 +159,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
         strand: isSeniorHigh(educationLevel) ? strand : null,
         school: normaliseSchool(school) || null,
         courses,
+        // Only reviewers see the field, so it stays null for everyone else.
+        examDate: examDate ?? null,
         onboardingCompleted: true,
         termsAcceptedVersion: CONSENT_VERSION,
         termsAcceptedAt: serverTimestamp(),
@@ -448,6 +452,20 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                     }
                     onRemove={() => setCourses([])}
                   />
+
+                  {/* Asked here rather than as its own step: it only applies to
+                      reviewers, and it is the field that decides whether their
+                      cards get scheduled past the exam. */}
+                  {isBoardReview(educationLevel) && courses[0] ? (
+                    <div className="mt-6 border-t pt-5">
+                      <ExamDateField
+                        value={examDate}
+                        onChange={setExamDate}
+                        examName={courses[0]}
+                        id="onboarding-exam-date"
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </StepShell>
             ) : null}

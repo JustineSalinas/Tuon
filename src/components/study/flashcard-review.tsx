@@ -19,6 +19,7 @@ import {
 } from "@/lib/hooks/use-review-cards";
 import {
   initialSrsState,
+  parseExamDate,
   previewIntervals,
   scheduleNextReview,
   shouldRequeueInSession,
@@ -72,7 +73,12 @@ type Mode = "loading" | "empty" | "reviewing" | "done";
  *                    every set — the calendar and dashboard entry point.
  */
 export function FlashcardReview({ studySetId }: { studySetId?: string }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  // A fixed exam date pulls reviews forward so nothing is scheduled past it.
+  const examDate = useMemo(
+    () => parseExamDate(profile?.examDate),
+    [profile?.examDate],
+  );
   const { cards, setsById, loading } = useReviewCards(user?.uid, studySetId);
   const { dailyCardGoal } = usePreferences();
   const reduceMotion = useReducedMotion();
@@ -139,8 +145,11 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
   );
 
   const intervals = useMemo(
-    () => (currentCard ? previewIntervals(srsStateFor(currentCard)) : null),
-    [currentCard, srsStateFor],
+    () =>
+      currentCard
+        ? previewIntervals(srsStateFor(currentCard), new Date(), examDate)
+        : null,
+    [currentCard, srsStateFor, examDate],
   );
 
   const handleRate = useCallback(
@@ -148,7 +157,12 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
       if (!user || !currentCard || !queue || saving) return;
       setSaving(true);
 
-      const next = scheduleNextReview(srsStateFor(currentCard), rating);
+      const next = scheduleNextReview(
+        srsStateFor(currentCard),
+        rating,
+        new Date(),
+        examDate,
+      );
 
       try {
         await setDoc(
@@ -199,7 +213,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
       setFlipped(false);
       setSaving(false);
     },
-    [user, currentCard, queue, saving, srsStateFor, position],
+    [user, currentCard, queue, saving, srsStateFor, position, examDate],
   );
 
   // Keyboard: space/enter flips, 1-4 rate.

@@ -12,6 +12,7 @@ import { BillingCard } from "@/components/settings/billing-card";
 import { DataAndAccount } from "@/components/settings/danger-zone";
 import { AccountSecurity } from "@/components/settings/account-security";
 import { StudyPreferences } from "@/components/settings/study-preferences";
+import { ExamDateField } from "@/components/profile/exam-date-field";
 import {
   BOARD_EXAMS,
   COLLEGE_PROGRAMS,
@@ -56,6 +57,7 @@ function SettingsForm({
   const [school, setSchool] = useState(profile.school ?? "");
   const [courses, setCourses] = useState<string[]>(profile.courses ?? []);
   const [customCourse, setCustomCourse] = useState("");
+  const [examDate, setExamDate] = useState(profile.examDate ?? null);
   const [saving, setSaving] = useState(false);
 
   // Students change strand and they graduate; onboarding is not the last word.
@@ -68,7 +70,8 @@ function SettingsForm({
   const dirty =
     displayName.trim() !== (profile.displayName ?? "") ||
     normaliseSchool(school) !== (profile.school ?? "") ||
-    JSON.stringify(courses) !== JSON.stringify(profile.courses ?? []);
+    JSON.stringify(courses) !== JSON.stringify(profile.courses ?? []) ||
+    (examDate ?? null) !== (profile.examDate ?? null);
 
   async function handleSave() {
     if (!user) return;
@@ -78,6 +81,7 @@ function SettingsForm({
         displayName: displayName.trim(),
         school: normaliseSchool(school) || null,
         courses,
+        examDate: examDate ?? null,
         updatedAt: serverTimestamp(),
       });
       toast.success("Settings saved.");
@@ -315,6 +319,16 @@ function SettingsForm({
               </Button>
             </div>
           </div>
+
+          {/* Only board and licensure reviewers sit on a fixed date; for
+              everyone else the field would be noise. */}
+          {isBoardReview(profile.educationLevel) ? (
+            <ExamDateField
+              value={examDate}
+              onChange={setExamDate}
+              examName={courses[0]}
+            />
+          ) : null}
 
           <Button onClick={handleSave} disabled={!dirty || saving}>
             {saving ? <Loader2 className="animate-spin" /> : <Check />}

@@ -6,6 +6,9 @@ import {
   scheduleNextReview,
   formatInterval,
   previewIntervals,
+  clampToExam,
+  parseExamDate,
+  daysUntil,
 } from "../src/lib/srs/sm2.ts";
 
 import {
@@ -123,6 +126,123 @@ check("formatInterval reads naturally", () => {
   assert.equal(formatInterval(14), "in 2 weeks");
   assert.equal(formatInterval(60), "in 2 months");
 });
+
+// ---------------------------------------------------------------------------
+// Exam-date clamping.
+//
+// Plain SM-2 has no upper bound on the interval, so a well-known card lands
+// past a fixed exam date and is never seen again before it counts. These pin
+// down the fix, including the property that actually matters: repeated
+// application converges on the date instead of overshooting it.
+// ---------------------------------------------------------------------------
+
+check("no exam date leaves the interval untouched", () => {
+  assert.equal(clampToExam(180, NOW, null), 180);
+  assert.equal(clampToExam(180, NOW, undefined), 180);
+});
+
+check("an interval that already fits inside the runway is untouched", () => {
+  const exam = new Date("2026-11-16T04:00:00.000Z"); // 90 days out
+  assert.equal(clampToExam(30, NOW, exam), 30);
+});
+
+check("a card is never scheduled past the exam, however long its interval", () => {
+  const exam = new Date("2026-11-16T04:00:00.000Z"); // 90 days out
+  for (const interval of [90, 120, 365, 10000]) {
+    const clamped = clampToExam(interval, NOW, exam);
+    assert.ok(
+      clamped >= 1 && clamped < 90,
+      `interval ${interval} clamped to ${clamped}, which is not before the exam`,
+    );
+  }
+});
+
+check("repeated clamping converges on the exam instead of overshooting", () => {
+  // Walk a card forward the way a reviewee actually would: each review pulls
+  // the next one closer, and the gaps must keep shrinking rather than stalling
+  // or stepping past the date.
+  const exam = new Date("2026-11-16T04:00:00.000Z");
+  let cursor = new Date(NOW);
+  let interval = 200;
+  const gaps = [];
+  for (let i = 0; i < 20 && daysUntil(exam, cursor) > 0; i++) {
+    const gap = clampToExam(interval, cursor, exam);
+    gaps.push(gap);
+    cursor = new Date(cursor.getTime() + gap * 24 * 60 * 60 * 1000);
+    interval = Math.round(interval * 2.5); // SM-2 keeps growing underneath
+  }
+  assert.ok(gaps.length >= 4, `expected several reviews, got ${gaps.length}`);
+  assert.ok(
+    gaps.every((g, i) => i === 0 || g <= gaps[i - 1]),
+    `gaps should shrink, got ${gaps.join(", ")}`,
+  );
+  assert.equal(gaps.at(-1), 1, "final gap should close to a single day");
+  assert.ok(cursor <= exam, "the walk must not step past the exam");
+});
+
+check("an exam already past stops clamping", () => {
+  const exam = new Date("2026-08-01T04:00:00.000Z"); // behind us
+  assert.equal(clampToExam(200, NOW, exam), 200);
+});
+
+check("the clamp moves the due date but never SM-2's own belief", () => {
+  // intervalDays is the memory model and gets persisted. If the clamp wrote
+  // into it, every pulled-forward review would shrink the model too, and the
+  // card would restart at a beginner interval once the exam was over.
+  const state = { easeFactor: 2.5, intervalDays: 100, repetitions: 6 };
+  const exam = new Date("2026-09-07T04:00:00.000Z"); // 20 days out
+  const next = scheduleNextReview(state, "good", NOW, exam);
+  assert.equal(next.intervalDays, 250, "SM-2 interval must be preserved");
+  assert.ok(next.dueInDays < 20, "the due date must land before the exam");
+  assert.ok(next.dueInDays < next.intervalDays);
+});
+
+check("without an exam date dueInDays just equals the interval", () => {
+  const state = { easeFactor: 2.5, intervalDays: 100, repetitions: 6 };
+  const next = scheduleNextReview(state, "good", NOW);
+  assert.equal(next.dueInDays, next.intervalDays);
+});
+
+check("a failed card still resets to tomorrow under an exam date", () => {
+  const state = { easeFactor: 2.5, intervalDays: 100, repetitions: 6 };
+  const exam = new Date("2026-09-07T04:00:00.000Z");
+  const next = scheduleNextReview(state, "again", NOW, exam);
+  assert.equal(next.intervalDays, 1);
+  assert.equal(next.dueInDays, 1);
+  assert.equal(next.repetitions, 0);
+});
+
+check("the rating buttons show the clamped gap, not the SM-2 interval", () => {
+  // Labelling a button "9 months" for a card that returns in 12 days is a lie
+  // the student cannot detect.
+  const state = { easeFactor: 2.5, intervalDays: 100, repetitions: 6 };
+  const exam = new Date("2026-09-07T04:00:00.000Z"); // 20 days out
+  const labels = previewIntervals(state, NOW, exam);
+  assert.notEqual(labels.good, previewIntervals(state, NOW).good);
+  assert.equal(labels.good, formatInterval(12));
+});
+
+check("an exam date is read as a local day, not shifted through UTC", () => {
+  // new Date("2026-10-05") is UTC midnight, which is 8am in Manila and can
+  // move daysUntil by a whole day. Being one day wrong about an exam is the
+  // exact failure this feature exists to prevent.
+  const parsed = parseExamDate("2026-10-05");
+  assert.equal(parsed.getFullYear(), 2026);
+  assert.equal(parsed.getMonth(), 9);
+  assert.equal(parsed.getDate(), 5);
+  assert.equal(parsed.getHours(), 0);
+});
+
+check("a malformed or missing exam date parses to null rather than throwing", () => {
+  assert.equal(parseExamDate(null), null);
+  assert.equal(parseExamDate(undefined), null);
+  assert.equal(parseExamDate(""), null);
+  assert.equal(parseExamDate("05/10/2026"), null);
+  assert.equal(parseExamDate("2026-10"), null);
+  // A bad value must disable the clamp, never crash a review.
+  assert.equal(clampToExam(200, NOW, parseExamDate("nonsense")), 200);
+});
+
 
 console.log("\nQuota periods (Manila time)");
 

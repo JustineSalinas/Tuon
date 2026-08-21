@@ -49,6 +49,17 @@ export interface UserProfile {
    * institution list — see lib/schools.ts for why.
    */
   school?: string | null;
+  /**
+   * The date of a fixed exam the material has to be ready for, as `YYYY-MM-DD`
+   * in the user's own timezone. Board and licensure reviewers sit on a date
+   * set by the PRC, and plain SM-2 will happily schedule a well-known card
+   * past it — see `clampToExam` in lib/srs/sm2.ts.
+   *
+   * Stored as a plain date string rather than a Timestamp: it is a calendar
+   * day, not an instant, and converting it through UTC shifts it by one day
+   * for everyone in Manila.
+   */
+  examDate?: string | null;
   onboardingCompleted: boolean;
 
   // --- scheduling preferences ---------------------------------------------

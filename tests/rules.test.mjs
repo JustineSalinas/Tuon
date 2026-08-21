@@ -224,6 +224,21 @@ await check("an over-long school name is rejected", async () => {
   );
 });
 
+await check("a reviewer can set and clear their exam date", async () => {
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { examDate: "2026-10-05" }),
+  );
+  await assertSucceeds(updateDoc(doc(alice, profile(ALICE)), { examDate: null }));
+});
+
+await check("a malformed exam date is rejected", async () => {
+  // The clamp silently does nothing on an unparseable value, so a bad date
+  // would disable exam scheduling without any visible error. Reject at write.
+  for (const bad of ["05/10/2026", "2026-10", "tomorrow", "2026-10-05T00:00:00Z"]) {
+    await assertFails(updateDoc(doc(alice, profile(ALICE)), { examDate: bad }));
+  }
+});
+
 await check("ordinary profile edits still work after consent is on record", async () => {
   // The acceptance time is pinned to request.time, so an unchanged
   // termsAcceptedAt riding along on a later edit must not trip that check.
