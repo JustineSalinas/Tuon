@@ -1,17 +1,18 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The Tuón mark: an owl whose eyes are the original focus motif.
+ * The Tuón mark: a small round owl, face-on.
  *
  * The mark used to be a single ring with a filled centre — "a point of
- * attention", which is what tuón means. That idea is kept rather than thrown
- * away: the owl has two of them, as eyes. So the logo now carries the meaning
- * AND is a character that can appear beside a sentence, which an abstract ring
- * never could.
+ * attention", which is what tuón means. That idea survives rather than being
+ * thrown away: the owl has two of them, as eyes, and each is still literally a
+ * ring around a filled dot.
  *
- * Built from circles and two straight lines on a 32-unit grid so it survives
- * being rendered at 16px in a browser tab. Everything inherits `currentColor`,
- * so it is correct in dark mode for free and needs no second asset.
+ * Built as a SILHOUETTE with the eyes punched out (`fill-rule="evenodd"`)
+ * rather than as outlines. That matters more than it sounds: strokes go to mush
+ * below about 20px, whereas mass survives, so this is the version that still
+ * reads in a browser tab. It is also why the mark carries one colour —
+ * `currentColor` — and needs no second asset for dark mode.
  */
 export function TuonMark({ className }: { className?: string }) {
   return (
@@ -21,43 +22,30 @@ export function TuonMark({ className }: { className?: string }) {
       aria-hidden="true"
       className={cn("size-7", className)}
     >
-      {/* Head. The open gap at the top is where the original ring's gap was —
-          attention arriving rather than a closed circle. */}
+      {/* Ear tufts. Drawn first and in the same colour, so they simply weld
+          onto the head below rather than needing to be part of its path. */}
       <path
-        d="M4.5 17.5 A11.5 11.5 0 0 1 27.5 17.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.45"
-      />
-      {/* Body */}
-      <path
-        d="M4.5 17.5 A11.5 11.5 0 0 0 27.5 17.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.45"
-      />
-
-      {/* Ear tufts — what makes it read as an owl rather than a bird. */}
-      <path
-        d="M8.5 8.5 L6.5 4.5 M23.5 8.5 L25.5 4.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.45"
-      />
-
-      {/* The eyes: the old mark, twice. */}
-      <circle cx="12" cy="15" r="3.6" fill="currentColor" />
-      <circle cx="20" cy="15" r="3.6" fill="currentColor" />
-
-      {/* Beak */}
-      <path
-        d="M16 19.5 L14.6 21.8 H17.4 Z"
+        d="M10.6 8.6 L6.4 2.6 L15.2 6.6 Z M21.4 8.6 L25.6 2.6 L16.8 6.6 Z"
         fill="currentColor"
-        opacity="0.55"
+        strokeLinejoin="round"
       />
+
+      {/* Head and body in one shape, with the eyes and beak as holes. */}
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M16 6.2 C 21.4 6.2 25.2 8.8 26.6 12.4 C 27.8 15.4 27.8 19.8 26.4 22.8
+           C 24.4 27 20.6 29.4 16 29.4 C 11.4 29.4 7.6 27 5.6 22.8
+           C 4.2 19.8 4.2 15.4 5.4 12.4 C 6.8 8.8 10.6 6.2 16 6.2 Z
+           M15.6 15.6 A4.4 4.4 0 1 0 6.8 15.6 A4.4 4.4 0 1 0 15.6 15.6 Z
+           M25.2 15.6 A4.4 4.4 0 1 0 16.4 15.6 A4.4 4.4 0 1 0 25.2 15.6 Z
+           M16 20.2 L13.9 23.4 H18.1 Z"
+        fill="currentColor"
+      />
+
+      {/* The pupils: the original mark, twice, sitting inside its own ring. */}
+      <circle cx="11.2" cy="15.7" r="2.5" fill="currentColor" />
+      <circle cx="20.8" cy="15.7" r="2.5" fill="currentColor" />
     </svg>
   );
 }

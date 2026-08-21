@@ -230,6 +230,7 @@ function QuizPreview({ onRestart }: { onRestart: () => void }) {
             <div className="mt-4 flex gap-3 rounded-xl border p-4">
               <PaperCreature
                 state={correct ? "correct" : "wrong"}
+                studying
                 className="size-12 shrink-0"
               />
               <p className="text-muted-foreground text-sm leading-relaxed">

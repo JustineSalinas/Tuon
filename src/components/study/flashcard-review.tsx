@@ -418,6 +418,10 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
           {/* Companion — decorative, and kept out of the thumb zone on mobile */}
           <PaperCreature
             state={creature}
+            // This branch only renders mid-review, so the book stays out for
+            // the whole session rather than appearing for the instant after
+            // each rating and vanishing again.
+            studying
             className="pointer-events-none fixed bottom-24 left-4 hidden size-16 opacity-90 lg:block"
           />
         </>

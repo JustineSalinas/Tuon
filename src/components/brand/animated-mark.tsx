@@ -7,21 +7,19 @@ import { cn } from "@/lib/utils";
 /**
  * The Tuón mark, in motion.
  *
- * The mark is an owl whose eyes are the original point-of-focus motif, so its
- * honest motions are an owl's: the outline drawing itself and the eyes opening
- * ("draw"), or a slow blink ("focusing"). The previous version rotated the
- * ring, which was right for a ring and would be faintly horrifying on a head.
+ * The mark is a solid little owl, so the honest motion is an owl's: it settles
+ * into place and opens its eyes ("draw"), or blinks slowly and forever
+ * ("focusing"). An earlier version rotated the ring, which was right for a ring
+ * and would be faintly horrifying on a head.
  *
- * Everything animated here is `stroke-dashoffset`, `scale` or `opacity` —
- * compositor-friendly, so it stays cheap on the mid-range Android this app is
- * built for.
+ * The blink is done with LIDS — discs of the body colour that drop over the
+ * punched-out eyes — rather than by squashing the pupils. Squashing a pupil
+ * reads as a glare; filling the socket reads as a closed eye. Both are pure
+ * transform + opacity, so this stays compositor-only on mid-range Android.
  */
 
-/** Rough length of the head outline, for the draw-on effect. */
-const OUTLINE_LENGTH = 76;
-
 export type MarkMotion =
-  /** Draws itself and opens its eyes once, then rests. Heroes, auth screens. */
+  /** Settles in and opens its eyes once, then rests. Heroes, auth screens. */
   | "draw"
   /** Blinks slowly and forever. The loading state for generation. */
   | "focusing"
@@ -38,20 +36,15 @@ export function AnimatedMark({
   const reduceMotion = useReducedMotion();
   const still = mode === "still" || reduceMotion;
 
-  const outline = {
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round" as const,
-    opacity: 0.45,
-  };
-
-  /** The eyes: pop open on draw, blink on a loop while focusing. */
-  const eye = (delay: number) => {
-    if (still) return { initial: false as const, animate: { scaleY: 1, opacity: 1 } };
+  /** A lid is closed at scaleY 1 and open at 0. */
+  const lid = (delay: number) => {
+    if (still) {
+      return { initial: false as const, animate: { scaleY: 0 } };
+    }
     if (mode === "focusing") {
       return {
         initial: false as const,
-        animate: { scaleY: [1, 1, 0.12, 1], opacity: 1 },
+        animate: { scaleY: [0, 0, 1, 0] },
         transition: {
           duration: 2.8,
           repeat: Infinity,
@@ -62,15 +55,11 @@ export function AnimatedMark({
       };
     }
     return {
-      initial: { scale: 0.2, opacity: 0 },
-      animate: { scale: 1, opacity: 1 },
-      transition: {
-        duration: 0.45,
-        // Lands just after the outline closes: the shape arrives, then it
-        // looks at you.
-        delay: 0.4 + delay,
-        ease: [0.22, 1, 0.36, 1] as const,
-      },
+      initial: { scaleY: 1 },
+      animate: { scaleY: 0 },
+      // Lands just after the body settles: the shape arrives, then it looks
+      // at you.
+      transition: { duration: 0.32, delay: 0.34 + delay, ease: "easeOut" as const },
     };
   };
 
@@ -81,57 +70,52 @@ export function AnimatedMark({
       aria-hidden="true"
       className={cn("size-7", className)}
     >
-      <motion.path
-        d="M4.5 17.5 A11.5 11.5 0 0 1 27.5 17.5"
-        {...outline}
-        initial={still || mode !== "draw" ? false : { strokeDashoffset: OUTLINE_LENGTH }}
-        animate={{ strokeDashoffset: 0 }}
-        strokeDasharray={mode === "draw" && !still ? OUTLINE_LENGTH : undefined}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      />
-      <motion.path
-        d="M4.5 17.5 A11.5 11.5 0 0 0 27.5 17.5"
-        {...outline}
-        initial={still || mode !== "draw" ? false : { strokeDashoffset: OUTLINE_LENGTH }}
-        animate={{ strokeDashoffset: 0 }}
-        strokeDasharray={mode === "draw" && !still ? OUTLINE_LENGTH : undefined}
-        transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-      />
-      <motion.path
-        d="M8.5 8.5 L6.5 4.5 M23.5 8.5 L25.5 4.5"
-        {...outline}
-        initial={still || mode !== "draw" ? false : { opacity: 0 }}
-        animate={{ opacity: 0.45 }}
-        transition={{ duration: 0.3, delay: 0.35 }}
-      />
+      <motion.g
+        initial={still || mode !== "draw" ? false : { scale: 0.62, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.34, 1.4, 0.64, 1] }}
+        style={{ transformOrigin: "16px 22px" }}
+      >
+        <path
+          d="M10.6 8.6 L6.4 2.6 L15.2 6.6 Z M21.4 8.6 L25.6 2.6 L16.8 6.6 Z"
+          fill="currentColor"
+          strokeLinejoin="round"
+        />
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M16 6.2 C 21.4 6.2 25.2 8.8 26.6 12.4 C 27.8 15.4 27.8 19.8 26.4 22.8
+             C 24.4 27 20.6 29.4 16 29.4 C 11.4 29.4 7.6 27 5.6 22.8
+             C 4.2 19.8 4.2 15.4 5.4 12.4 C 6.8 8.8 10.6 6.2 16 6.2 Z
+             M15.6 15.6 A4.4 4.4 0 1 0 6.8 15.6 A4.4 4.4 0 1 0 15.6 15.6 Z
+             M25.2 15.6 A4.4 4.4 0 1 0 16.4 15.6 A4.4 4.4 0 1 0 25.2 15.6 Z
+             M16 20.2 L13.9 23.4 H18.1 Z"
+          fill="currentColor"
+        />
 
-      <motion.circle
-        cx="12"
-        cy="15"
-        r="3.6"
-        fill="currentColor"
-        style={{ transformOrigin: "12px 15px" }}
-        {...eye(0)}
-      />
-      <motion.circle
-        cx="20"
-        cy="15"
-        r="3.6"
-        fill="currentColor"
-        style={{ transformOrigin: "20px 15px" }}
-        // A hair behind the other eye — a perfectly synchronised blink reads
-        // as a shutter, a staggered one reads as alive.
-        {...eye(0.06)}
-      />
+        <circle cx="11.2" cy="15.7" r="2.5" fill="currentColor" />
+        <circle cx="20.8" cy="15.7" r="2.5" fill="currentColor" />
 
-      <motion.path
-        d="M16 19.5 L14.6 21.8 H17.4 Z"
-        fill="currentColor"
-        opacity={0.55}
-        initial={still || mode !== "draw" ? false : { opacity: 0 }}
-        animate={{ opacity: 0.55 }}
-        transition={{ duration: 0.3, delay: 0.55 }}
-      />
+        {/* Lids, in the body colour, filling the sockets when closed. */}
+        <motion.circle
+          cx="11.2"
+          cy="15.6"
+          r="4.45"
+          fill="currentColor"
+          style={{ transformOrigin: "11.2px 15.6px" }}
+          {...lid(0)}
+        />
+        <motion.circle
+          cx="20.8"
+          cy="15.6"
+          r="4.45"
+          fill="currentColor"
+          style={{ transformOrigin: "20.8px 15.6px" }}
+          // A hair behind the other eye — a perfectly synchronised blink reads
+          // as a shutter, a staggered one reads as alive.
+          {...lid(0.06)}
+        />
+      </motion.g>
     </svg>
   );
 }
