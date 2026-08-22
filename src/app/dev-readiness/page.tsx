@@ -2,6 +2,8 @@ import {
   ReadinessCard,
   SubjectReadinessList,
 } from "@/components/app/readiness";
+import { TodaysPlan } from "@/components/app/todays-plan";
+import { buildPlan } from "@/lib/stats/plan";
 import type { ReadinessReport } from "@/lib/stats/readiness";
 
 export const metadata = {
@@ -97,6 +99,35 @@ const CASES: [string, ReadinessReport][] = [
   ],
 ];
 
+const PLAN_CASES: [string, ReturnType<typeof buildPlan>][] = [
+  [
+    "Board reviewer, backlog held back",
+    buildPlan(
+      [
+        { id: "s1", title: "Income Taxation — Deductions", courseTag: "Taxation", due: 22, fresh: 6 },
+        { id: "s2", title: "Audit Sampling", courseTag: "Auditing", due: 14, fresh: 0 },
+        { id: "s3", title: "Consolidation", courseTag: "FAR", due: 9, fresh: 3 },
+      ],
+      [{ id: "n1", title: "Monday review centre handout", hasSet: false }],
+      ["Taxation", "Auditing", "Management Services", "FAR", "RFBT"],
+      20,
+    ),
+  ],
+  [
+    "Light day, nothing held back",
+    buildPlan(
+      [{ id: "s1", title: "General Biology 1 — Photosynthesis", courseTag: "General Biology 1", due: 6, fresh: 0 }],
+      [],
+      ["General Biology 1"],
+      20,
+    ),
+  ],
+  [
+    "Only an unconverted note",
+    buildPlan([], [{ id: "n1", title: "Thursday lecture", hasSet: false }], [], 20),
+  ],
+];
+
 export default function DevReadiness() {
   return (
     <div className="mx-auto max-w-2xl space-y-10 p-8">
@@ -107,6 +138,15 @@ export default function DevReadiness() {
           dark mode.
         </p>
       </div>
+
+      {PLAN_CASES.map(([label, p]) => (
+        <section key={label}>
+          <h2 className="text-muted-foreground mb-2 text-xs font-medium tracking-widest uppercase">
+            Plan — {label}
+          </h2>
+          <TodaysPlan plan={p} />
+        </section>
+      ))}
 
       {CASES.map(([label, r]) => (
         <section key={label}>

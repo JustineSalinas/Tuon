@@ -19,10 +19,12 @@ import { useNow } from "@/lib/hooks/use-now";
 import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
+import { TodaysPlan } from "@/components/app/todays-plan";
 import { buildReadiness } from "@/lib/stats/readiness";
+import { buildPlan } from "@/lib/stats/plan";
+import { usePreferences } from "@/lib/hooks/use-preferences";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   const { data: sets, loading: setsLoading } = useStudySets(user?.uid);
   const { data: notes, loading: notesLoading } = useNotes(user?.uid);
   const { logs, loading: logsLoading } = useReviewLogs(user?.uid);
+  const { dailyCardGoal } = usePreferences();
   // Refreshed every minute so a card becoming due appears without a reload.
   const now = useNow(60_000);
 
@@ -61,7 +64,29 @@ export default function DashboardPage() {
     [sets, logs, profile?.examDate, now],
   );
 
-  const readyToReview = setStats.filter((s) => s.pending > 0);
+  /** One ordered plan for today, weakest subject first. */
+  const plan = useMemo(() => {
+    const noteIdsWithSets = new Set(
+      sets.map((set) => set.noteId).filter((id): id is string => Boolean(id)),
+    );
+    return buildPlan(
+      setStats.map(({ set, due, fresh }) => ({
+        id: set.id,
+        title: set.title,
+        courseTag: set.courseTag,
+        due,
+        fresh,
+      })),
+      notes.map((note) => ({
+        id: note.id,
+        title: note.title,
+        hasSet: noteIdsWithSets.has(note.id),
+      })),
+      readiness.bySubject.map((s) => s.subject),
+      dailyCardGoal,
+    );
+  }, [setStats, sets, notes, readiness, dailyCardGoal]);
+
 
   const firstName = (profile?.displayName || "there").trim().split(/\s+/)[0];
 
@@ -136,44 +161,17 @@ export default function DashboardPage() {
             </section>
           ) : null}
 
-          {/* Sets with work waiting */}
-          {readyToReview.length > 0 ? (
+          {/* The plan replaces the old list of sets. That list was a menu, and
+              a menu is where students pick the deck they already know. */}
+          {plan.steps.length > 0 ? (
             <section className="mt-8">
-              <SectionHeading title="Ready to study" href="/app/sets" linkLabel="All sets" />
-              <div className="mt-3 grid gap-2">
-                {readyToReview.slice(0, 5).map(({ set, due, fresh }, index) => (
-                  <motion.div
-                    key={set.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25, delay: 0.06 + index * 0.04 }}
-                  >
-                    <Link
-                      href={`/app/sets/${set.id}`}
-                      className="hover:border-primary/40 hover:bg-accent/30 flex items-center gap-3 rounded-xl border p-3.5 transition-colors"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium">{set.title}</div>
-                        <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
-                          {set.courseTag ? <span>{set.courseTag}</span> : null}
-                          <span>{set.flashcardCount} cards</span>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        {due > 0 ? (
-                          <Badge className="bg-primary/15 text-primary border-transparent tabular-nums">
-                            {due} due
-                          </Badge>
-                        ) : null}
-                        {fresh > 0 ? (
-                          <Badge variant="secondary" className="tabular-nums">
-                            {fresh} new
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
+              <SectionHeading
+                title="Today's plan"
+                href="/app/sets"
+                linkLabel="All sets"
+              />
+              <div className="mt-3">
+                <TodaysPlan plan={plan} />
               </div>
             </section>
           ) : null}

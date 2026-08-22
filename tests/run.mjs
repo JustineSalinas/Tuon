@@ -9,3 +9,4 @@ import "./billing.test.mjs";
 import "./merge.test.mjs";
 import "./reminders.test.mjs";
 import "./readiness.test.mjs";
+import "./plan.test.mjs";
