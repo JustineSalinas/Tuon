@@ -52,9 +52,21 @@ export async function requestVerificationEmail(
     }
 
     const body = (await response.json().catch(() => ({}))) as { code?: string };
-    // Anything other than "we have no mailer" is a real failure and must not
-    // be papered over by silently sending the spam-foldered version.
-    if (body.code !== "EMAIL_NOT_CONFIGURED" && body.code !== "SERVER_NOT_CONFIGURED") {
+
+    // Fall through to Firebase on any delivery problem, not just "no mailer
+    // here". The case that forces this: keys set but the sending domain not
+    // verified yet. Resend rejects every message, and without a fallback NOBODY
+    // could verify their address at all — strictly worse than the spam folder
+    // this feature exists to escape. Nothing was delivered when the send fails,
+    // so the fallback cannot duplicate a message. The server logs the rejection
+    // loudly either way, so a broken configuration is still visible.
+    const recoverable =
+      body.code === "EMAIL_NOT_CONFIGURED" ||
+      body.code === "SERVER_NOT_CONFIGURED" ||
+      body.code === "SEND_FAILED";
+    if (!recoverable) {
+      // Rate limited, not signed in, no address on the account: retrying
+      // through Firebase would fail the same way or spam the user.
       return "failed";
     }
   } catch {

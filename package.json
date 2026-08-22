@@ -13,6 +13,7 @@
     "test:rules": "firebase emulators:exec --only firestore --project tuon-rules-test \"tsx tests/rules.test.mjs\"",
     "migrate:owner-ids": "node scripts/backfill-owner-ids.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
+    "email:test": "tsx scripts/send-test-email.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
     "cards:quality": "node scripts/card-quality.mjs"
   },
