@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
-  ArrowRight,
   CalendarClock,
   FileText,
   Layers,
@@ -19,6 +18,8 @@ import { useNotes, useReviewLogs, useStudySets } from "@/lib/hooks/use-firestore
 import { useNow } from "@/lib/hooks/use-now";
 import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
+import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
+import { buildReadiness } from "@/lib/stats/readiness";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,9 +54,14 @@ export default function DashboardPage() {
     });
   }, [sets, logs, now]);
 
+  // Readiness is derived from the logs and sets already loaded above, so the
+  // dashboard's most prominent number costs no extra reads.
+  const readiness = useMemo(
+    () => buildReadiness(sets, logs, parseExamDate(profile?.examDate), new Date(now)),
+    [sets, logs, profile?.examDate, now],
+  );
+
   const readyToReview = setStats.filter((s) => s.pending > 0);
-  const totalDue = setStats.reduce((sum, s) => sum + s.due, 0);
-  const totalFresh = setStats.reduce((sum, s) => sum + s.fresh, 0);
 
   const firstName = (profile?.displayName || "there").trim().split(/\s+/)[0];
 
@@ -92,43 +98,8 @@ export default function DashboardPage() {
             transition={{ duration: 0.3, delay: 0.05 }}
             className="mt-6"
           >
-            {totalDue + totalFresh > 0 ? (
-              <Card className="border-primary/30 bg-accent/40 overflow-hidden">
-                <CardContent className="flex flex-wrap items-center justify-between gap-4 py-1">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-display text-3xl font-semibold tabular-nums">
-                        {totalDue + totalFresh}
-                      </span>
-                      <span className="text-sm font-medium">cards waiting</span>
-                    </div>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      {totalDue > 0 ? `${totalDue} due for review` : "All caught up on reviews"}
-                      {totalFresh > 0 ? ` · ${totalFresh} never seen` : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {/* Tala reflects the day rather than decorating it: a
-                        backlog looks like a backlog before you read a number. */}
-                    <PaperCreature
-                      state={totalDue > 20 ? "overdue" : "idle"}
-                      className="hidden size-16 sm:block"
-                      title={CREATURE_ROLE}
-                    />
-                    {readyToReview[0] ? (
-                      <Button
-                        size="lg"
-                        render={
-                          <Link href={`/app/sets/${readyToReview[0].set.id}/review`} />
-                        }
-                      >
-                        Start reviewing
-                        <ArrowRight />
-                      </Button>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </Card>
+            {readiness.total > 0 ? (
+              <ReadinessCard report={readiness} />
             ) : (
               <Card className="bg-secondary/40">
                 <CardContent className="flex items-center gap-4 py-1">
@@ -139,17 +110,31 @@ export default function DashboardPage() {
                   />
                   <div>
                     <p className="font-medium">
-                      Nothing due right now — {CREATURE_NAME} is resting.
+                      Nothing to study yet — {CREATURE_NAME} is resting.
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">
-                      Your next cards come back when they are scheduled. Add a new
-                      note to get ahead.
+                      Turn a note into a study set and her first cards appear
+                      here.
                     </p>
                   </div>
                 </CardContent>
               </Card>
             )}
           </motion.section>
+
+          {/* Weakest subject first — the one about to sink you. */}
+          {readiness.bySubject.length > 1 ? (
+            <section className="mt-8">
+              <SectionHeading
+                title="Where you stand"
+                href="/app/stats"
+                linkLabel="Full stats"
+              />
+              <div className="mt-3">
+                <SubjectReadinessList subjects={readiness.bySubject} />
+              </div>
+            </section>
+          ) : null}
 
           {/* Sets with work waiting */}
           {readyToReview.length > 0 ? (

@@ -8,3 +8,4 @@ import "./preferences.test.mjs";
 import "./billing.test.mjs";
 import "./merge.test.mjs";
 import "./reminders.test.mjs";
+import "./readiness.test.mjs";
