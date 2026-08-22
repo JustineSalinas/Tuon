@@ -1,4 +1,5 @@
 import { log } from "@/lib/observability/log";
+import { isPaused, noteFailure, noteSuccess } from "@/lib/email/pause";
 
 /**
  * Transactional email, sent from a domain we own.
@@ -49,6 +50,10 @@ export async function sendEmail(message: OutgoingEmail): Promise<SendResult> {
   const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) return { ok: false, reason: "not_configured" };
 
+  // Treated as "no mailer here" so the caller falls back quietly, rather than
+  // as a failure it would surface to the user.
+  if (isPaused()) return { ok: false, reason: "not_configured" };
+
   const replyTo = process.env.EMAIL_REPLY_TO;
 
   try {
@@ -72,15 +77,20 @@ export async function sendEmail(message: OutgoingEmail): Promise<SendResult> {
       // The body carries the actual reason (unverified domain, bad key). It is
       // logged but never returned to the browser: it names our infrastructure.
       const detail = await response.text().catch(() => "");
+
+      // Configuration failures pause further calls; see lib/email/pause.ts.
+      const misconfigured = noteFailure(response.status);
+
       log.error({
         scope: "email",
-        event: "send.rejected",
+        event: misconfigured ? "send.misconfigured" : "send.rejected",
         status: response.status,
         detail: detail.slice(0, 500),
       });
       return { ok: false, reason: "failed", detail: `status ${response.status}` };
     }
 
+    noteSuccess();
     return { ok: true };
   } catch (error) {
     log.error({
