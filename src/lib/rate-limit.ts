@@ -92,6 +92,15 @@ export const RATE_LIMITS = {
     limit: envLimit("RATE_LIMIT_REPORT", 20),
     windowSeconds: 3600,
   },
+  /**
+   * Resending a verification email. Low: the only reason to call this many
+   * times is to use somebody else's inbox as a mailbox bomb.
+   */
+  sendVerification: {
+    scope: "send-verification",
+    limit: envLimit("RATE_LIMIT_SEND_VERIFICATION", 8),
+    windowSeconds: 3600,
+  },
   /** Starting a checkout. Rare per person, and it hits a paid API. */
   checkout: {
     scope: "checkout",

@@ -6,12 +6,13 @@ import {
   GoogleAuthProvider,
   reauthenticateWithCredential,
   reauthenticateWithPopup,
-  sendEmailVerification,
   updatePassword,
   verifyBeforeUpdateEmail,
 } from "firebase/auth";
 import { Check, KeyRound, Loader2, LogOut, Mail, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+
+import { requestVerificationEmail } from "@/lib/email/request-verification";
 
 import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -76,13 +77,15 @@ function EmailRow() {
   async function resendVerification() {
     if (!auth.currentUser) return;
     setBusy(true);
-    try {
-      await sendEmailVerification(auth.currentUser);
-      toast.success("Verification email sent. Check your inbox and spam folder.");
-    } catch {
-      toast.error("Could not send that email. Please try again in a minute.");
-    }
+    const outcome = await requestVerificationEmail(auth.currentUser);
     setBusy(false);
+    if (outcome === "failed") {
+      toast.error("Could not send that email. Please try again in a minute.");
+    } else if (outcome === "already-verified") {
+      toast.success("This address is already verified.");
+    } else {
+      toast.success("Verification email sent. Check your inbox and spam folder.");
+    }
   }
 
   async function submit() {

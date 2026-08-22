@@ -7,13 +7,13 @@ import { motion } from "motion/react";
 import { FirebaseError } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
-  sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
 import { Loader2 } from "lucide-react";
 
 import { auth, googleProvider } from "@/lib/firebase/client";
+import { requestVerificationEmail } from "@/lib/email/request-verification";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -119,8 +119,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
         );
         // Best effort: a failure here must not block signup, since the student
         // can resend from settings. Verification gates AI generation, not the
-        // account itself.
-        await sendEmailVerification(credential.user).catch(() => {});
+        // account itself. `requestVerificationEmail` already swallows delivery
+        // problems and falls back to Firebase's mailer.
+        await requestVerificationEmail(credential.user).catch(() => {});
       } else {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       }

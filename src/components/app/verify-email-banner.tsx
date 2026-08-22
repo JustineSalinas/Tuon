@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { sendEmailVerification } from "firebase/auth";
 import { MailCheck, X } from "lucide-react";
 import { toast } from "sonner";
+
+import { requestVerificationEmail } from "@/lib/email/request-verification";
 
 import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -29,13 +30,15 @@ export function VerifyEmailBanner() {
     const current = auth.currentUser;
     if (!current) return;
     setSending(true);
-    try {
-      await sendEmailVerification(current);
-      toast.success(`Sent to ${current.email}. Check spam if it doesn't arrive.`);
-    } catch {
-      toast.error("Could not send just now. Try again in a minute.");
-    }
+    const outcome = await requestVerificationEmail(current);
     setSending(false);
+    if (outcome === "failed") {
+      toast.error("Could not send just now. Try again in a minute.");
+    } else if (outcome === "already-verified") {
+      toast.success("This address is already verified.");
+    } else {
+      toast.success(`Sent to ${current.email}. Check spam if it doesn't arrive.`);
+    }
   }
 
   async function recheck() {
