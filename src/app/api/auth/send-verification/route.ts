@@ -89,12 +89,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, alreadyVerified: true });
     }
 
-    const link = await adminAuth().generateEmailVerificationLink(user.email, {
-      // Where they land after verifying. Without it Firebase drops them on its
-      // own confirmation page with no way back into the app.
-      url: `${siteUrl()}/app`,
-      handleCodeInApp: false,
-    });
+    // Where they land after verifying. Without it Firebase drops them on its
+    // own confirmation page with no way back into the app — but the domain has
+    // to be on the Auth authorized-domains allowlist, and when it is not,
+    // Firebase refuses to mint the link at all. Losing the return link is a
+    // papercut; refusing to send the email is not.
+    let link: string;
+    try {
+      link = await adminAuth().generateEmailVerificationLink(user.email, {
+        url: `${siteUrl()}/app`,
+        handleCodeInApp: false,
+      });
+    } catch (error) {
+      log.warn({
+        scope: "email",
+        event: "verify.continue_url_rejected",
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      link = await adminAuth().generateEmailVerificationLink(user.email);
+    }
 
     const result = await sendEmail(
       verificationEmail({

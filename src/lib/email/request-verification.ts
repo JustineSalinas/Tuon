@@ -82,7 +82,31 @@ export async function requestVerificationEmail(
       handleCodeInApp: false,
     });
     return "sent-fallback";
+  } catch (error) {
+    if (!isUnauthorizedContinueUri(error)) return "failed";
+  }
+
+  // The continue URL's domain is not in Firebase Auth > Settings > Authorized
+  // domains. That is a one-line config fix, but until someone makes it every
+  // send fails — so drop the return link and send the plain email. Landing on
+  // Firebase's own confirmation page is a papercut; not being able to verify
+  // at all is not. This exact case broke production once: siteUrl() resolves
+  // to the Vercel production alias, which was not on the allowlist.
+  try {
+    await sendEmailVerification(user);
+    return "sent-fallback";
   } catch {
     return "failed";
   }
+}
+
+/** Firebase's way of saying the continue URL's domain is not allowlisted. */
+function isUnauthorizedContinueUri(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code ?? "";
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return (
+    code === "auth/unauthorized-continue-uri" ||
+    code === "auth/invalid-continue-uri" ||
+    /unauthorized[-_ ]?(continue|domain)/i.test(message)
+  );
 }
