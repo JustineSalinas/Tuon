@@ -6,9 +6,6 @@ import { motion } from "motion/react";
 import {
   CalendarClock,
   FileText,
-  Layers,
-  Plus,
-  Sparkles,
 } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
@@ -18,15 +15,14 @@ import { useNotes, useReviewLogs, useStudySets } from "@/lib/hooks/use-firestore
 import { useNow } from "@/lib/hooks/use-now";
 import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
+import { FirstRun } from "@/components/app/first-run";
 import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
 import { TodaysPlan } from "@/components/app/todays-plan";
 import { buildReadiness } from "@/lib/stats/readiness";
 import { buildPlan } from "@/lib/stats/plan";
 import { usePreferences } from "@/lib/hooks/use-preferences";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -233,71 +229,6 @@ function SectionHeading({
   );
 }
 
-function FirstRun() {
-  const steps = [
-    {
-      icon: FileText,
-      title: "Paste your notes",
-      body: "Lecture notes, a textbook excerpt, your reviewer — anything you need to know.",
-    },
-    {
-      icon: Sparkles,
-      title: "Generate a study set",
-      body: "Tuón writes the flashcards and a practice quiz for you.",
-    },
-    {
-      icon: Layers,
-      title: "Review on schedule",
-      body: "Each card comes back right before you would have forgotten it.",
-    },
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="mt-8"
-    >
-      <Card className="bg-secondary/30">
-        <CardContent>
-          <h2 className="font-display text-xl font-semibold tracking-tight">
-            Let us make your first study set
-          </h2>
-          <p className="text-muted-foreground mt-1.5 text-sm">
-            It takes about a minute.
-          </p>
-
-          <ol className="mt-6 space-y-4">
-            {steps.map((step, index) => (
-              <li key={step.title} className="flex gap-3.5">
-                <span
-                  className={cn(
-                    "bg-background grid size-8 shrink-0 place-items-center rounded-full border",
-                    index === 0 && "border-primary text-primary",
-                  )}
-                >
-                  <step.icon className="size-4" />
-                </span>
-                <div>
-                  <div className="text-sm font-medium">{step.title}</div>
-                  <p className="text-muted-foreground mt-0.5 text-sm">{step.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-
-          <Button size="lg" className="mt-7 w-full sm:w-auto" render={<Link href="/app/notes/new" />}>
-              <Plus />
-              Create your first note
-            </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
-/** Manila-local greeting — the app is built for one timezone. */
 function greeting(): string {
   const hour = Number(
     new Intl.DateTimeFormat("en-PH", {
