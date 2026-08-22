@@ -64,9 +64,22 @@ function horizonEyebrow(report: ReadinessReport): string {
   return `${left} ${left === 1 ? "day" : "days"} to ${when}`;
 }
 
+/**
+ * Nothing has been reviewed even once.
+ *
+ * Worth its own case because the numbers are identical to "badly behind" and
+ * the meaning is the opposite. A new account seeded with a sample set would
+ * otherwise be greeted with "8 cards need work, 0%" and a worried owl, which
+ * is an accusation about work they have had no chance to do.
+ */
+function isUntouched(report: ReadinessReport): boolean {
+  return report.total > 0 && report.notStarted === report.total;
+}
+
 /** Tala delivers the verdict before the numbers do. */
 function creatureFor(report: ReadinessReport): CreatureState {
   if (report.needsWork === 0) return "celebrating";
+  if (isUntouched(report)) return "idle";
   const share = report.share ?? 0;
   if (share >= 0.7) return "idle";
   if (share >= 0.4) return "thinking";
@@ -75,6 +88,7 @@ function creatureFor(report: ReadinessReport): CreatureState {
 
 export function ReadinessCard({ report }: { report: ReadinessReport }) {
   const ready = report.needsWork === 0;
+  const untouched = isUntouched(report);
   const pct = Math.round((report.share ?? 0) * 100);
 
   return (
@@ -97,6 +111,11 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
               <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
                 Everything is on track.
               </p>
+            ) : untouched ? (
+              <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
+                <span className="tabular-nums">{report.total}</span>{" "}
+                {report.total === 1 ? "card is" : "cards are"} ready to start
+              </p>
             ) : (
               <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
                 <span className="tabular-nums">{report.needsWork}</span>{" "}
@@ -104,12 +123,18 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
               </p>
             )}
 
-            <p className="text-muted-foreground mt-1 text-sm">
-              <span className="tabular-nums">{report.onTrack}</span> of{" "}
-              <span className="tabular-nums">{report.total}</span>{" "}
-              {report.total === 1 ? "card" : "cards"} will still be fresh —{" "}
-              <span className="tabular-nums">{pct}%</span>
-            </p>
+            {untouched ? (
+              <p className="text-muted-foreground mt-1 text-sm">
+                Rate each one and Tuón schedules when you see it again.
+              </p>
+            ) : (
+              <p className="text-muted-foreground mt-1 text-sm">
+                <span className="tabular-nums">{report.onTrack}</span> of{" "}
+                <span className="tabular-nums">{report.total}</span>{" "}
+                {report.total === 1 ? "card" : "cards"} will still be fresh —{" "}
+                <span className="tabular-nums">{pct}%</span>
+              </p>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-3 max-sm:w-full">
@@ -151,11 +176,15 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
           )}
         </dl>
 
-        <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-          Projected from your own review schedule, assuming you keep up. It is
-          an estimate of what you will still remember — not a prediction of your
-          score.
-        </p>
+        {/* Nothing is scheduled yet, so there is nothing to project from.
+            Claiming otherwise would be noise on a user's first screen. */}
+        {untouched ? null : (
+          <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
+            Projected from your own review schedule, assuming you keep up. It is
+            an estimate of what you will still remember — not a prediction of
+            your score.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

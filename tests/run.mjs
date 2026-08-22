@@ -11,3 +11,4 @@ import "./reminders.test.mjs";
 import "./readiness.test.mjs";
 import "./plan.test.mjs";
 import "./email.test.mjs";
+import "./sample-set.test.mjs";

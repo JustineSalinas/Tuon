@@ -75,14 +75,14 @@ const CASES: [string, ReadinessReport][] = [
     }),
   ],
   [
-    "Brand new, nothing reviewed",
+    "Brand new — seeded sample, nothing reviewed yet",
     report({
       hasExam: false,
-      total: 40,
+      total: 8,
       onTrack: 0,
       atRisk: 0,
-      notStarted: 40,
-      needsWork: 40,
+      notStarted: 8,
+      needsWork: 8,
       share: 0,
     }),
   ],

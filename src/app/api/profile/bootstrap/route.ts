@@ -15,6 +15,7 @@ import {
   rateLimitedResponse,
 } from "@/lib/rate-limit";
 import { currentPeriodStart } from "@/lib/quota";
+import { seedSampleSetQuietly } from "@/lib/firebase/seed-sample";
 import { log } from "@/lib/observability/log";
 
 /**
@@ -107,6 +108,16 @@ export async function POST(request: Request) {
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
+
+    // A real set to review, rather than an empty screen explaining what a set
+    // would be. Runs only on genuine first creation — the early return above
+    // means an existing profile never reaches here, so nobody gets a second
+    // copy, and someone who deletes the sample does not get it back.
+    //
+    // Awaited so the dashboard's first read already sees it; a background
+    // write would race the redirect and show an empty state that then
+    // flickered into content. It cannot fail the request.
+    await seedSampleSetQuietly(caller.uid);
 
     return NextResponse.json({ created: true });
   } catch (error) {
