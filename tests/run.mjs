@@ -12,3 +12,4 @@ import "./readiness.test.mjs";
 import "./plan.test.mjs";
 import "./email.test.mjs";
 import "./sample-set.test.mjs";
+import "./health-access.test.mjs";

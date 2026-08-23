@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+
 import {
   ReadinessCard,
   SubjectReadinessList,
@@ -129,6 +131,8 @@ const PLAN_CASES: [string, ReturnType<typeof buildPlan>][] = [
 ];
 
 export default function DevReadiness() {
+  devOnly();
+
   return (
     <div className="mx-auto max-w-2xl space-y-10 p-8">
       <div>
@@ -163,4 +167,15 @@ export default function DevReadiness() {
       ))}
     </div>
   );
+}
+
+/**
+ * Dev-only. These pages exist to inspect an animated, multi-state, two-theme
+ * component without hand-building the data behind it, which is worth keeping —
+ * but they were reachable in production, where `robots: noindex` only keeps
+ * them out of search results, not out of reach. Visible locally and on
+ * previews, 404 in production.
+ */
+function devOnly() {
+  if (process.env.VERCEL_ENV === "production") notFound();
 }

@@ -55,3 +55,8 @@ next-env.d.ts
 firestore-debug.log
 firebase-debug.log
 ui-debug.log
+
+# gstack security reports and local artifacts. These name unfixed
+# weaknesses in this deployment, so they stay on the machine that ran the
+# audit rather than in a repo history anyone with read access can grep.
+.gstack/

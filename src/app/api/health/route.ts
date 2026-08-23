@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { adminConfigError } from "@/lib/firebase/admin";
 import { paymongoConfigError } from "@/lib/billing/paymongo";
+import { detailAccess } from "@/lib/health-access";
 
 /**
  * Is this deployment actually configured?
@@ -14,6 +15,20 @@ import { paymongoConfigError } from "@/lib/billing/paymongo";
  * Reports **presence and shape, never values**. A health endpoint that leaked
  * a key would be a worse problem than the one it solves, so nothing here ever
  * returns a secret — only whether one is set and whether it looks right.
+ *
+ * That is necessary and was not sufficient. The first version answered in full
+ * to anyone on the internet, and a security audit pulled this from production
+ * with no credentials:
+ *
+ *   {"name":"app-check","detail":"Not enforced. ..."}
+ *
+ * No secret leaked, and it still handed an attacker the one fact worth having
+ * before deciding whether scripted abuse of the paid endpoint was worth
+ * attempting. Posture is reconnaissance even when values are not.
+ *
+ * So the two audiences are split. An uptime monitor needs `ready` and a status
+ * code, and gets exactly that without asking. An operator debugging a bad
+ * deploy needs the detail, and presents `x-health-token`. See lib/health-access.
  */
 
 export const dynamic = "force-dynamic";
@@ -25,7 +40,7 @@ interface Check {
   detail?: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const checks: Check[] = [];
 
   const adminError = adminConfigError();
@@ -84,14 +99,32 @@ export async function GET() {
 
   const ready = checks.every((check) => check.ok);
 
+  const access = detailAccess(
+    request.headers.get("x-health-token"),
+    process.env.HEALTH_TOKEN,
+    process.env.VERCEL_ENV === "production",
+  );
+
   return NextResponse.json(
     {
       ready,
-      // Lets you tell two deployments apart when one of them is misbehaving.
-      commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
-      environment: process.env.VERCEL_ENV ?? "development",
       checkedAt: new Date().toISOString(),
-      checks,
+      ...(access.allowed
+        ? {
+            // Lets you tell two deployments apart when one is misbehaving.
+            commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
+            environment: process.env.VERCEL_ENV ?? "development",
+            checks,
+          }
+        : {
+            // Say why the detail is missing, so a confused operator is not left
+            // guessing whether the endpoint is broken. Naming the header is not
+            // a leak: knowing a token is required does not help you guess it.
+            detail:
+              access.reason === "no_token_configured"
+                ? "Set HEALTH_TOKEN and send it as x-health-token to see the checks."
+                : "Send a valid x-health-token to see the checks.",
+          }),
     },
     {
       // Non-200 when broken, so an uptime monitor notices without parsing.

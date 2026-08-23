@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+
 import { AnimatedMark } from "@/components/brand/animated-mark";
 import { TuonMark } from "@/components/brand/logo";
 import {
@@ -39,6 +41,8 @@ const MARK_SIZES: [className: string, label: string][] = [
 ];
 
 export default function DevCreature() {
+  devOnly();
+
   return (
     <div className="mx-auto max-w-5xl p-10">
       <h1 className="font-display text-3xl font-semibold">Tala — every state</h1>
@@ -99,4 +103,15 @@ export default function DevCreature() {
       </div>
     </div>
   );
+}
+
+/**
+ * Dev-only. These pages exist to inspect an animated, multi-state, two-theme
+ * component without hand-building the data behind it, which is worth keeping —
+ * but they were reachable in production, where `robots: noindex` only keeps
+ * them out of search results, not out of reach. Visible locally and on
+ * previews, 404 in production.
+ */
+function devOnly() {
+  if (process.env.VERCEL_ENV === "production") notFound();
 }
