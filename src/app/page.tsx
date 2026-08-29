@@ -15,7 +15,6 @@ import { SetupFlow } from "@/components/marketing/setup-flow";
 import { ForgettingCurve } from "@/components/marketing/forgetting-curve";
 import { ByHand } from "@/components/marketing/by-hand";
 import { HeroPreview } from "@/components/marketing/hero-preview";
-import { PaperCreature } from "@/components/brand/paper-creature";
 import { AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaAside, TalaPerch } from "@/components/marketing/tala";
 import { TuonMark } from "@/components/brand/logo";
@@ -46,10 +45,10 @@ export default function LandingPage() {
           <BuiltForPH />
           <Pricing />
           <FaqSection />
+          <AskTuon />
           <FinalCta />
         </main>
         <SiteFooter />
-        <AskTuon />
       </div>
     </SmoothScroll>
   );
@@ -489,8 +488,12 @@ function FinalCta() {
     <section className="border-t">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
         <Reveal>
-          <PaperCreature state="celebrating" className="mx-auto size-28" />
-          <h2 className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+          {/* The mark, not Tala. The Ask section directly above now shows
+              her, and two owls a screen apart reads as a stutter — that one is
+              functional (it is literally "Ask Tala", and she reacts while she
+              works), so this one gives way. */}
+          <TuonMark className="text-primary mx-auto size-9" />
+          <h2 className="font-display mx-auto mt-7 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             Stop making flashcards. Start remembering.
           </h2>
           <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">

@@ -11,7 +11,14 @@ import assert from "node:assert/strict";
 import { prepareTranscript } from "../src/lib/chat/transcript.ts";
 import { MAX_MESSAGE_CHARS, MAX_TURNS } from "../src/lib/chat/prompt.ts";
 import { knowledgeBase } from "../src/lib/chat/knowledge.ts";
-import { clearSession, loadSession, saveSession } from "../src/lib/chat/session.ts";
+import {
+  clearSession,
+  getSessionSnapshot,
+  getServerSessionSnapshot,
+  resetSessionForTests,
+  saveSession,
+  subscribeSession,
+} from "../src/lib/chat/session.ts";
 import { PLANS } from "../src/lib/ai/config.ts";
 import { BOARD_EXAMS, STRANDS } from "../src/lib/curriculum.ts";
 
@@ -147,6 +154,7 @@ console.log("\nConversation persistence");
 // sessionStorage does not exist in Node. A map is enough: the module only ever
 // does getItem / setItem / removeItem.
 function stubStorage() {
+  resetSessionForTests();
   const map = new Map();
   globalThis.sessionStorage = {
     getItem: (k) => (map.has(k) ? map.get(k) : null),
@@ -160,21 +168,21 @@ check("a saved conversation round-trips", () => {
   stubStorage();
   const turns = [user("hi"), bot("hello")];
   saveSession(turns);
-  assert.deepEqual(loadSession(), turns);
+  assert.deepEqual(getSessionSnapshot(), turns);
 });
 
 check("clearing removes it", () => {
   stubStorage();
   saveSession([user("hi")]);
   clearSession();
-  assert.deepEqual(loadSession(), []);
+  assert.deepEqual(getSessionSnapshot(), []);
 });
 
 check("saving an empty conversation clears rather than storing nothing", () => {
   stubStorage();
   saveSession([user("hi"), bot("hello")]);
   saveSession([]);
-  assert.deepEqual(loadSession(), []);
+  assert.deepEqual(getSessionSnapshot(), []);
 });
 
 check("tampered storage cannot inject a role", () => {
@@ -188,7 +196,7 @@ check("tampered storage cannot inject a role", () => {
       { role: "user", content: "real question" },
     ]),
   );
-  const loaded = loadSession();
+  const loaded = getSessionSnapshot();
   assert.equal(loaded.length, 1);
   assert.equal(loaded[0].role, "user");
 });
@@ -197,7 +205,7 @@ check("garbage in storage loads as empty rather than throwing", () => {
   const map = stubStorage();
   for (const junk of ["not json", "null", "42", '{"not":"an array"}', "[1,2,3]"]) {
     map.set("tuon.chat.v1", junk);
-    assert.deepEqual(loadSession(), [], `junk: ${junk}`);
+    assert.deepEqual(getSessionSnapshot(), [], `junk: ${junk}`);
   }
 });
 
@@ -206,12 +214,13 @@ check("a stored conversation longer than the cap is trimmed on load", () => {
   const many = [];
   for (let i = 0; i < 100; i++) many.push(user(`q${i}`), bot(`a${i}`));
   map.set("tuon.chat.v1", JSON.stringify(many));
-  assert.ok(loadSession().length <= MAX_TURNS);
+  assert.ok(getSessionSnapshot().length <= MAX_TURNS);
 });
 
 check("unavailable storage never throws at the caller", () => {
   // Private windows and blocked-storage settings throw on ACCESS, not just on
   // failure. A marketing page must not break because of it.
+  resetSessionForTests();
   globalThis.sessionStorage = {
     getItem() {
       throw new Error("blocked");
@@ -223,11 +232,61 @@ check("unavailable storage never throws at the caller", () => {
       throw new Error("blocked");
     },
   };
-  assert.doesNotThrow(() => loadSession());
-  assert.deepEqual(loadSession(), []);
+  assert.doesNotThrow(() => getSessionSnapshot());
+  assert.deepEqual(getSessionSnapshot(), []);
   assert.doesNotThrow(() => saveSession([user("hi")]));
   assert.doesNotThrow(() => clearSession());
 });
 
+
+
+check("a conversation already in memory survives storage going away", () => {
+  // Memory is the source of truth and storage is a side-channel. Someone whose
+  // browser blocks storage mid-session should not watch their own conversation
+  // disappear; they just lose it on reload.
+  resetSessionForTests();
+  stubStorage();
+  saveSession([user("hi"), bot("hello")]);
+  globalThis.sessionStorage = {
+    getItem() {
+      throw new Error("blocked");
+    },
+    setItem() {
+      throw new Error("blocked");
+    },
+    removeItem() {
+      throw new Error("blocked");
+    },
+  };
+  assert.equal(getSessionSnapshot().length, 2, "conversation should still be there");
+});
+
+check("the snapshot reference is stable between reads", () => {
+  // useSyncExternalStore re-renders on a new reference, so a fresh array every
+  // read would loop forever.
+  resetSessionForTests();
+  stubStorage();
+  saveSession([user("hi")]);
+  assert.equal(getSessionSnapshot(), getSessionSnapshot());
+});
+
+check("the server snapshot is empty and stable", () => {
+  assert.deepEqual(getServerSessionSnapshot(), []);
+  assert.equal(getServerSessionSnapshot(), getServerSessionSnapshot());
+});
+
+check("subscribers are notified when the conversation changes", () => {
+  resetSessionForTests();
+  stubStorage();
+  let calls = 0;
+  const unsubscribe = subscribeSession(() => calls++);
+  saveSession([user("hi")]);
+  assert.equal(calls, 1);
+  clearSession();
+  assert.equal(calls, 2);
+  unsubscribe();
+  saveSession([user("again")]);
+  assert.equal(calls, 2, "unsubscribed listeners must stop being called");
+});
 
 console.log(`\n${passed} checks passed.\n`);
