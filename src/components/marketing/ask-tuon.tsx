@@ -174,33 +174,36 @@ export function AskTuon() {
 
   return (
     <section id="ask" className="scroll-mt-16 border-t">
-      <div className="mx-auto max-w-2xl px-4 py-20 md:px-8 md:py-24">
+      <div className="mx-auto max-w-3xl px-4 py-20 md:px-8 md:py-28">
         <div className="text-center">
           <PaperCreature
             state={pending ? "thinking" : "idle"}
-            className="mx-auto size-20"
+            className="mx-auto size-24 sm:size-28"
           />
-          <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight text-balance">
+          <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
             Still have a question?
           </h2>
-          <p className="text-muted-foreground mx-auto mt-3 max-w-md leading-relaxed text-balance">
+          <p className="text-muted-foreground mx-auto mt-4 max-w-lg text-lg leading-relaxed text-balance">
             Ask {CREATURE_NAME} whether Tuón covers your subject or your board
             exam, what it costs, or who can see your notes.
           </p>
         </div>
 
-        <div className="border-border bg-card mt-8 overflow-hidden rounded-2xl border">
+        <div className="border-border bg-card mt-10 overflow-hidden rounded-2xl border shadow-sm">
           {started ? (
             <div
               ref={threadRef}
               aria-live="polite"
-              className="max-h-96 space-y-3 overflow-y-auto p-4"
+              className="max-h-[28rem] min-h-40 space-y-4 overflow-y-auto p-5 sm:p-6"
             >
               {turns.map((turn, i) => (
                 <div
                   key={i}
                   className={cn(
-                    "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
+                    // `w-fit` matters: without it a bubble is a block that fills 85% of the
+                    // column, so a four-word question stretches across 650px and reads as
+                    // a banner rather than something someone said.
+                    "w-fit max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed whitespace-pre-wrap",
                     turn.role === "user"
                       ? "bg-primary text-primary-foreground ml-auto"
                       : "bg-muted",
@@ -229,7 +232,7 @@ export function AskTuon() {
               ) : null}
 
               {error ? (
-                <p className="border-destructive/30 text-muted-foreground max-w-[85%] rounded-2xl border px-3.5 py-2.5 text-sm">
+                <p className="border-destructive/30 text-muted-foreground w-fit max-w-[85%] rounded-2xl border px-4 py-3 text-sm">
                   {error}
                 </p>
               ) : null}
@@ -256,13 +259,13 @@ export function AskTuon() {
               ) : null}
             </div>
           ) : (
-            <div className="flex flex-wrap justify-center gap-2 p-4">
+            <div className="flex min-h-40 flex-wrap content-center justify-center gap-2.5 p-5 sm:p-6">
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="border-border hover:border-primary/40 hover:bg-accent/30 rounded-full border px-3.5 py-2 text-xs transition-colors"
+                  className="border-border hover:border-primary/40 hover:bg-accent/30 rounded-full border px-4 py-2.5 text-sm transition-colors"
                 >
                   {s}
                 </button>
@@ -275,7 +278,7 @@ export function AskTuon() {
               e.preventDefault();
               send(draft);
             }}
-            className="flex items-end gap-2 border-t p-3"
+            className="flex items-end gap-2 border-t p-3 sm:p-4"
           >
             <textarea
               ref={inputRef}
@@ -290,7 +293,7 @@ export function AskTuon() {
               rows={1}
               placeholder={started ? "Ask a follow-up…" : "Ask about Tuón…"}
               aria-label="Your question"
-              className="placeholder:text-muted-foreground max-h-28 min-h-9 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none"
+              className="placeholder:text-muted-foreground max-h-40 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-base outline-none"
             />
             {pending ? (
               <Button
@@ -302,7 +305,7 @@ export function AskTuon() {
                   setPending(false);
                 }}
                 aria-label="Stop"
-                className="size-9 shrink-0"
+                className="size-11 shrink-0"
               >
                 <Square className="size-3.5" />
               </Button>
@@ -312,7 +315,7 @@ export function AskTuon() {
                 size="icon"
                 disabled={!draft.trim()}
                 aria-label="Send"
-                className="size-9 shrink-0"
+                className="size-11 shrink-0"
               >
                 <ArrowUp className="size-4" />
               </Button>
