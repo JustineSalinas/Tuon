@@ -124,17 +124,17 @@ function Hero() {
             </p>
           </div>
 
-          {/* The one question the page cannot answer in advance is "does it
-              cover MY subject". Offering it here, beside the definition, means
-              someone can jump straight to asking instead of scrolling the
-              whole page hoping to find their course listed. */}
+          {/* Beside the definition, because that is the one spot in the hero
+              about understanding rather than selling. Kept general on purpose:
+              naming a single question ("does it cover your subject?") tells
+              someone whose question is different that this is not for them. */}
           <Link
             href="#ask"
             className="border-border hover:border-primary/40 hover:bg-accent/30 group inline-flex shrink-0 items-center gap-3 rounded-full border py-2 pr-5 pl-2.5 transition-colors"
           >
             <PaperCreature state="idle" className="size-9 shrink-0" />
             <span className="text-sm font-medium">
-              Does it cover your subject?
+              Have a question?
               <span className="text-muted-foreground block text-xs font-normal">
                 Ask Tala
               </span>
