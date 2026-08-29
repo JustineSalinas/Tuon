@@ -101,6 +101,18 @@ export const RATE_LIMITS = {
     limit: envLimit("RATE_LIMIT_SEND_VERIFICATION", 8),
     windowSeconds: 3600,
   },
+  /**
+   * The landing-page assistant. The tightest limit here, and the only one
+   * guarding an endpoint that spends money for someone who has not signed up:
+   * there is no account, no quota and no cooldown behind it, so this and App
+   * Check are the whole defence. A curious visitor asks a handful of
+   * questions; thirty an hour from one address is a script.
+   */
+  chat: {
+    scope: "chat",
+    limit: envLimit("RATE_LIMIT_CHAT", 30),
+    windowSeconds: 3600,
+  },
   /** Starting a checkout. Rare per person, and it hits a paid API. */
   checkout: {
     scope: "checkout",

@@ -16,6 +16,7 @@ import { ForgettingCurve } from "@/components/marketing/forgetting-curve";
 import { ByHand } from "@/components/marketing/by-hand";
 import { HeroPreview } from "@/components/marketing/hero-preview";
 import { PaperCreature } from "@/components/brand/paper-creature";
+import { AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaAside, TalaPerch } from "@/components/marketing/tala";
 import { TuonMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export default function LandingPage() {
           <FinalCta />
         </main>
         <SiteFooter />
+        <AskTuon />
       </div>
     </SmoothScroll>
   );
