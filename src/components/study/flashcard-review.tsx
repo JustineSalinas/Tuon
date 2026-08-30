@@ -4,7 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { doc, serverTimestamp, setDoc, Timestamp } from "firebase/firestore";
-import { Loader2, Plus, RotateCcw, X } from "lucide-react";
+import {
+  Check,
+  CornerDownLeft,
+  Lightbulb,
+  Loader2,
+  Minus,
+  Plus,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -25,9 +34,18 @@ import {
   shouldRequeueInSession,
   type SrsState,
 } from "@/lib/srs/sm2";
+import {
+  MAX_HINT_LEVEL,
+  gradeAnswer,
+  hintFor,
+  isTypeable,
+  suggestedRating,
+  type AnswerGrade,
+} from "@/lib/study/answer-match";
 import type { SrsRating } from "@/lib/types";
 import { PaperCreature, type CreatureState } from "@/components/brand/paper-creature";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +98,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     [profile?.examDate],
   );
   const { cards, setsById, loading } = useReviewCards(user?.uid, studySetId);
-  const { dailyCardGoal } = usePreferences();
+  const { dailyCardGoal, typedRecall } = usePreferences();
   const reduceMotion = useReducedMotion();
   // Frozen for the session: the queue must not shift while the student rates.
   const now = useNow();
@@ -92,6 +110,17 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
   const [cramming, setCramming] = useState(false);
   const [lastRating, setLastRating] = useState<SrsRating | null>(null);
   const [tally, setTally] = useState({ again: 0, hard: 0, good: 0, easy: 0 });
+
+  // Typed recall. `grade` is null until the answer is submitted, and
+  // `skipTyping` is the per-card escape: a student who cannot spell the term
+  // should not be stuck on it.
+  const [typed, setTyped] = useState("");
+  const [grade, setGrade] = useState<AnswerGrade | null>(null);
+  const [skipTyping, setSkipTyping] = useState(false);
+  // 0 = none asked for. Kept after the reveal so the rating can account
+  // for it: a hinted answer is not the same memory as a cold one.
+  const [hintLevel, setHintLevel] = useState(0);
+  const answerInput = useRef<HTMLInputElement>(null);
 
   // Scheduling state is updated in place as the student rates, so a card that
   // gets re-queued within the session schedules from its *new* state.
@@ -143,6 +172,18 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     },
     [srsOverrides],
   );
+
+  // Only offered on answers short enough that a matcher can judge them
+  // fairly; a paragraph keeps the plain flip. See lib/study/answer-match.
+  const typing =
+    typedRecall && !skipTyping && currentCard !== null && isTypeable(currentCard.back);
+
+  /** Grades what was typed and reveals the answer. */
+  const submitTyped = useCallback(() => {
+    if (!currentCard || flipped) return;
+    setGrade(gradeAnswer(typed, currentCard.back).grade);
+    setFlipped(true);
+  }, [currentCard, flipped, typed]);
 
   const intervals = useMemo(
     () =>
@@ -211,15 +252,27 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
       }
 
       setFlipped(false);
+      setTyped("");
+      setGrade(null);
+      setSkipTyping(false);
+      setHintLevel(0);
       setSaving(false);
     },
     [user, currentCard, queue, saving, srsStateFor, position, examDate],
   );
 
-  // Keyboard: space/enter flips, 1-4 rate.
+  // Keyboard: space/enter flips, 1-4 rate. While an answer is being typed the
+  // card must not steal the keys — space is a space, and Enter submits.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (!currentCard) return;
+      if (typing && !flipped) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          submitTyped();
+        }
+        return;
+      }
       if (event.key === " " || event.key === "Enter") {
         event.preventDefault();
         setFlipped((f) => !f);
@@ -234,13 +287,23 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [currentCard, flipped, handleRate]);
+  }, [currentCard, flipped, handleRate, typing, submitTyped]);
+
+  // Focus follows the card so a session can be done entirely from the
+  // keyboard: type, Enter, rate, and the next box is already waiting.
+  useEffect(() => {
+    if (typing && !flipped) answerInput.current?.focus();
+  }, [typing, flipped, currentCard?.id]);
 
   function startCram() {
     setCramming(true);
     setQueue(cards);
     setPosition(0);
     setFlipped(false);
+    setTyped("");
+    setGrade(null);
+    setSkipTyping(false);
+    setHintLevel(0);
     setLastRating(null);
     setTally({ again: 0, hard: 0, good: 0, easy: 0 });
   }
@@ -330,7 +393,12 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
 
               <motion.button
                 type="button"
-                onClick={() => setFlipped((f) => !f)}
+                onClick={() => {
+                  // Tapping to flip would skip the retrieval the typing is
+                  // there for. Once the answer is in, it flips as usual.
+                  if (typing && !flipped) return;
+                  setFlipped((f) => !f);
+                }}
                 className="relative block w-full cursor-pointer text-left"
                 style={{ transformStyle: "preserve-3d" }}
                 animate={{ rotateY: flipped && !reduceMotion ? 180 : 0 }}
@@ -343,7 +411,9 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                     {currentCard!.front}
                   </p>
                   <p className="text-muted-foreground mt-8 text-xs">
-                    Tap the card or press Space to reveal
+                    {typing
+                      ? "Type what you remember, then press Enter"
+                      : "Tap the card or press Space to reveal"}
                   </p>
                 </CardFace>
 
@@ -389,8 +459,13 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.2 }}
-                    className="grid grid-cols-4 gap-2"
+                    className="space-y-3"
                   >
+                    {grade ? (
+                      <Verdict grade={grade} typed={typed} hinted={hintLevel > 0} />
+                    ) : null}
+
+                    <div className="grid grid-cols-4 gap-2">
                     {RATINGS.map((rating) => (
                       <motion.button
                         key={rating.value}
@@ -403,6 +478,13 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                           "bg-card flex flex-col items-center gap-0.5 rounded-xl border py-3 transition-colors disabled:opacity-60",
                           "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
                           rating.className,
+                          // What the typed answer suggests. It is a default,
+                          // not a verdict: only the student knows whether it
+                          // came instantly or after ten seconds of digging,
+                          // and that is most of what SM-2 is reading.
+                          grade &&
+                            suggestedRating(grade, hintLevel > 0) === rating.value &&
+                            "ring-foreground/25 ring-2 ring-offset-1 ring-offset-background",
                         )}
                       >
                         <span className="text-sm font-medium">{rating.label}</span>
@@ -411,6 +493,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                         </span>
                       </motion.button>
                     ))}
+                    </div>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -420,9 +503,58 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <Button size="lg" className="w-full" onClick={() => setFlipped(true)}>
-                      Show answer
-                    </Button>
+                    {typing ? (
+                      <div className="space-y-2">
+                        {hintLevel > 0 ? (
+                          <p
+                            className="text-muted-foreground text-center font-mono text-base tracking-[0.2em]"
+                            aria-label="Hint"
+                          >
+                            {hintFor(currentCard!.back, hintLevel)}
+                          </p>
+                        ) : null}
+                        <div className="flex gap-2">
+                          <Input
+                            ref={answerInput}
+                            value={typed}
+                            onChange={(e) => setTyped(e.target.value)}
+                            placeholder="Your answer"
+                            aria-label="Your answer"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            className="h-11 flex-1 text-base"
+                          />
+                          <Button size="lg" onClick={submitTyped}>
+                            <CornerDownLeft />
+                            Check
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-center gap-4">
+                          {hintLevel < MAX_HINT_LEVEL ? (
+                            <button
+                              type="button"
+                              onClick={() => setHintLevel((h) => h + 1)}
+                              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex items-center gap-1.5 rounded-md py-1 text-xs underline-offset-4 hover:underline focus-visible:ring-[3px] focus-visible:outline-none"
+                            >
+                              <Lightbulb className="size-3.5" />
+                              {hintLevel === 0 ? "Hint" : "More"}
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => setSkipTyping(true)}
+                            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-md py-1 text-xs underline-offset-4 hover:underline focus-visible:ring-[3px] focus-visible:outline-none"
+                          >
+                            Just show me the answer
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button size="lg" className="w-full" onClick={() => setFlipped(true)}>
+                        Show answer
+                      </Button>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -465,6 +597,66 @@ function CardFace({
       style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", ...style }}
     >
       {children}
+    </div>
+  );
+}
+
+/**
+ * What the grader made of the typed answer.
+ *
+ * Worded so that being wrong is information rather than a scolding - the card
+ * came back precisely because it was not known yet, which is the system
+ * working. The student's own words are echoed on anything short of a clean
+ * match, because "close" is meaningless unless you can see what you wrote next
+ * to what was wanted.
+ */
+function Verdict({
+  grade,
+  typed,
+  hinted,
+}: {
+  grade: AnswerGrade;
+  typed: string;
+  hinted: boolean;
+}) {
+  const written = typed.trim();
+
+  const { icon: Icon, label, className } =
+    grade === "correct"
+      ? {
+          icon: Check,
+          label: "Correct",
+          className: "border-success/40 bg-success/10 text-success",
+        }
+      : grade === "close"
+        ? {
+            icon: Minus,
+            label: "Almost",
+            className: "border-warning/40 bg-warning/10 text-warning-foreground",
+          }
+        : {
+            icon: X,
+            label: written ? "Not quite" : "Skipped",
+            className: "border-destructive/40 bg-destructive/10 text-destructive",
+          };
+
+  return (
+    <div
+      className={cn("flex items-center gap-2 rounded-xl border px-3 py-2 text-sm", className)}
+      role="status"
+    >
+      <Icon className="size-4 shrink-0" />
+      <span className="font-medium">{label}</span>
+      {grade !== "correct" && written ? (
+        <span className="text-muted-foreground min-w-0 truncate">
+          you wrote &ldquo;{written}&rdquo;
+        </span>
+      ) : null}
+      {hinted ? (
+        <span className="text-muted-foreground ml-auto shrink-0 text-xs">
+          with a hint
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -10,6 +10,20 @@ export const DEFAULT_DAILY_CARD_GOAL = 20;
 export const MIN_DAILY_CARD_GOAL = 5;
 export const MAX_DAILY_CARD_GOAL = 200;
 
+/**
+ * Typing the answer is the default.
+ *
+ * Recognition flatters you - you see the back, feel the click, and rate
+ * yourself Good on a card you could not have produced. Typing is the better
+ * default for that reason, and it only ever applies to answers short enough
+ * to type. Anyone who dislikes it can turn it off, or skip it per card.
+ */
+export const DEFAULT_TYPED_RECALL = true;
+
+export function readTypedRecall(value: unknown): boolean {
+  return typeof value === "boolean" ? value : DEFAULT_TYPED_RECALL;
+}
+
 export function clampGoal(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return DEFAULT_DAILY_CARD_GOAL;

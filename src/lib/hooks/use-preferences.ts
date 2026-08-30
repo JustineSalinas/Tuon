@@ -2,18 +2,20 @@
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { DEFAULT_TIME_ZONE, normaliseTimeZone } from "@/lib/time-zone";
-import { clampGoal } from "@/lib/preferences";
+import { clampGoal, readTypedRecall } from "@/lib/preferences";
 
 export {
   DEFAULT_DAILY_CARD_GOAL,
   MAX_DAILY_CARD_GOAL,
   MIN_DAILY_CARD_GOAL,
   clampGoal,
+  DEFAULT_TYPED_RECALL,
 } from "@/lib/preferences";
 
 export interface Preferences {
   timeZone: string;
   dailyCardGoal: number;
+  typedRecall: boolean;
 }
 
 /**
@@ -29,5 +31,6 @@ export function usePreferences(): Preferences {
   return {
     timeZone: normaliseTimeZone(profile?.timeZone ?? DEFAULT_TIME_ZONE),
     dailyCardGoal: clampGoal(profile?.dailyCardGoal),
+    typedRecall: readTypedRecall(profile?.typedRecall),
   };
 }

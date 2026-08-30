@@ -337,6 +337,22 @@ await check("a quiz question whose answer key is out of range is rejected", asyn
   );
 });
 
+await check("a student may turn typed recall on and off", async () => {
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { typedRecall: false }),
+  );
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { typedRecall: true }),
+  );
+});
+
+await check("typed recall must be a boolean", async () => {
+  await assertFails(
+    updateDoc(doc(alice, profile(ALICE)), { typedRecall: "yes" }),
+  );
+});
+
+
 await check("a quiz question may name the card it tests", async () => {
   const q = doc(alice, `users/${ALICE}/studySets/private1/quizQuestions/q2`);
   await assertSucceeds(

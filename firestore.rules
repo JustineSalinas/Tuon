@@ -61,6 +61,7 @@ service cloud.firestore {
         'onboardingCompleted',
         'timeZone',
         'dailyCardGoal',
+        'typedRecall',
         'termsAcceptedVersion',
         'termsAcceptedAt',
         'isAdult',
@@ -87,6 +88,7 @@ service cloud.firestore {
         && d.onboardingCompleted is bool
         && isOptionalText(d.get('timeZone', null), 64)
         && (d.get('dailyCardGoal', 0) is int)
+        && (d.get('typedRecall', true) is bool)
         && validConsent();
     }
 

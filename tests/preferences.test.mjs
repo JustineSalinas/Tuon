@@ -10,6 +10,8 @@ import {
   MAX_DAILY_CARD_GOAL,
   MIN_DAILY_CARD_GOAL,
   clampGoal,
+  DEFAULT_TYPED_RECALL,
+  readTypedRecall,
 } from "../src/lib/preferences.ts";
 
 let passed = 0;
@@ -75,5 +77,26 @@ check("a sensible goal survives, rounded", () => {
   assert.equal(clampGoal(40.4), 40);
   assert.equal(clampGoal(40.6), 41);
 });
+
+check("typing the answer is on unless it was turned off", () => {
+  // Absent means on: every account created before the setting existed should
+  // get the better default, not the old behaviour frozen in place.
+  assert.equal(readTypedRecall(undefined), DEFAULT_TYPED_RECALL);
+  assert.equal(readTypedRecall(null), DEFAULT_TYPED_RECALL);
+  assert.equal(DEFAULT_TYPED_RECALL, true);
+});
+
+check("an explicit false is respected", () => {
+  // The one value that must survive a round trip - if `false` fell back to the
+  // default, turning it off would silently do nothing.
+  assert.equal(readTypedRecall(false), false);
+  assert.equal(readTypedRecall(true), true);
+});
+
+check("a junk value falls back rather than being truthy", () => {
+  assert.equal(readTypedRecall("no"), DEFAULT_TYPED_RECALL);
+  assert.equal(readTypedRecall(0), DEFAULT_TYPED_RECALL);
+});
+
 
 console.log(`\n${passed} checks passed.\n`);

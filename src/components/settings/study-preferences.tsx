@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { Check, Loader2, Monitor, Moon, Sun, Wand2 } from "lucide-react";
+import { Check, Keyboard, Loader2, Monitor, Moon, Sun, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 const THEMES = [
@@ -51,6 +52,8 @@ export function StudyPreferences() {
         <TimeZoneRow />
         <Separator />
         <DailyGoalRow />
+        <Separator />
+        <TypedRecallRow />
         <Separator />
         <DailyReminder />
       </div>
@@ -178,6 +181,49 @@ function TimeZoneRow() {
           </Button>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function TypedRecallRow() {
+  const { user } = useAuth();
+  const { typedRecall } = usePreferences();
+  const [saving, setSaving] = useState(false);
+
+  async function toggle(next: boolean) {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        typedRecall: next,
+        updatedAt: serverTimestamp(),
+      });
+    } catch {
+      toast.error("Could not save that setting.");
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <Label htmlFor="typed-recall" className="flex items-center gap-2">
+          <Keyboard className="text-muted-foreground size-4" />
+          Type the answer first
+        </Label>
+        <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+          Reading the back and thinking &ldquo;yeah, I knew that&rdquo; is not
+          the same as remembering it. Typing settles the question before you
+          see it. Only on answers short enough to type, and spelling, word
+          order and accents are all forgiven.
+        </p>
+      </div>
+      <Switch
+        id="typed-recall"
+        checked={typedRecall}
+        disabled={saving}
+        onCheckedChange={(next) => void toggle(next === true)}
+      />
     </div>
   );
 }

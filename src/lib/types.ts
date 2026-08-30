@@ -71,6 +71,12 @@ export interface UserProfile {
   timeZone?: string;
   /** Cards the student aims to review in a session. */
   dailyCardGoal?: number;
+  /**
+   * Type the answer before flipping, on cards short enough to type.
+   * Absent means on: retrieval beats recognition, and the escape hatch is
+   * one tap away on the card itself.
+   */
+  typedRecall?: boolean;
 
   // --- consent (self-attested at onboarding; see lib/legal/consent.ts) -----
   /** Which version of the terms and privacy notice was agreed to. */
