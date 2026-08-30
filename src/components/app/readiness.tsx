@@ -25,24 +25,40 @@ import { cn } from "@/lib/utils";
  * percentage is still there, underneath, for people who want it.
  */
 
-/** The three buckets, in the order they appear in the bar and the legend. */
+/**
+ * The three buckets, in the order they appear in the bar and the legend.
+ *
+ * `swatch` and `fill` are separate on purpose. The legend needs full-strength
+ * colour to name a thing; the bar does not, and giving it the same strength
+ * was the bug: the bar is always the full width of the card, so a solid amber
+ * fill across all of it read as a COMPLETED progress bar at a glance — the
+ * exact opposite of "none of this is ready". In the bar, only "on track" is
+ * solid, and everything else has to look like open ground.
+ */
 const BUCKETS = [
   {
     key: "onTrack" as const,
     label: "On track",
-    className: "bg-success",
+    swatch: "bg-success",
+    fill: "bg-success",
+    /** Only ready work fills the bar's full height. See ReadinessBar. */
+    full: true,
     hint: "still fresh on the day",
   },
   {
     key: "atRisk" as const,
     label: "Shaky",
-    className: "bg-warning",
+    swatch: "bg-warning",
+    fill: "bg-warning/60",
+    full: false,
     hint: "will have faded, or you keep missing it",
   },
   {
     key: "notStarted" as const,
     label: "Not started",
-    className: "bg-muted-foreground/35",
+    swatch: "bg-muted-foreground/35",
+    fill: "bg-muted-foreground/30",
+    full: false,
     hint: "never reviewed once",
   },
 ];
@@ -128,11 +144,18 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
               <p className="text-muted-foreground mt-1 text-sm">
                 Rate each one and Tuón schedules when you see it again.
               </p>
+            ) : report.onTrack === 0 ? (
+              // "0 of 8 cards will still be fresh — 0%" said the same thing as
+              // the headline three more times. When the answer is none, say
+              // none and name the date it is measured against.
+              <p className="text-muted-foreground mt-1 text-sm">
+                None of them will hold until {horizonLabel(report)}.
+              </p>
             ) : (
               <p className="text-muted-foreground mt-1 text-sm">
                 <span className="tabular-nums">{report.onTrack}</span> of{" "}
                 <span className="tabular-nums">{report.total}</span>{" "}
-                {report.total === 1 ? "card" : "cards"} will still be fresh —{" "}
+                {report.total === 1 ? "card" : "cards"} should still be fresh —{" "}
                 <span className="tabular-nums">{pct}%</span>
               </p>
             )}
@@ -161,12 +184,12 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
 
         {/* A legend is always present, so identity is never colour alone. */}
         <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-          {BUCKETS.map(({ key, label, className }) =>
+          {BUCKETS.map(({ key, label, swatch }) =>
             report[key] === 0 ? null : (
               <div key={key} className="flex items-center gap-1.5">
                 <span
                   aria-hidden="true"
-                  className={cn("size-2.5 shrink-0 rounded-[3px]", className)}
+                  className={cn("size-2.5 shrink-0 rounded-[3px]", swatch)}
                 />
                 <dt className="text-sm">{label}</dt>
                 <dd className="text-muted-foreground text-sm tabular-nums">
@@ -199,13 +222,24 @@ function ReadinessBar({
   className?: string;
 }) {
   if (!report.total) return null;
+
+  /**
+   * HEIGHT carries readiness; COLOUR carries which kind of not-ready.
+   *
+   * The bar is always the full width of the card, so a stacked breakdown drawn
+   * at one height read as a completed progress bar whenever a single bucket
+   * dominated — a student with every card shaky saw a full amber bar, which at
+   * a glance says "done" and means the exact opposite. Only work that is
+   * actually ready gets the full height now; everything else is a thin band on
+   * open ground, so a set with nothing ready looks like nothing ready.
+   */
   return (
     <div
-      className={cn("flex h-2.5 w-full gap-[2px] overflow-hidden rounded-full", className)}
+      className={cn("flex h-2.5 w-full items-center overflow-hidden rounded-full", className)}
       role="img"
       aria-label={`${report.onTrack} on track, ${report.atRisk} shaky, ${report.notStarted} not started, out of ${report.total} cards`}
     >
-      {BUCKETS.map(({ key, className: fill }) =>
+      {BUCKETS.map(({ key, fill, full }) =>
         report[key] === 0 ? null : (
           <motion.div
             key={key}
@@ -213,8 +247,10 @@ function ReadinessBar({
             animate={{ flexGrow: report[key] / report.total }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             style={{ flexBasis: 0 }}
-            className={cn("min-w-1 first:rounded-l-full last:rounded-r-full", fill)}
-          />
+            className={cn("min-w-1 rounded-full", full ? "h-2.5" : "h-1")}
+          >
+            <div className={cn("h-full w-full rounded-full", fill)} />
+          </motion.div>
         ),
       )}
     </div>

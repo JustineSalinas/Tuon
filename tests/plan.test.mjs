@@ -202,4 +202,106 @@ check("a non-weakest set with only new cards says so", () => {
   assert.equal(plan.steps[1].reason, "Never seen");
 });
 
+console.log("\nShaky cards that are not due yet");
+
+/** A set with weak cards but nothing waiting to be reviewed. */
+const shakySet = (id, courseTag, shaky, title = id) => ({
+  id,
+  title,
+  courseTag,
+  due: 0,
+  fresh: 0,
+  shaky,
+});
+
+check("a shaky set with nothing due still gets a step", () => {
+  // The gap this closes: the dashboard hero says "8 cards need work" while the
+  // plan underneath offers nothing to do about them, because a card can be at
+  // risk from repeated failures and still be days from its next review. Two
+  // screens contradicting each other reads as a bug.
+  const plan = buildPlan([shakySet("s1", "Biology", 8)], [], ["Biology"], 20);
+  assert.equal(plan.steps.length, 1);
+  assert.equal(plan.steps[0].kind, "test");
+  assert.equal(plan.steps[0].id, "s1");
+});
+
+check("the step is a test, not a review", () => {
+  // Reviewing a card before it is due is what the schedule exists to prevent.
+  // A test may ask early: it draws from the weakest material by design and its
+  // results feed the scheduler, so it is real work rather than busywork.
+  const plan = buildPlan([shakySet("s1", "Biology", 3)], [], ["Biology"], 20);
+  assert.match(plan.steps[0].href, /\/test$/);
+});
+
+check("a test does not eat the daily card goal", () => {
+  // Counting it would let a test quietly displace cards that are genuinely
+  // due, which is the opposite of what the plan is for.
+  const plan = buildPlan(
+    [set("due1", "Biology", 5), shakySet("s2", "Chemistry", 4)],
+    [],
+    ["Biology", "Chemistry"],
+    20,
+  );
+  const test = plan.steps.find((s) => s.kind === "test");
+  assert.equal(test.cards, 0);
+  assert.equal(plan.totalCards, 5);
+});
+
+check("a set with work waiting is reviewed, not tested", () => {
+  // Due cards are the stronger signal and the cheaper action; offering a test
+  // instead would skip past work the scheduler already asked for.
+  const plan = buildPlan(
+    [{ ...set("s1", "Biology", 6), shaky: 4 }],
+    [],
+    ["Biology"],
+    20,
+  );
+  assert.equal(plan.steps.length, 1);
+  assert.equal(plan.steps[0].kind, "review");
+});
+
+check("the weakest subject's shaky set is the one offered", () => {
+  const plan = buildPlan(
+    [shakySet("strong", "Chemistry", 9), shakySet("weak", "Biology", 2)],
+    [],
+    ["Biology", "Chemistry"],
+    20,
+  );
+  assert.equal(plan.steps[0].id, "weak");
+});
+
+check("only one test step is offered", () => {
+  // The plan is a plan. Three tests in a row is a menu again.
+  const plan = buildPlan(
+    [shakySet("a", "Biology", 5), shakySet("b", "Biology", 4), shakySet("c", "Biology", 3)],
+    [],
+    ["Biology"],
+    20,
+  );
+  assert.equal(plan.steps.filter((s) => s.kind === "test").length, 1);
+});
+
+check("the reason names how many cards are shaky", () => {
+  assert.equal(
+    buildPlan([shakySet("s1", "Biology", 1)], [], ["Biology"], 20).steps[0].reason,
+    "1 shaky card",
+  );
+  assert.equal(
+    buildPlan([shakySet("s1", "Biology", 6)], [], ["Biology"], 20).steps[0].reason,
+    "6 shaky cards",
+  );
+});
+
+check("sets with no shaky cards produce no test step", () => {
+  const plan = buildPlan([shakySet("s1", "Biology", 0)], [], ["Biology"], 20);
+  assert.equal(plan.steps.length, 0);
+});
+
+check("a missing shaky count is treated as none, not as weak", () => {
+  // Older callers pass no `shaky` at all; defaulting it to a truthy value
+  // would fill everyone's plan with tests they do not need.
+  const plan = buildPlan([set("s1", "Biology", 0, 0)], [], ["Biology"], 20);
+  assert.equal(plan.steps.length, 0);
+});
+
 console.log(`\n${passed} checks passed.\n`);

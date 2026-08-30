@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Timer } from "lucide-react";
 
 import type { StudyPlan } from "@/lib/stats/plan";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,11 @@ export function TodaysPlan({ plan }: { plan: StudyPlan }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: index * 0.05 }}
+            // A grid item's min-width is `auto`, so this refused to shrink
+            // below the width of the longest step title and the whole card
+            // grew past its column. Every ancestor of a `truncate` has to opt
+            // out of that, which is why it appears again on the row inside.
+            className="min-w-0"
           >
             <Link
               href={step.href}
@@ -49,14 +54,21 @@ export function TodaysPlan({ plan }: { plan: StudyPlan }) {
               </span>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
+                {/* min-w-0 again: without it the icon+title row refuses to
+                    shrink, `truncate` never engages, and a long set title
+                    spills out of the card and over the column beside it. */}
+                <div className="flex min-w-0 items-center gap-1.5">
                   {step.kind === "generate" ? (
                     <Sparkles className="text-primary size-3.5 shrink-0" />
+                  ) : step.kind === "test" ? (
+                    <Timer className="text-primary size-3.5 shrink-0" />
                   ) : null}
                   <span className="truncate text-sm font-medium">
                     {step.kind === "generate"
                       ? `Turn “${step.title}” into cards`
-                      : step.title}
+                      : step.kind === "test"
+                        ? `Test yourself on ${step.title}`
+                        : step.title}
                   </span>
                 </div>
                 <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">

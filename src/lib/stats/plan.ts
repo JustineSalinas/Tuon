@@ -11,7 +11,7 @@
  * would say and what neither of those sorts can express.
  */
 
-export type PlanStepKind = "review" | "generate";
+export type PlanStepKind = "review" | "generate" | "test";
 
 export interface PlanStep {
   kind: PlanStepKind;
@@ -41,6 +41,13 @@ export interface PlanSetInput {
   courseTag: string | null;
   due: number;
   fresh: number;
+  /**
+   * Cards SM-2 has marked as shaky — low ease from repeated failures — whether
+   * or not they are due yet. The dashboard counts these as needing work, so
+   * the plan has to have an answer for them or the two screens contradict
+   * each other.
+   */
+  shaky?: number;
 }
 
 export interface PlanNoteInput {
@@ -125,6 +132,47 @@ export function buildPlan(
             : "Never seen",
     });
     budget -= take;
+  }
+
+  /**
+   * Sets that are shaky but have nothing due.
+   *
+   * This closes a gap a student would read as a bug: the hero says "8 cards
+   * need work" while the plan below it offers nothing to do about them,
+   * because a card can be at risk from repeated failures and still be days
+   * away from its next review.
+   *
+   * The answer is a test rather than a review. Reviewing a card before it is
+   * due is what the schedule exists to prevent, but a test is allowed to ask
+   * early — it draws from the weakest material by design, and its results feed
+   * the scheduler, so it is real work rather than a way to feel busy.
+   */
+  if (steps.length < maxSteps) {
+    const already = new Set(steps.map((step) => step.id));
+    const shakySets = sets
+      .filter((set) => (set.shaky ?? 0) > 0 && !already.has(set.id) && pendingOf(set) === 0)
+      .sort((a, b) => {
+        const ra = rank.get(a.courseTag?.trim() ?? "") ?? Number.MAX_SAFE_INTEGER;
+        const rb = rank.get(b.courseTag?.trim() ?? "") ?? Number.MAX_SAFE_INTEGER;
+        return ra - rb || (b.shaky ?? 0) - (a.shaky ?? 0);
+      });
+
+    const worst = shakySets[0];
+    if (worst) {
+      steps.push({
+        kind: "test",
+        id: worst.id,
+        title: worst.title,
+        subject: worst.courseTag?.trim() || null,
+        // Zero cards: a test is not review work and must not be counted
+        // against the daily goal, or it would quietly displace cards that are
+        // genuinely due.
+        cards: 0,
+        href: `/app/sets/${worst.id}/test`,
+        reason:
+          (worst.shaky ?? 0) === 1 ? "1 shaky card" : `${worst.shaky} shaky cards`,
+      });
+    }
   }
 
   // The note-to-card gap. Tuón is the only one of these apps where notes are

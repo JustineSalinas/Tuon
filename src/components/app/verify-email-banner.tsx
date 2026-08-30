@@ -37,7 +37,9 @@ export function VerifyEmailBanner() {
     } else if (outcome === "already-verified") {
       toast.success("This address is already verified.");
     } else {
-      toast.success(`Sent to ${current.email}. Check spam if it doesn't arrive.`);
+      toast.success(
+        `Sent to ${current.email}. Check spam if it doesn't arrive.`,
+      );
     }
   }
 
@@ -53,16 +55,27 @@ export function VerifyEmailBanner() {
   }
 
   return (
-    <div className="bg-warning/12 border-warning/30 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2.5 text-sm md:px-8">
-      <MailCheck className="text-warning-foreground size-4 shrink-0" />
-      <p className="min-w-0 flex-1">
-        Confirm your email to start generating study sets.{" "}
-        <span className="text-muted-foreground">
-          Everything else works in the meantime.
+    // `flex-1` on the message with the buttons beside it squeezed the text
+    // into a six-word column on a phone — "Confirm / your email / to start /
+    // generating / study / sets." The message takes the full width on small
+    // screens and the buttons drop underneath it.
+    <div className="bg-warning/12 border-warning/30 flex flex-col gap-2 border-b px-4 py-2.5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 md:px-8">
+      <p className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
+        <MailCheck className="text-warning-foreground mt-0.5 size-4 shrink-0 sm:mt-0" />
+        <span>
+          Confirm your email to start generating study sets.{" "}
+          <span className="text-muted-foreground">
+            Everything else works in the meantime.
+          </span>
         </span>
       </p>
       <div className="flex items-center gap-1">
-        <Button variant="outline" size="sm" onClick={recheck} disabled={checking}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={recheck}
+          disabled={checking}
+        >
           {checking ? "Checking…" : "I've confirmed it"}
         </Button>
         <Button variant="ghost" size="sm" onClick={resend} disabled={sending}>

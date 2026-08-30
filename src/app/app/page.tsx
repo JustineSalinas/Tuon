@@ -20,7 +20,8 @@ import {
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import { nextDeadline } from "@/lib/organiser/plan-items";
 import { useNow } from "@/lib/hooks/use-now";
-import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
+import { DEFAULT_EASE_FACTOR, daysUntil, parseExamDate } from "@/lib/srs/sm2";
+import { AT_RISK_EASE } from "@/lib/stats/retention";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { FirstRun } from "@/components/app/first-run";
 import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
@@ -45,19 +46,31 @@ export default function DashboardPage() {
 
   /** Due + never-seen counts per study set, derived without loading cards. */
   const setStats = useMemo(() => {
-    const byStudySet = new Map<string, { due: number; reviewed: number }>();
+    const byStudySet = new Map<
+      string,
+      { due: number; reviewed: number; shaky: number }
+    >();
 
     for (const log of logs) {
-      const entry = byStudySet.get(log.studySetId) ?? { due: 0, reviewed: 0 };
+      const entry = byStudySet.get(log.studySetId) ?? { due: 0, reviewed: 0, shaky: 0 };
       entry.reviewed += 1;
       if ((log.nextReviewAt?.toDate?.().getTime() ?? 0) <= now) entry.due += 1;
+      // Same threshold the readiness projection uses, so the hero and the plan
+      // are counting the same cards.
+      if ((log.easeFactor ?? DEFAULT_EASE_FACTOR) < AT_RISK_EASE) entry.shaky += 1;
       byStudySet.set(log.studySetId, entry);
     }
 
     return sets.map((set) => {
-      const entry = byStudySet.get(set.id) ?? { due: 0, reviewed: 0 };
+      const entry = byStudySet.get(set.id) ?? { due: 0, reviewed: 0, shaky: 0 };
       const fresh = Math.max(0, (set.flashcardCount ?? 0) - entry.reviewed);
-      return { set, due: entry.due, fresh, pending: entry.due + fresh };
+      return {
+        set,
+        due: entry.due,
+        fresh,
+        shaky: entry.shaky,
+        pending: entry.due + fresh,
+      };
     });
   }, [sets, logs, now]);
 
@@ -92,12 +105,13 @@ export default function DashboardPage() {
       sets.map((set) => set.noteId).filter((id): id is string => Boolean(id)),
     );
     return buildPlan(
-      setStats.map(({ set, due, fresh }) => ({
+      setStats.map(({ set, due, fresh, shaky }) => ({
         id: set.id,
         title: set.title,
         courseTag: set.courseTag,
         due,
         fresh,
+        shaky,
       })),
       notes.map((note) => ({
         id: note.id,
@@ -113,15 +127,18 @@ export default function DashboardPage() {
   const firstName = (profile?.displayName || "there").trim().split(/\s+/)[0];
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8 md:py-10">
       <motion.header
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <p className="text-muted-foreground text-sm">{greeting()}</p>
-        <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight">
-          {firstName}
+        {/* One line rather than two. The greeting is warmth, not content,
+            and stacking it above the name pushed the readiness card — the
+            thing the student actually opened the app for — most of a screen
+            down on a laptop. */}
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
+          {greeting()}, {firstName}
         </h1>
         <ExamCountdown
           examDate={profile?.examDate}
@@ -183,46 +200,55 @@ export default function DashboardPage() {
             </section>
           ) : null}
 
-          {/* The plan replaces the old list of sets. That list was a menu, and
-              a menu is where students pick the deck they already know. */}
-          {plan.steps.length > 0 ? (
-            <section className="mt-8">
-              <SectionHeading
-                title="Today's plan"
-                href="/app/sets"
-                linkLabel="All sets"
-              />
-              <div className="mt-3">
-                <TodaysPlan plan={plan} />
-              </div>
-            </section>
-          ) : null}
+          {/* Side by side once there is width for it. Stacked, these two
+              filled a laptop screen on their own and left the right half of a
+              desktop empty; the plan is what you act on and recent notes is
+              what you reach for, so they belong at the same height rather
+              than one below the fold. */}
+          <div className="mt-8 grid items-start gap-8 lg:grid-cols-2">
+            {/* The plan replaces the old list of sets. That list was a menu,
+                and a menu is where students pick the deck they already know. */}
+            {/* min-w-0: a grid item defaults to min-width:auto, so a long
+                set title refused to shrink and pushed this column straight
+                over the top of the one beside it. */}
+            {plan.steps.length > 0 ? (
+              <section className="min-w-0">
+                <SectionHeading
+                  title="Today's plan"
+                  href="/app/sets"
+                  linkLabel="All sets"
+                />
+                <div className="mt-3">
+                  <TodaysPlan plan={plan} />
+                </div>
+              </section>
+            ) : null}
 
-          {/* Recent notes */}
-          {notes.length > 0 ? (
-            <section className="mt-8">
-              <SectionHeading title="Recent notes" href="/app/notes" linkLabel="All notes" />
-              <div className="mt-3 grid gap-2">
-                {notes.slice(0, 4).map((note) => (
-                  <Link
-                    key={note.id}
-                    href={`/app/notes/${note.id}`}
-                    className="hover:border-primary/40 hover:bg-accent/30 flex items-center gap-3 rounded-xl border p-3.5 transition-colors"
-                  >
-                    <FileText className="text-muted-foreground size-4 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium">{note.title}</div>
-                      {note.courseTag ? (
-                        <div className="text-muted-foreground truncate text-xs">
-                          {note.courseTag}
-                        </div>
-                      ) : null}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ) : null}
+            {notes.length > 0 ? (
+              <section className="min-w-0">
+                <SectionHeading title="Recent notes" href="/app/notes" linkLabel="All notes" />
+                <div className="mt-3 grid gap-2">
+                  {notes.slice(0, 4).map((note) => (
+                    <Link
+                      key={note.id}
+                      href={`/app/notes/${note.id}`}
+                      className="hover:border-primary/40 hover:bg-accent/30 flex items-center gap-3 rounded-xl border p-3.5 transition-colors"
+                    >
+                      <FileText className="text-muted-foreground size-4 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">{note.title}</div>
+                        {note.courseTag ? (
+                          <div className="text-muted-foreground truncate text-xs">
+                            {note.courseTag}
+                          </div>
+                        ) : null}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
 
           <div className="mt-8 md:hidden">
             <QuotaIndicator />
