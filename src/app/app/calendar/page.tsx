@@ -15,6 +15,7 @@ import {
   useReviewCards,
   type ReviewCard,
 } from "@/lib/hooks/use-review-cards";
+import { Organiser } from "@/components/organiser/organiser";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -171,6 +172,12 @@ export default function CalendarPage() {
           ) : null}
         </>
       )}
+
+      {/* Below the grid, and outside the empty-state branch on purpose: a
+          student with no flashcards yet still has deadlines this week, and
+          hiding their timetable until they have generated a study set would
+          be backwards. */}
+      <Organiser todayKey={todayKey} />
     </main>
   );
 }
