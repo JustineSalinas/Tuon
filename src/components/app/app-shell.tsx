@@ -122,7 +122,27 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
 
       <div className="mt-auto space-y-3">
         <QuotaIndicator />
-        <UserMenu align="start" />
+        {/* Settings had no visible entry point at all — it lived only inside
+            the avatar menu, which does not look like a menu. A gear beside the
+            name is where people look for it, and it keeps the nav above for
+            places you go rather than things you configure. */}
+        <div className="flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <UserMenu align="start" />
+          </div>
+          <Link
+            href="/app/settings"
+            aria-label="Settings"
+            title="Settings"
+            className={cn(
+              "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground grid size-9 shrink-0 place-items-center rounded-lg transition-colors",
+              "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
+              pathname.startsWith("/app/settings") && "bg-sidebar-accent text-foreground",
+            )}
+          >
+            <Settings className="size-4" />
+          </Link>
+        </div>
       </div>
     </aside>
   );

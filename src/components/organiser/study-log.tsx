@@ -10,9 +10,11 @@
  * hand-typed hour is worth less as evidence than a timed one. A log people
  * correct is a log people keep; a log that argues with them is deleted.
  *
- * Deliberately no streak and no target. A streak punishes the sick day and the
- * week of finals, and a target invented by an app is a number to feel bad
- * about rather than a plan.
+ * No target here, and no streak in this view. A target invented by an app is a
+ * number to feel bad about rather than a plan. The streak lives on the
+ * dashboard's heatmap, where it is a record of days that happened rather than
+ * a counter this week's total is being measured against - see lib/stats/heatmap
+ * for why that distinction is the whole design.
  */
 
 import { useMemo, useState } from "react";

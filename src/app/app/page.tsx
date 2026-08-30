@@ -26,6 +26,7 @@ import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { FirstRun } from "@/components/app/first-run";
 import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
 import { TodaysPlan } from "@/components/app/todays-plan";
+import { StudyHeatmap } from "@/components/app/study-heatmap";
 import { buildReadiness } from "@/lib/stats/readiness";
 import { buildPlan } from "@/lib/stats/plan";
 import { usePreferences } from "@/lib/hooks/use-preferences";
@@ -249,6 +250,20 @@ export default function DashboardPage() {
               </section>
             ) : null}
           </div>
+
+          {/* The habit, under the material. Everything above answers a
+              question about the cards; this is the only thing that answers
+              "have I actually been doing this?" */}
+          <section className="mt-10">
+            <SectionHeading
+              title="Study time"
+              href="/app/calendar"
+              linkLabel="Full log"
+            />
+            <div className="mt-3">
+              <StudyHeatmap />
+            </div>
+          </section>
 
           <div className="mt-8 md:hidden">
             <QuotaIndicator />

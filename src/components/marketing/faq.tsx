@@ -157,9 +157,10 @@ const QUESTIONS: { q: string; a: React.ReactNode }[] = [
       <>
         Nothing breaks and nothing is lost. Cards you missed are simply still
         due, and a session is capped at a daily goal you set, so a backlog
-        never arrives as a wall of 300 cards. There is no streak on purpose: a
-        streak punishes the week you were sick or in finals, which is exactly
-        when you need the app to be on your side.
+        never arrives as a wall of 300 cards. There is a study grid on your
+        dashboard that counts the days you studied, but it is a record rather
+        than a threat — nothing nags you about keeping it going, and your best
+        run stays on screen even after a gap.
       </>
     ),
   },
