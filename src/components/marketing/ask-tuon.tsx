@@ -70,17 +70,29 @@ export function AskTuon() {
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
+  /** Marks the end of the thread, so the newest answer can be kept in view. */
+  const endRef = useRef<HTMLDivElement>(null);
   /** Lets an in-flight answer be stopped rather than waited out. */
   const abortRef = useRef<AbortController | null>(null);
 
   // Abandoning an in-flight request on unmount stops a setState after teardown.
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  // Follow the newest message, but only once there is a thread to follow —
-  // otherwise this would yank the page on first paint.
+  /**
+   * Follow the newest message.
+   *
+   * `block: "nearest"` so the page moves the least it can get away with: the
+   * thread is part of the page now, and scrolling it to the top on every
+   * answer would drag the reader away from whatever else they were looking at.
+   *
+   * Skipped on the first paint. A restored conversation must not yank someone
+   * who just opened the landing page down to the chat section — `answered`
+   * only becomes true after a send in this session.
+   */
+  const answered = useRef(false);
   useEffect(() => {
-    if (turns.length === 0) return;
-    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
+    if (turns.length === 0 || !answered.current) return;
+    endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [turns, pending]);
 
   /**
@@ -147,12 +159,17 @@ export function AskTuon() {
     const question = text.trim().slice(0, MAX_MESSAGE_CHARS);
     if (!question || pending) return;
     setDraft("");
+    // From here on the thread may follow itself. Before the first send it must
+    // not, or a restored conversation would drag someone who just opened the
+    // page down to this section.
+    answered.current = true;
     void ask([...turns, { role: "user", content: question }]);
   }
 
   /** Re-asks the last question, discarding the answer that came back. */
   function retry() {
     if (pending) return;
+    answered.current = true;
     const lastUser = turns.findLastIndex((t) => t.role === "user");
     if (lastUser === -1) return;
     void ask(turns.slice(0, lastUser + 1));
@@ -194,7 +211,15 @@ export function AskTuon() {
             <div
               ref={threadRef}
               aria-live="polite"
-              className="max-h-[28rem] min-h-40 space-y-4 overflow-y-auto p-5 sm:p-6"
+              // Deliberately NOT its own scroll region. A 28rem box with a
+              // long thread in it captured the wheel, so anyone who put their
+              // cursor over the card could not scroll past this section at
+              // all — they had to move the mouse off it first. This is an
+              // inline section rather than a floating widget, so it can just
+              // grow and let the page scroll, and the thread is bounded
+              // anyway: MAX_TURNS caps the conversation and MAX_MESSAGE_CHARS
+              // caps each message.
+              className="min-h-40 space-y-4 p-5 sm:p-6"
             >
               {turns.map((turn, i) => (
                 <div
@@ -257,6 +282,8 @@ export function AskTuon() {
                   </button>
                 </div>
               ) : null}
+
+              <div ref={endRef} aria-hidden="true" />
             </div>
           ) : (
             <div className="flex min-h-40 flex-wrap content-center justify-center gap-2.5 p-5 sm:p-6">
@@ -283,7 +310,15 @@ export function AskTuon() {
             <textarea
               ref={inputRef}
               value={draft}
-              onChange={(e) => setDraft(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
+              onChange={(e) => {
+                setDraft(e.target.value.slice(0, MAX_MESSAGE_CHARS));
+                // Grow with the question rather than turning into a second
+                // little scroll region the wheel gets caught in. Reset first,
+                // or the box can only ever get taller.
+                const box = e.currentTarget;
+                box.style.height = "auto";
+                box.style.height = `${box.scrollHeight}px`;
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
