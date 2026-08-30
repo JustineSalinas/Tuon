@@ -530,6 +530,202 @@ await check("nothing outside /users is writable", async () => {
   await assertFails(setDoc(doc(alice, "config/flags"), { admin: true }));
 });
 
+
+/* --- the organiser --------------------------------------------------------
+   One collection holding three shapes, so the branch in the validator is the
+   thing worth testing: each kind must accept what it needs and refuse what
+   belongs to another kind. */
+
+await check("a todo can be undated", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/planItems/t1`), {
+      kind: "todo",
+      title: "Read chapter 4",
+      courseTag: "General Biology 1",
+      done: false,
+    }),
+  );
+});
+
+await check("a todo may carry a date and a done flag", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/planItems/t2`), {
+      kind: "todo",
+      title: "Problem set",
+      dueDate: "2026-09-04",
+      done: true,
+    }),
+  );
+});
+
+await check("a deadline without a date is refused", async () => {
+  // A deadline with no date is a todo, and there is already a kind for that.
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/d1`), {
+      kind: "deadline",
+      title: "Thesis draft",
+    }),
+  );
+});
+
+await check("a malformed date is refused", async () => {
+  // It would silently disable every countdown built on it rather than error.
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/d2`), {
+      kind: "deadline",
+      title: "Thesis draft",
+      dueDate: "next Friday",
+    }),
+  );
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/d3`), {
+      kind: "deadline",
+      title: "Thesis draft",
+      dueDate: "2026-9-4",
+    }),
+  );
+});
+
+await check("a valid deadline is accepted", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/planItems/d4`), {
+      kind: "deadline",
+      title: "Thesis draft",
+      dueDate: "2026-09-04",
+      courseTag: "Research",
+    }),
+  );
+});
+
+await check("a class needs a weekday and a time range", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/planItems/c1`), {
+      kind: "class",
+      title: "General Biology lecture",
+      weekday: 1,
+      startMinute: 480,
+      endMinute: 570,
+      location: "Room 204",
+    }),
+  );
+});
+
+await check("a class that ends before it starts is refused", async () => {
+  // It would render as a negative-height block and sort unpredictably.
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/c2`), {
+      kind: "class",
+      title: "Impossible",
+      weekday: 1,
+      startMinute: 600,
+      endMinute: 540,
+    }),
+  );
+});
+
+await check("a weekday outside the week is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/c3`), {
+      kind: "class",
+      title: "Eighth day",
+      weekday: 7,
+      startMinute: 480,
+      endMinute: 540,
+    }),
+  );
+});
+
+await check("a class time outside the day is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/c4`), {
+      kind: "class",
+      title: "Too late",
+      weekday: 1,
+      startMinute: 1440,
+      endMinute: 1500,
+    }),
+  );
+});
+
+await check("an unknown kind is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/x1`), {
+      kind: "exam",
+      title: "Midterms",
+    }),
+  );
+});
+
+await check("a blank title is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/planItems/x2`), { kind: "todo", title: "" }),
+  );
+});
+
+await check("a stranger cannot read the organiser", async () => {
+  await assertFails(getDoc(doc(mallory, `users/${ALICE}/planItems/t1`)));
+});
+
+await check("a study session records real minutes", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/studySessions/s1`), {
+      source: "pomodoro",
+      day: "2026-08-30",
+      minutes: 25,
+      courseTag: "General Biology 1",
+    }),
+  );
+});
+
+await check("an overnight session is refused", async () => {
+  // A timer left running would log fourteen hours and poison every average
+  // built on the log.
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/studySessions/s2`), {
+      source: "pomodoro",
+      day: "2026-08-30",
+      minutes: 900,
+    }),
+  );
+});
+
+await check("negative study time is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/studySessions/s3`), {
+      source: "manual",
+      day: "2026-08-30",
+      minutes: -30,
+    }),
+  );
+});
+
+await check("a session from an unknown source is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `users/${ALICE}/studySessions/s4`), {
+      source: "imported",
+      day: "2026-08-30",
+      minutes: 25,
+    }),
+  );
+});
+
+await check("a session may be edited afterwards", async () => {
+  // Editable is the point: a student who studied offline and sees a blank
+  // week stops believing the number.
+  await assertSucceeds(
+    setDoc(doc(alice, `users/${ALICE}/studySessions/s1`), {
+      source: "manual",
+      day: "2026-08-30",
+      minutes: 90,
+      courseTag: "General Biology 1",
+    }),
+  );
+});
+
+await check("a stranger cannot read someone else's study time", async () => {
+  await assertFails(getDoc(doc(mallory, `users/${ALICE}/studySessions/s1`)));
+});
+
 await env.cleanup();
 
 console.log(`\n${passed} checks passed.\n`);

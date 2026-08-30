@@ -210,6 +210,68 @@ export interface QuizAttempt {
   completedAt: Timestamp;
 }
 
+/**
+ * Firestore: users/{userId}/planItems/{itemId}
+ *
+ * The organiser: a todo list, dated deadlines, and a weekly class timetable.
+ * One collection with a `kind` discriminator rather than three, because the
+ * calendar screen wants all of them at once and three subscriptions to three
+ * tiny collections is three times the work for the same result.
+ *
+ * Everything here is local to one student. There is no sharing, no sync with
+ * a school system, and no server involvement at all.
+ */
+export type PlanItemKind = "todo" | "deadline" | "class";
+
+export interface PlanItem {
+  id: string;
+  kind: PlanItemKind;
+  title: string;
+  /** Which subject this belongs to. Free text, matched against the profile. */
+  courseTag: string | null;
+  /** todo + deadline. `YYYY-MM-DD` in the student's own zone, or null for an
+   * undated todo. A calendar day, not an instant - see UserProfile.examDate. */
+  dueDate?: string | null;
+  /** todo only. Deadlines are not "done", they simply pass. */
+  done?: boolean;
+  /** class only. 0 = Sunday, matching Date.getDay(). */
+  weekday?: number;
+  /** class only. Minutes from midnight, so comparisons need no date. */
+  startMinute?: number;
+  endMinute?: number;
+  /** class only. A room, a building, or a meeting link. */
+  location?: string | null;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+/**
+ * Firestore: users/{userId}/studySessions/{sessionId}
+ *
+ * Minutes actually studied. Written by the Pomodoro timer and by review
+ * sessions, and editable afterwards - a student who studied offline would
+ * otherwise open a blank week and stop believing the number, which makes the
+ * whole log worthless.
+ *
+ * `minutes` is stored rather than derived from the timestamps because an
+ * edited session no longer matches them, and the edit is the point.
+ */
+export type StudySessionSource = "pomodoro" | "review" | "manual";
+
+export interface StudySession {
+  id: string;
+  source: StudySessionSource;
+  /** `YYYY-MM-DD` in the student's zone. What the week view groups on. */
+  day: string;
+  minutes: number;
+  courseTag: string | null;
+  /** Cards reviewed, when the session came from a review run. */
+  cardsReviewed?: number | null;
+  startedAt: Timestamp;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
 export type SrsRating = "again" | "hard" | "good" | "easy";
 
 /** Shape the LLM must return. Validated before anything is written. */

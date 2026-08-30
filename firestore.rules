@@ -130,6 +130,82 @@ service cloud.firestore {
         && d.get('linkedTitles', []).size() <= 200;
     }
 
+    /* --- the organiser --------------------------------------------------- */
+
+    // One collection with a `kind` discriminator: the calendar wants todos,
+    // deadlines and classes on one screen, and three subscriptions to three
+    // tiny collections is three times the work for the same result. The cost
+    // is that this validator has to branch, which is what the three helpers
+    // below are for.
+    function validPlanItem() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'kind', 'title', 'courseTag', 'dueDate', 'done',
+          'weekday', 'startMinute', 'endMinute', 'location',
+          'createdAt', 'updatedAt'
+        ])
+        && d.keys().hasAll(['kind', 'title'])
+        && d.kind in ['todo', 'deadline', 'class']
+        && isText(d.title, 140)
+        && d.title.size() > 0
+        && isOptionalText(d.get('courseTag', null), 80)
+        && (d.kind == 'todo' ? validTodo(d) : true)
+        && (d.kind == 'deadline' ? validDeadline(d) : true)
+        && (d.kind == 'class' ? validClass(d) : true);
+    }
+
+    // A calendar day in the student's own zone, never an instant. Pushing it
+    // through UTC moves it a day for everyone in Manila - same reasoning as
+    // examDate on the profile, and the same regex.
+    function isDayKey(value) {
+      return value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function validTodo(d) {
+      return (d.get('dueDate', null) == null || isDayKey(d.dueDate))
+        && (d.get('done', false) is bool);
+    }
+
+    function validDeadline(d) {
+      // A deadline without a date is not a deadline; it is a todo, and there
+      // is already a kind for that.
+      return d.get('dueDate', null) != null
+        && isDayKey(d.dueDate);
+    }
+
+    function validClass(d) {
+      return d.get('weekday', -1) is int
+        && d.weekday >= 0 && d.weekday <= 6
+        && d.get('startMinute', -1) is int
+        && d.get('endMinute', -1) is int
+        && d.startMinute >= 0 && d.startMinute < 1440
+        && d.endMinute > 0 && d.endMinute <= 1440
+        // A class that ends before it starts would render as a negative-height
+        // block and sort unpredictably against everything else that day.
+        && d.endMinute > d.startMinute
+        && isOptionalText(d.get('location', null), 80);
+    }
+
+    // Minutes actually studied. `minutes` is stored rather than derived from
+    // the timestamps because an edited session no longer matches them, and
+    // being editable is the whole point: a student who studied offline and
+    // sees a blank week stops believing the number.
+    function validStudySession() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'source', 'day', 'minutes', 'courseTag', 'cardsReviewed',
+          'startedAt', 'createdAt', 'updatedAt'
+        ])
+        && d.keys().hasAll(['source', 'day', 'minutes'])
+        && d.source in ['pomodoro', 'review', 'manual']
+        && isDayKey(d.day)
+        // Twelve hours. Beyond that it is a timer left running overnight, and
+        // one bad row poisons every average built on the log.
+        && isCount(d.minutes, 720)
+        && isOptionalText(d.get('courseTag', null), 80)
+        && (d.get('cardsReviewed', null) == null || isCount(d.cardsReviewed, 100000));
+    }
+
     /* --- study sets ------------------------------------------------------ */
 
     function validStudySet() {
@@ -286,6 +362,18 @@ service cloud.firestore {
           allow create, update: if isOwner(userId) && validQuizQuestion();
           allow delete: if isOwner(userId);
         }
+      }
+
+      match /planItems/{itemId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validPlanItem();
+        allow delete: if isOwner(userId);
+      }
+
+      match /studySessions/{sessionId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validStudySession();
+        allow delete: if isOwner(userId);
       }
 
       match /reviewLogs/{flashcardId} {

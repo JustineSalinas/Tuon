@@ -15,3 +15,4 @@ import "./sample-set.test.mjs";
 import "./health-access.test.mjs";
 import "./chat.test.mjs";
 import "./answer-match.test.mjs";
+import "./organiser.test.mjs";

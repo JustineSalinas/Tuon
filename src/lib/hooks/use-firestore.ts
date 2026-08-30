@@ -12,7 +12,15 @@ import {
 } from "firebase/firestore";
 
 import { db } from "@/lib/firebase/client";
-import type { Flashcard, Note, QuizQuestion, ReviewLog, StudySet } from "@/lib/types";
+import type {
+  Flashcard,
+  Note,
+  PlanItem,
+  QuizQuestion,
+  ReviewLog,
+  StudySession,
+  StudySet,
+} from "@/lib/types";
 
 interface CollectionState<T> {
   data: T[];
@@ -240,6 +248,41 @@ export function useReviewLogs(userId: string | undefined) {
   }, [data]);
 
   return { logs: data, byFlashcardId, loading, error };
+}
+
+/**
+ * The organiser: todos, deadlines and classes in one subscription.
+ *
+ * Unordered on purpose. The three kinds want three different orderings - and
+ * each of those would need its own composite index for a collection this small
+ * - so the sorting happens in lib/organiser/plan-items.ts, where it is pure
+ * and tested.
+ */
+export function usePlanItems(userId: string | undefined) {
+  const { data, loading, error } = useUserCollection<PlanItem>(
+    userId,
+    ["planItems"],
+    NO_CONSTRAINTS,
+    "",
+  );
+  return { items: data, loading, error };
+}
+
+/**
+ * Every logged study session.
+ *
+ * Read whole rather than windowed to a week: the collection is one small
+ * document per sitting, the week view flips backwards freely, and re-querying
+ * on every arrow press would cost more than holding the lot.
+ */
+export function useStudySessions(userId: string | undefined) {
+  const { data, loading, error } = useUserCollection<StudySession>(
+    userId,
+    ["studySessions"],
+    NO_CONSTRAINTS,
+    "",
+  );
+  return { sessions: data, loading, error };
 }
 
 export function useStudySet(userId: string | undefined, studySetId: string | undefined) {
