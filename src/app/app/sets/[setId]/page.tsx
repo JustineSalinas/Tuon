@@ -11,6 +11,7 @@ import {
   Layers,
   ListChecks,
   Loader2,
+  Timer,
   RotateCcw,
   Trash2,
 } from "lucide-react";
@@ -28,6 +29,8 @@ import {
   useStudySet,
 } from "@/lib/hooks/use-firestore";
 import { ExportMenu } from "@/components/study/export-menu";
+import { MasteryBar } from "@/components/study/mastery-bar";
+import { buildMastery } from "@/lib/stats/mastery";
 import { ShareButton } from "@/components/study/share-button";
 import { useNow } from "@/lib/hooks/use-now";
 import { formatInterval } from "@/lib/srs/sm2";
@@ -72,6 +75,13 @@ export default function StudySetPage() {
     }
     return { due, fresh, scheduled, pending: due + fresh };
   }, [cards, byFlashcardId, now]);
+
+  // Derived from the same logs the queue above uses, so the two can never
+  // drift apart the way a separately stored progress counter would.
+  const mastery = useMemo(
+    () => buildMastery(cards.map((card) => byFlashcardId.get(card.id) ?? null)),
+    [cards, byFlashcardId],
+  );
 
   async function handleReset() {
     if (!user || !studySet) return;
@@ -229,7 +239,7 @@ export default function StudySetPage() {
       </motion.header>
 
       {/* Primary actions */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <Link
           href={`/app/sets/${studySet.id}/review`}
           className="border-primary/30 bg-accent/40 hover:border-primary/60 group rounded-2xl border p-5 transition-colors"
@@ -260,10 +270,29 @@ export default function StudySetPage() {
             {studySet.quizQuestionCount} multiple-choice questions
           </p>
         </Link>
+
+        <Link
+          href={`/app/sets/${studySet.id}/test`}
+          className="hover:border-primary/40 hover:bg-accent/20 group rounded-2xl border p-5 transition-colors"
+        >
+          <Timer className="text-muted-foreground size-5" />
+          <div className="mt-3 font-medium">Sit a test</div>
+          <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+            Timed and mixed, from your weakest cards
+          </p>
+        </Link>
       </div>
 
+      {/* Mastery, above the raw counts: the level is the answer, the
+          counts are the working. */}
+      {cardsLoading ? null : (
+        <div className="mt-6">
+          <MasteryBar report={mastery} />
+        </div>
+      )}
+
       {/* Progress */}
-      <div className="mt-6 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-3 gap-3">
         <StatTile label="Due now" value={stats.due} />
         <StatTile label="Never seen" value={stats.fresh} />
         <StatTile label="Scheduled" value={stats.scheduled} />
