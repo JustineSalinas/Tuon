@@ -23,7 +23,17 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { CalendarClock, Check, ListTodo, Loader2, Plus, Table2, Trash2, X } from "lucide-react";
+import {
+  CalendarClock,
+  Check,
+  Clock,
+  ListTodo,
+  Loader2,
+  Plus,
+  Table2,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -46,6 +56,7 @@ import {
 } from "@/lib/organiser/plan-items";
 import type { PlanItem, PlanItemKind } from "@/lib/types";
 import { PomodoroTimer } from "@/components/organiser/pomodoro-timer";
+import { StudyLog } from "@/components/organiser/study-log";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -100,6 +111,10 @@ export function Organiser({ todayKey }: { todayKey: string }) {
             <Table2 className="size-3.5" />
             Timetable
           </TabsTrigger>
+          <TabsTrigger value="time">
+            <Clock className="size-3.5" />
+            Time
+          </TabsTrigger>
         </TabsList>
 
         {loading ? (
@@ -114,6 +129,9 @@ export function Organiser({ todayKey }: { todayKey: string }) {
             </TabsContent>
             <TabsContent value="timetable" className="mt-4">
               <Timetable items={classes} subjects={subjects} />
+            </TabsContent>
+            <TabsContent value="time" className="mt-4">
+              <StudyLog todayKey={todayKey} subjects={subjects} />
             </TabsContent>
           </>
         )}
