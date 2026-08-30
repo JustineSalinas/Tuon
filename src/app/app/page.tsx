@@ -11,7 +11,14 @@ import {
 import { useAuth } from "@/components/providers/auth-provider";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
-import { useNotes, useReviewLogs, useStudySets } from "@/lib/hooks/use-firestore";
+import {
+  useNotes,
+  usePlanItems,
+  useReviewLogs,
+  useStudySets,
+} from "@/lib/hooks/use-firestore";
+import { dayKey } from "@/lib/hooks/use-review-cards";
+import { nextDeadline } from "@/lib/organiser/plan-items";
 import { useNow } from "@/lib/hooks/use-now";
 import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
@@ -29,7 +36,8 @@ export default function DashboardPage() {
   const { data: sets, loading: setsLoading } = useStudySets(user?.uid);
   const { data: notes, loading: notesLoading } = useNotes(user?.uid);
   const { logs, loading: logsLoading } = useReviewLogs(user?.uid);
-  const { dailyCardGoal } = usePreferences();
+  const { dailyCardGoal, timeZone } = usePreferences();
+  const { items: planItems } = usePlanItems(user?.uid);
   // Refreshed every minute so a card becoming due appears without a reload.
   const now = useNow(60_000);
 
@@ -53,11 +61,29 @@ export default function DashboardPage() {
     });
   }, [sets, logs, now]);
 
+  /**
+   * The soonest thing the student has actually told us they must be ready for.
+   *
+   * Without this the horizon is a rolling month, which is an arbitrary number
+   * nobody chose. With it, "ready for Wednesday's quiz" is a question the
+   * dashboard can answer - and it is what makes the organiser part of Tuón
+   * rather than a todo list living next to it.
+   */
+  const deadline = useMemo(() => {
+    const item = nextDeadline(planItems, dayKey(new Date(now), timeZone));
+    if (!item?.dueDate) return null;
+    const [year, month, day] = item.dueDate.split("-").map(Number);
+    // Local midday, not midnight: the horizon is a calendar day, and midnight
+    // in one zone is the day before in another.
+    return { date: new Date(year, month - 1, day, 12), label: item.title };
+  }, [planItems, now, timeZone]);
+
   // Readiness is derived from the logs and sets already loaded above, so the
   // dashboard's most prominent number costs no extra reads.
   const readiness = useMemo(
-    () => buildReadiness(sets, logs, parseExamDate(profile?.examDate), new Date(now)),
-    [sets, logs, profile?.examDate, now],
+    () =>
+      buildReadiness(sets, logs, parseExamDate(profile?.examDate), new Date(now), deadline),
+    [sets, logs, profile?.examDate, now, deadline],
   );
 
   /** One ordered plan for today, weakest subject first. */

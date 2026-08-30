@@ -67,8 +67,19 @@ export interface SubjectReadiness {
   share: number;
 }
 
+/**
+ * Where the horizon came from, which decides how the dashboard phrases it.
+ *
+ * "rolling" is the weakest of the three and says so: it is an arbitrary month,
+ * used only because the student has told us about nothing real to aim at.
+ */
+export type HorizonSource = "exam" | "deadline" | "rolling";
+
 export interface ReadinessReport {
   horizon: Date;
+  source: HorizonSource;
+  /** Set when a deadline supplied the horizon, so the UI can name it. */
+  horizonLabel: string | null;
   /** True when the horizon is a real exam date rather than the rolling window. */
   hasExam: boolean;
   total: number;
@@ -134,15 +145,45 @@ export function projectLog(
   return daysSince <= intervalThen ? "onTrack" : "atRisk";
 }
 
-/** Resolves the horizon: a real exam date, else a rolling window. */
+/**
+ * Resolves what the student is being measured against.
+ *
+ * An exam date wins outright. It is fixed, externally imposed, and the whole
+ * reason the exam clamp exists - a coursework deadline must not quietly
+ * replace the board exam somebody is sitting in October.
+ *
+ * Otherwise the nearest deadline from the organiser takes over from the
+ * rolling window, because "ready for Wednesday's quiz" is a real question and
+ * "ready in the next 30 days" is an arbitrary one. Only within that same
+ * window, though: past a month the deadline is not what tonight's studying is
+ * about, and projecting against it would answer a question the student is not
+ * asking yet.
+ */
 export function resolveHorizon(
   examDate: Date | null | undefined,
   now: Date,
-): { horizon: Date; hasExam: boolean } {
+  deadline?: { date: Date; label: string } | null,
+): { horizon: Date; hasExam: boolean; source: HorizonSource; horizonLabel: string | null } {
   if (examDate && examDate.getTime() > now.getTime()) {
-    return { horizon: examDate, hasExam: true };
+    return { horizon: examDate, hasExam: true, source: "exam", horizonLabel: null };
   }
-  return { horizon: addDays(now, DEFAULT_HORIZON_DAYS), hasExam: false };
+
+  const rolling = addDays(now, DEFAULT_HORIZON_DAYS);
+
+  if (
+    deadline &&
+    deadline.date.getTime() >= now.getTime() &&
+    deadline.date.getTime() <= rolling.getTime()
+  ) {
+    return {
+      horizon: deadline.date,
+      hasExam: false,
+      source: "deadline",
+      horizonLabel: deadline.label,
+    };
+  }
+
+  return { horizon: rolling, hasExam: false, source: "rolling", horizonLabel: null };
 }
 
 export function buildReadiness(
@@ -150,8 +191,9 @@ export function buildReadiness(
   logs: ProjectableLog[],
   examDate: Date | null | undefined,
   now: Date = new Date(),
+  deadline?: { date: Date; label: string } | null,
 ): ReadinessReport {
-  const { horizon, hasExam } = resolveHorizon(examDate, now);
+  const { horizon, hasExam, source, horizonLabel } = resolveHorizon(examDate, now, deadline);
 
   const blank = () => ({ total: 0, onTrack: 0, atRisk: 0, notStarted: 0 });
   const totals = blank();
@@ -212,6 +254,8 @@ export function buildReadiness(
 
   return {
     horizon,
+    source,
+    horizonLabel,
     hasExam,
     ...totals,
     needsWork: totals.atRisk + totals.notStarted,

@@ -18,6 +18,8 @@ const day = 24 * 60 * 60 * 1000;
 function report(over: Partial<ReadinessReport>): ReadinessReport {
   const base: ReadinessReport = {
     horizon: new Date(Date.now() + 47 * day),
+    source: "exam" as const,
+    horizonLabel: null,
     hasExam: true,
     total: 210,
     onTrack: 142,
@@ -43,6 +45,8 @@ const CASES: [string, ReadinessReport][] = [
   [
     "Student, no exam date",
     report({
+      source: "rolling" as const,
+      horizonLabel: null,
       hasExam: false,
       horizon: new Date(Date.now() + 30 * day),
       total: 84,
@@ -79,6 +83,8 @@ const CASES: [string, ReadinessReport][] = [
   [
     "Brand new — seeded sample, nothing reviewed yet",
     report({
+      source: "rolling" as const,
+      horizonLabel: null,
       hasExam: false,
       total: 8,
       onTrack: 0,

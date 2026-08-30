@@ -48,7 +48,8 @@ const BUCKETS = [
 ];
 
 function horizonLabel(report: ReadinessReport): string {
-  if (!report.hasExam) return "the next 30 days";
+  if (report.source === "deadline" && report.horizonLabel) return report.horizonLabel;
+  if (report.source === "rolling") return "the next 30 days";
   return report.horizon.toLocaleDateString(undefined, {
     month: "long",
     day: "numeric",
@@ -57,7 +58,7 @@ function horizonLabel(report: ReadinessReport): string {
 
 /** The eyebrow, phrased so it reads as a sentence rather than a label. */
 function horizonEyebrow(report: ReadinessReport): string {
-  if (!report.hasExam) return "The next 30 days";
+  if (report.source === "rolling") return "The next 30 days";
   const left = daysUntil(report.horizon);
   const when = horizonLabel(report);
   if (left <= 0) return `Today — ${when}`;

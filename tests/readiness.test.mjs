@@ -232,4 +232,80 @@ check("an exam date shortens the horizon and can change the verdict", () => {
   assert.equal(r.atRisk, 1);
 });
 
+console.log("\nWhat the horizon is measured against");
+
+const deadlineAt = (days, label = "Problem set") => ({
+  date: new Date(NOW.getTime() + days * DAY),
+  label,
+});
+
+check("an exam date beats a nearer deadline", () => {
+  // The exam is fixed and externally imposed. A coursework deadline must not
+  // quietly replace the board exam somebody is sitting in October.
+  const exam = new Date(NOW.getTime() + 60 * DAY);
+  const resolved = resolveHorizon(exam, NOW, deadlineAt(3));
+  assert.equal(resolved.source, "exam");
+  assert.equal(resolved.horizon.getTime(), exam.getTime());
+});
+
+check("with no exam, the nearest deadline becomes the horizon", () => {
+  // "Ready for Wednesday's quiz" is a real question; "ready in the next 30
+  // days" is an arbitrary one.
+  const resolved = resolveHorizon(null, NOW, deadlineAt(3, "Photosynthesis quiz"));
+  assert.equal(resolved.source, "deadline");
+  assert.equal(resolved.horizonLabel, "Photosynthesis quiz");
+});
+
+check("a deadline past the rolling window does not take over", () => {
+  // Past a month it is not what tonight's studying is about, and projecting
+  // against it answers a question the student is not asking yet.
+  const resolved = resolveHorizon(null, NOW, deadlineAt(DEFAULT_HORIZON_DAYS + 5));
+  assert.equal(resolved.source, "rolling");
+  assert.equal(resolved.horizonLabel, null);
+});
+
+check("a passed deadline never becomes the horizon", () => {
+  const resolved = resolveHorizon(null, NOW, deadlineAt(-2));
+  assert.equal(resolved.source, "rolling");
+});
+
+check("no deadline at all falls back to the rolling window", () => {
+  assert.equal(resolveHorizon(null, NOW, null).source, "rolling");
+  assert.equal(resolveHorizon(null, NOW).source, "rolling");
+});
+
+check("an expired exam date does not beat a live deadline", () => {
+  // The clamp treats a past exam as absent; the horizon must agree, or a
+  // student whose exam has been and gone gets a stale projection forever.
+  const past = new Date(NOW.getTime() - 10 * DAY);
+  const resolved = resolveHorizon(past, NOW, deadlineAt(4, "Lab report"));
+  assert.equal(resolved.source, "deadline");
+  assert.equal(resolved.horizonLabel, "Lab report");
+});
+
+check("a deadline horizon reaches the report the dashboard renders", () => {
+  const report = buildReadiness([], [], null, NOW, deadlineAt(5, "Lab report"));
+  assert.equal(report.source, "deadline");
+  assert.equal(report.horizonLabel, "Lab report");
+  assert.equal(report.hasExam, false);
+});
+
+check("a shorter horizon does not change how a card is judged, only when", () => {
+  // Sanity on the interaction: the same card projected against a nearer date
+  // can only be as ready or readier, never less.
+  const log = {
+    studySetId: "s1",
+    easeFactor: 2.5,
+    intervalDays: 10,
+    repetitions: 3,
+    nextReviewAt: { toDate: () => new Date(NOW.getTime() + 2 * DAY) },
+    lastReviewedAt: { toDate: () => new Date(NOW.getTime() - 8 * DAY) },
+  };
+  const sets = [{ id: "s1", flashcardCount: 1 }];
+  const near = buildReadiness(sets, [log], null, NOW, deadlineAt(3));
+  const far = buildReadiness(sets, [log], null, NOW, null);
+  assert.ok(near.onTrack >= far.onTrack);
+});
+
+
 console.log(`\n${passed} checks passed.\n`);
