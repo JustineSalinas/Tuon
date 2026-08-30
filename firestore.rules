@@ -62,12 +62,19 @@ service cloud.firestore {
         'timeZone',
         'dailyCardGoal',
         'typedRecall',
+        'pomodoroFocus',
+        'pomodoroShortBreak',
+        'pomodoroLongBreak',
         'termsAcceptedVersion',
         'termsAcceptedAt',
         'isAdult',
         'guardianConsent',
         'updatedAt'
       ]);
+    }
+
+    function isPhaseMinutes(value) {
+      return value is int && value >= 1 && value <= 120;
     }
 
     function validProfileEdit() {
@@ -89,6 +96,11 @@ service cloud.firestore {
         && isOptionalText(d.get('timeZone', null), 64)
         && (d.get('dailyCardGoal', 0) is int)
         && (d.get('typedRecall', true) is bool)
+        // 1 to 120 minutes. A zero-length phase would complete instantly
+        // and log blocks forever; a huge one would never end.
+        && isPhaseMinutes(d.get('pomodoroFocus', 25))
+        && isPhaseMinutes(d.get('pomodoroShortBreak', 5))
+        && isPhaseMinutes(d.get('pomodoroLongBreak', 15))
         && validConsent();
     }
 

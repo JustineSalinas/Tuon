@@ -77,6 +77,14 @@ export interface UserProfile {
    * one tap away on the card itself.
    */
   typedRecall?: boolean;
+  /**
+   * Pomodoro phase lengths in minutes. Absent means the classic 25/5/15.
+   * On the profile rather than the device so a student who studies on a
+   * phone and a lab machine gets the same blocks on both.
+   */
+  pomodoroFocus?: number;
+  pomodoroShortBreak?: number;
+  pomodoroLongBreak?: number;
 
   // --- consent (self-attested at onboarding; see lib/legal/consent.ts) -----
   /** Which version of the terms and privacy notice was agreed to. */

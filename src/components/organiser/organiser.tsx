@@ -55,7 +55,6 @@ import {
   upcomingDeadlines,
 } from "@/lib/organiser/plan-items";
 import type { PlanItem, PlanItemKind } from "@/lib/types";
-import { PomodoroTimer } from "@/components/organiser/pomodoro-timer";
 import { StudyLog } from "@/components/organiser/study-log";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,13 +88,7 @@ export function Organiser({ todayKey }: { todayKey: string }) {
         </div>
       </div>
 
-      {/* Above the tabs, not inside one: a timer you have to go and find a
-          tab for is a timer nobody starts. */}
-      <div className="mt-5">
-        <PomodoroTimer subjects={subjects} />
-      </div>
-
-      <Tabs defaultValue="deadlines" className="mt-6">
+      <Tabs defaultValue="deadlines" className="mt-5">
         <TabsList>
           <TabsTrigger value="deadlines">
             <CalendarClock className="size-3.5" />

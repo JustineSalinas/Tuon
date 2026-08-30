@@ -37,6 +37,11 @@ import {
   remainingMs,
   reset,
   start,
+  DEFAULT_POMODORO,
+  MAX_PHASE_MINUTES,
+  MIN_PHASE_MINUTES,
+  clampPhaseMinutes,
+  readPomodoroSettings,
 } from "../src/lib/organiser/pomodoro.ts";
 import {
   MAX_SESSION_MINUTES,
@@ -389,6 +394,63 @@ check("a new phase starts from zero", () => {
   const next = nextPhase(finished);
   assert.equal(next.elapsedMs, 0);
   assert.equal(next.startedAt, null);
+});
+
+console.log("\nHow long a block runs");
+
+check("the classic lengths are the default", () => {
+  assert.deepEqual(DEFAULT_POMODORO, { focus: 25, shortBreak: 5, longBreak: 15 });
+  assert.equal(phaseDurationMs("focus"), 25 * MINUTE);
+});
+
+check("a student's own lengths are used instead", () => {
+  // Twenty-five minutes is far too long for some people, and forcing the
+  // textbook number on them just means they stop using the timer.
+  const mine = { focus: 12, shortBreak: 3, longBreak: 20 };
+  assert.equal(phaseDurationMs("focus", mine), 12 * MINUTE);
+  assert.equal(phaseDurationMs("shortBreak", mine), 3 * MINUTE);
+  assert.equal(remainingMs(start(initialPomodoro(), 0), 2 * MINUTE, mine), 10 * MINUTE);
+});
+
+check("a short block completes at its own length", () => {
+  const mine = { focus: 5, shortBreak: 1, longBreak: 10 };
+  const state = start(initialPomodoro(), 0);
+  assert.equal(isComplete(state, 4 * MINUTE, mine), false);
+  assert.equal(isComplete(state, 5 * MINUTE, mine), true);
+  // The default would still have twenty minutes left on the clock.
+  assert.equal(isComplete(state, 5 * MINUTE), false);
+});
+
+check("a length outside the bounds is clamped, not accepted", () => {
+  // A zero-length phase would complete instantly and log blocks forever.
+  assert.equal(clampPhaseMinutes(0, 25), MIN_PHASE_MINUTES);
+  assert.equal(clampPhaseMinutes(-5, 25), MIN_PHASE_MINUTES);
+  assert.equal(clampPhaseMinutes(9999, 25), MAX_PHASE_MINUTES);
+  assert.equal(clampPhaseMinutes(30, 25), 30);
+});
+
+check("junk falls back to the value it replaced", () => {
+  assert.equal(clampPhaseMinutes("abc", 25), 25);
+  assert.equal(clampPhaseMinutes(NaN, 25), 25);
+  assert.equal(clampPhaseMinutes(undefined, 25), 25);
+});
+
+check("a profile with nothing set gets the classic lengths", () => {
+  assert.deepEqual(readPomodoroSettings({}), DEFAULT_POMODORO);
+});
+
+check("a profile with partial settings keeps the rest at default", () => {
+  const settings = readPomodoroSettings({ pomodoroFocus: 45 });
+  assert.equal(settings.focus, 45);
+  assert.equal(settings.shortBreak, DEFAULT_POMODORO.shortBreak);
+});
+
+check("a corrupt profile value cannot produce a zero-length phase", () => {
+  // The nastiest failure: a phase of 0 completes the instant it starts, so the
+  // timer would log block after block without anyone studying.
+  const settings = readPomodoroSettings({ pomodoroFocus: 0, pomodoroShortBreak: "x" });
+  assert.ok(settings.focus >= MIN_PHASE_MINUTES);
+  assert.ok(settings.shortBreak >= MIN_PHASE_MINUTES);
 });
 
 console.log("\nWhat gets logged");

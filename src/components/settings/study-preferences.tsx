@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTheme } from "next-themes";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { Check, Keyboard, Loader2, Monitor, Moon, Sun, Wand2 } from "lucide-react";
+import { Check, Keyboard, Loader2, Monitor, Moon, Sun, Timer, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -14,6 +14,11 @@ import {
   clampGoal,
   usePreferences,
 } from "@/lib/hooks/use-preferences";
+import {
+  MAX_PHASE_MINUTES,
+  MIN_PHASE_MINUTES,
+  clampPhaseMinutes,
+} from "@/lib/organiser/pomodoro";
 import {
   TIME_ZONES,
   detectTimeZone,
@@ -54,6 +59,8 @@ export function StudyPreferences() {
         <DailyGoalRow />
         <Separator />
         <TypedRecallRow />
+        <Separator />
+        <TimerRow />
         <Separator />
         <DailyReminder />
       </div>
@@ -181,6 +188,106 @@ function TimeZoneRow() {
           </Button>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * The Pomodoro phase lengths.
+ *
+ * Classic 25/5/15 is a default, not a law. Twenty-five minutes is far too long
+ * for some people — a student with ADHD, or one working the twelve-minute gaps
+ * between classes — and forcing the textbook number on them just means they
+ * stop using the timer, which takes the study log down with it.
+ */
+function TimerRow() {
+  const { user } = useAuth();
+  const { pomodoro } = usePreferences();
+  const [focus, setFocus] = useState(String(pomodoro.focus));
+  const [shortBreak, setShortBreak] = useState(String(pomodoro.shortBreak));
+  const [longBreak, setLongBreak] = useState(String(pomodoro.longBreak));
+  const [saving, setSaving] = useState(false);
+
+  const next = {
+    focus: clampPhaseMinutes(Number(focus), pomodoro.focus),
+    shortBreak: clampPhaseMinutes(Number(shortBreak), pomodoro.shortBreak),
+    longBreak: clampPhaseMinutes(Number(longBreak), pomodoro.longBreak),
+  };
+  const dirty =
+    next.focus !== pomodoro.focus ||
+    next.shortBreak !== pomodoro.shortBreak ||
+    next.longBreak !== pomodoro.longBreak;
+
+  async function save() {
+    if (!user || !dirty) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        pomodoroFocus: next.focus,
+        pomodoroShortBreak: next.shortBreak,
+        pomodoroLongBreak: next.longBreak,
+        updatedAt: serverTimestamp(),
+      });
+      setFocus(String(next.focus));
+      setShortBreak(String(next.shortBreak));
+      setLongBreak(String(next.longBreak));
+      toast.success("Timer updated.");
+    } catch {
+      toast.error("Could not save those lengths.");
+    }
+    setSaving(false);
+  }
+
+  const field = (
+    id: string,
+    label: string,
+    value: string,
+    set: (v: string) => void,
+    fallback: number,
+  ) => (
+    <div>
+      <Label htmlFor={id} className="text-xs font-normal">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        type="number"
+        inputMode="numeric"
+        min={MIN_PHASE_MINUTES}
+        max={MAX_PHASE_MINUTES}
+        value={value}
+        onChange={(e) => set(e.target.value)}
+        onBlur={() => set(String(clampPhaseMinutes(Number(value), fallback)))}
+        className="mt-1 w-20 tabular-nums"
+      />
+    </div>
+  );
+
+  return (
+    <div id="timer" className="scroll-mt-20">
+      <p className="flex items-center gap-2 text-sm font-medium">
+        <Timer className="text-muted-foreground size-4" />
+        Focus timer
+      </p>
+      <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+        The timer in the sidebar. Twenty-five minutes is the classic block and
+        suits plenty of people; if it does not suit you, a shorter one you
+        actually finish is worth more than a long one you abandon.
+      </p>
+
+      <div className="mt-3 flex flex-wrap items-end gap-3">
+        {field("pomo-focus", "Focus", focus, setFocus, pomodoro.focus)}
+        {field("pomo-short", "Short break", shortBreak, setShortBreak, pomodoro.shortBreak)}
+        {field("pomo-long", "Long break", longBreak, setLongBreak, pomodoro.longBreak)}
+        <span className="text-muted-foreground pb-2.5 text-sm">minutes</span>
+        <Button size="sm" className="mb-0.5" onClick={save} disabled={!dirty || saving}>
+          {saving ? <Loader2 className="animate-spin" /> : <Check />}
+          Save
+        </Button>
+      </div>
+      <p className="text-muted-foreground mt-2 text-xs">
+        The long break comes after every fourth focus block.
+      </p>
     </div>
   );
 }

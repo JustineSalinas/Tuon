@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
+import { PomodoroDock } from "@/components/app/pomodoro-dock";
 import { VerifyEmailBanner } from "@/components/app/verify-email-banner";
 import { OfflineIndicator } from "@/components/app/offline-indicator";
 import { GroupPresence } from "@/components/app/group-presence";
@@ -88,6 +89,9 @@ function isActive(pathname: string, href: string, exact: boolean) {
 }
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
+  const { profile } = useAuth();
+  const courses = profile?.courses ?? [];
+
   return (
     <aside className="bg-sidebar sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r p-4 md:flex">
       <Link href="/app" className="px-2 py-1">
@@ -121,6 +125,10 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
         </Button>
 
       <div className="mt-auto space-y-3">
+        {/* The timer lives here rather than on the calendar page, because the
+            one screen you could see it on there was the one screen you are not
+            studying on. Its state was always global; only the UI was stuck. */}
+        <PomodoroDock subjects={courses} />
         <QuotaIndicator />
         {/* Settings had no visible entry point at all — it lived only inside
             the avatar menu, which does not look like a menu. A gear beside the

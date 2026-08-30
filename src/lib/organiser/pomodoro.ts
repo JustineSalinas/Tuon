@@ -17,12 +17,48 @@
 
 export type PomodoroPhase = "focus" | "shortBreak" | "longBreak";
 
-/** Classic 25/5/15. Long break after every fourth focus block. */
-export const PHASE_MINUTES: Record<PomodoroPhase, number> = {
+/**
+ * How long each phase runs, in minutes.
+ *
+ * Classic 25/5/15 is the default and not the law. Twenty-five minutes suits
+ * some people and is far too long for others — a student with ADHD, or one
+ * working in the twelve-minute gaps between classes, needs a shorter block,
+ * and forcing the textbook number on them just means they stop using the
+ * timer and the study log goes quiet with it.
+ */
+export interface PomodoroSettings {
+  focus: number;
+  shortBreak: number;
+  longBreak: number;
+}
+
+export const DEFAULT_POMODORO: PomodoroSettings = {
   focus: 25,
   shortBreak: 5,
   longBreak: 15,
 };
+
+/** Bounds. Under a minute is not a block; over two hours is not a Pomodoro. */
+export const MIN_PHASE_MINUTES = 1;
+export const MAX_PHASE_MINUTES = 120;
+
+export function clampPhaseMinutes(value: unknown, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(MAX_PHASE_MINUTES, Math.max(MIN_PHASE_MINUTES, Math.round(value)));
+}
+
+/** Reads whatever is on the profile into settings that are safe to run on. */
+export function readPomodoroSettings(raw: {
+  pomodoroFocus?: unknown;
+  pomodoroShortBreak?: unknown;
+  pomodoroLongBreak?: unknown;
+}): PomodoroSettings {
+  return {
+    focus: clampPhaseMinutes(raw.pomodoroFocus, DEFAULT_POMODORO.focus),
+    shortBreak: clampPhaseMinutes(raw.pomodoroShortBreak, DEFAULT_POMODORO.shortBreak),
+    longBreak: clampPhaseMinutes(raw.pomodoroLongBreak, DEFAULT_POMODORO.longBreak),
+  };
+}
 
 export const FOCUS_BLOCKS_BEFORE_LONG_BREAK = 4;
 
@@ -51,8 +87,11 @@ export function initialPomodoro(phase: PomodoroPhase = "focus"): PomodoroState {
   return { phase, startedAt: null, elapsedMs: 0, completedFocus: 0 };
 }
 
-export function phaseDurationMs(phase: PomodoroPhase): number {
-  return PHASE_MINUTES[phase] * MINUTE_MS;
+export function phaseDurationMs(
+  phase: PomodoroPhase,
+  settings: PomodoroSettings = DEFAULT_POMODORO,
+): number {
+  return settings[phase] * MINUTE_MS;
 }
 
 export function isRunning(state: PomodoroState): boolean {
@@ -66,12 +105,20 @@ export function elapsedMs(state: PomodoroState, now: number): number {
 }
 
 /** Never negative: a phase that ran over while the tab slept reads as 0 left. */
-export function remainingMs(state: PomodoroState, now: number): number {
-  return Math.max(0, phaseDurationMs(state.phase) - elapsedMs(state, now));
+export function remainingMs(
+  state: PomodoroState,
+  now: number,
+  settings: PomodoroSettings = DEFAULT_POMODORO,
+): number {
+  return Math.max(0, phaseDurationMs(state.phase, settings) - elapsedMs(state, now));
 }
 
-export function isComplete(state: PomodoroState, now: number): boolean {
-  return remainingMs(state, now) === 0;
+export function isComplete(
+  state: PomodoroState,
+  now: number,
+  settings: PomodoroSettings = DEFAULT_POMODORO,
+): boolean {
+  return remainingMs(state, now, settings) === 0;
 }
 
 export function start(state: PomodoroState, now: number): PomodoroState {
