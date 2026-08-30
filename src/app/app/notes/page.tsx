@@ -8,6 +8,7 @@ import { FileText, Plus, Search, Sparkles } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { usePagedNotes } from "@/lib/hooks/use-firestore";
 import { LoadMore } from "@/components/app/load-more";
+import { MarkdownTransfer } from "@/components/notes/markdown-transfer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -33,10 +34,13 @@ export default function NotesPage() {
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-semibold tracking-tight">Notes</h1>
-        <Button render={<Link href="/app/notes/new" />}>
+        <div className="flex flex-wrap items-center gap-2">
+          <MarkdownTransfer />
+          <Button render={<Link href="/app/notes/new" />}>
             <Plus />
             New note
           </Button>
+        </div>
       </header>
 
       {notes.length > 0 ? (

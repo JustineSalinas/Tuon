@@ -17,3 +17,5 @@ import "./chat.test.mjs";
 import "./answer-match.test.mjs";
 import "./organiser.test.mjs";
 import "./mastery.test.mjs";
+import "./markdown.test.mjs";
+import "./test-mode.test.mjs";
