@@ -92,7 +92,10 @@ export function SiteFooter() {
 
         <div className="text-muted-foreground mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t pt-6 text-sm">
           <p>Made in the Philippines, for Filipino students.</p>
-          <p>&copy; {new Date().getFullYear()} Tuón</p>
+          <p>
+            &copy; {new Date().getFullYear()} Tuón · Adrian Salinas. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>

@@ -1,6 +1,7 @@
 "use client";
 
 import { STRANDS } from "@/lib/curriculum";
+import { cn } from "@/lib/utils";
 
 /**
  * The onboarding flow, shown rather than described.
@@ -66,14 +67,19 @@ export function SetupFlow() {
           </div>
 
           <div className="mt-3.5 grid grid-cols-2 gap-2">
+            {/* min-h rather than a fixed h, with padding and centred text:
+                "TVL — Home Economics" is the one label that wraps at this
+                width, and in a fixed 44px box it sat flush-left and spilled
+                out of its own border while every other chip was centred. */}
             {STRANDS.map((strand, index) => (
               <div
                 key={strand.value}
-                className={
+                className={cn(
+                  "grid min-h-11 place-items-center rounded-xl px-2 py-1.5 text-center text-[13.5px] leading-tight text-balance",
                   index === 0
-                    ? "bg-primary text-primary-foreground grid h-11 place-items-center rounded-xl text-[13.5px] font-medium"
-                    : "border-border grid h-11 place-items-center rounded-xl border text-[13.5px]"
-                }
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "border-border border",
+                )}
               >
                 {strand.label}
               </div>

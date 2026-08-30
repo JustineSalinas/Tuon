@@ -509,12 +509,11 @@ function FinalCta() {
     <section className="border-t">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
         <Reveal>
-          {/* The mark, not Tala. The Ask section directly above now shows
-              her, and two owls a screen apart reads as a stutter — that one is
-              functional (it is literally "Ask Tala", and she reacts while she
-              works), so this one gives way. */}
-          <TuonMark className="text-primary mx-auto size-9" />
-          <h2 className="font-display mx-auto mt-7 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+          {/* No mark here. The Ask section directly above already shows Tala,
+              and a second owl one screen later reads as a stutter — the closing
+              line is stronger arriving on its own than under a logo the reader
+              has already seen twice on the way down. */}
+          <h2 className="font-display mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             Stop making flashcards. Start remembering.
           </h2>
           <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">

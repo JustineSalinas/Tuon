@@ -89,15 +89,90 @@ const QUESTIONS: { q: string; a: React.ReactNode }[] = [
     q: "Does it work offline?",
     a: (
       <>
-        Not yet, and it should — data is not free and campus wifi is not
-        reliable. Reviewing offline with a sync on reconnect is the next thing
-        on the list after launch. Today you need a connection.
+        Reviewing does. Data is not free and campus wifi is not reliable, so
+        cards you already have keep working with no connection and your ratings
+        sync when one comes back. Generating a new study set needs the network,
+        because that part happens on a server.
       </>
     ),
   },
   {
     q: "What exactly is one study set?",
     a: <>One study set is {GENERATION_EXPLAINER}.</>,
+  },
+  {
+    q: "How is this different from Quizlet or Anki?",
+    a: (
+      <>
+        Anki is the better scheduler and has a reputation for being hard to
+        start; Quizlet is easier to start and its free tier keeps shrinking.
+        Tuón sits between them and adds the thing neither does: it knows your
+        exam date, so it can answer &ldquo;will I be ready?&rdquo; rather than
+        just &ldquo;what is due?&rdquo;. It also reads notes that mix English
+        with Tagalog or Cebuano, which is how most students here actually write
+        them.
+      </>
+    ),
+  },
+  {
+    q: "Do I have to type every answer?",
+    a: (
+      <>
+        Only on cards short enough to type, and you can turn it off in
+        settings or skip it on any single card. It is on by default because
+        reading the back and thinking &ldquo;yeah, I knew that&rdquo; is not the
+        same as remembering it. Spelling, word order, accents and the Tagalog
+        markers you might write are all forgiven — a typo never counts as
+        wrong.
+      </>
+    ),
+  },
+  {
+    q: "Can I study with my classmates?",
+    a: (
+      <>
+        Yes, in invite-only groups: share a set, put a shared deadline in, and
+        see who is studying right now. There is deliberately no public room and
+        no directory — a lot of students here are minors, and a space strangers
+        can walk into needs moderation we are not able to promise. You join a
+        group because someone in it sent you a code.
+      </>
+    ),
+  },
+  {
+    q: "Can I get my notes back out?",
+    a: (
+      <>
+        Any time, as Markdown, with your{" "}
+        <code className="bg-secondary rounded px-1 py-0.5 text-[13px]">[[links]]</code>{" "}
+        intact — one download for the whole library. You can bring a folder of
+        Markdown in the same way. Locking the exit is how apps keep people who
+        want to leave, and it is not a plan.
+      </>
+    ),
+  },
+  {
+    q: "What if I miss a week?",
+    a: (
+      <>
+        Nothing breaks and nothing is lost. Cards you missed are simply still
+        due, and a session is capped at a daily goal you set, so a backlog
+        never arrives as a wall of 300 cards. There is no streak on purpose: a
+        streak punishes the week you were sick or in finals, which is exactly
+        when you need the app to be on your side.
+      </>
+    ),
+  },
+  {
+    q: "Can I use it on my phone?",
+    a: (
+      <>
+        Yes — it is a website, so there is nothing to install, and you can add
+        it to your home screen if you want it to open like an app. Reviewing is
+        built thumb-first, because most of it happens on a phone between
+        classes.
+      </>
+    ),
   },
 ];
 
