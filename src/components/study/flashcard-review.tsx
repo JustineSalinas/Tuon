@@ -120,7 +120,6 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
   // 0 = none asked for. Kept after the reveal so the rating can account
   // for it: a hinted answer is not the same memory as a cold one.
   const [hintLevel, setHintLevel] = useState(0);
-  const answerInput = useRef<HTMLInputElement>(null);
 
   // Scheduling state is updated in place as the student rates, so a card that
   // gets re-queued within the session schedules from its *new* state.
@@ -288,12 +287,6 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [currentCard, flipped, handleRate, typing, submitTyped]);
-
-  // Focus follows the card so a session can be done entirely from the
-  // keyboard: type, Enter, rate, and the next box is already waiting.
-  useEffect(() => {
-    if (typing && !flipped) answerInput.current?.focus();
-  }, [typing, flipped, currentCard?.id]);
 
   function startCram() {
     setCramming(true);
@@ -515,7 +508,15 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                         ) : null}
                         <div className="flex gap-2">
                           <Input
-                            ref={answerInput}
+                            // Focus on mount rather than in an effect: the
+                            // box does not exist until the ratings have
+                            // finished animating out, so an effect keyed on
+                            // the card runs while the ref is still null and
+                            // the next card opens unfocused. This is what
+                            // lets a whole session run from the keyboard.
+                            ref={(node) => {
+                              node?.focus();
+                            }}
                             value={typed}
                             onChange={(e) => setTyped(e.target.value)}
                             placeholder="Your answer"
