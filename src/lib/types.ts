@@ -87,6 +87,16 @@ export interface UserProfile {
   /** A minor confirmed a parent or guardian reviewed and agreed. */
   guardianConsent?: boolean;
 
+  /**
+   * Study groups this student belongs to.
+   *
+   * Server-owned, written only by /api/groups/*. It is the other half of the
+   * access-control list: a set shared into a group is readable by anyone whose
+   * profile names that group, so a client that could edit this could read
+   * every set shared into any group whose id it could guess.
+   */
+  groupIds?: string[];
+
   // --- server-owned; not writable from the client (see firestore.rules) ---
   plan: Plan;
   /** Subscription lifecycle. Only the PayMongo webhook writes these. */
@@ -136,6 +146,12 @@ export interface StudySet {
    * This flag is the real access gate — see firestore.rules.
    */
   isShared?: boolean;
+  /**
+   * Study groups this set has been shared into. Read by the rules: a
+   * member of any group named here can open the set. Narrower than
+   * `isShared`, which means anyone holding the link.
+   */
+  sharedWithGroups?: string[];
   createdAt: Timestamp;
 }
 
@@ -270,6 +286,94 @@ export interface StudySession {
   startedAt: Timestamp;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+}
+
+/**
+ * Firestore: studyGroups/{groupId}
+ *
+ * The first data in Tuón that more than one account can read, which is why it
+ * is the only top-level collection and why membership is server-owned.
+ *
+ * Invite-only by design, and deliberately NOT public rooms. The core audience
+ * is Grade 11 and 12 - minors - and a public room puts them in a live space
+ * with adult strangers, which makes Tuón responsible for moderation, reporting
+ * and blocking. A group of people who already know each other (a class, a
+ * barkada, a review batch) is how Filipino students actually study and carries
+ * none of that.
+ */
+export interface StudyGroup {
+  id: string;
+  name: string;
+  courseTag: string | null;
+  ownerId: string;
+  /**
+   * Server-owned. Written only by /api/groups/*, never from a browser - it is
+   * the access-control list, and a client that could edit it could add itself
+   * to any group whose id it could guess.
+   */
+  memberIds: string[];
+  memberCount: number;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+/**
+ * Firestore: studyGroups/{groupId}/members/{userId}
+ *
+ * Carries the display name so the group can show who is in it without anyone
+ * being able to read another student's profile. Server-written on join.
+ */
+export interface GroupMember {
+  id: string;
+  displayName: string;
+  role: "owner" | "member";
+  joinedAt: Timestamp;
+}
+
+/**
+ * Firestore: studyGroups/{groupId}/sharedSets/{id}
+ *
+ * A pointer to a set that still lives in its owner's library. Copying the
+ * cards would fork them: the owner fixes a typo and the group keeps the wrong
+ * card forever.
+ */
+export interface GroupSharedSet {
+  id: string;
+  ownerId: string;
+  studySetId: string;
+  title: string;
+  courseTag: string | null;
+  cardCount: number;
+  sharedByName: string;
+  sharedAt: Timestamp;
+}
+
+/** Firestore: studyGroups/{groupId}/deadlines/{id} */
+export interface GroupDeadline {
+  id: string;
+  title: string;
+  /** `YYYY-MM-DD`, same reasoning as everywhere else: a calendar day. */
+  dueDate: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: Timestamp;
+}
+
+/**
+ * Firestore: studyGroups/{groupId}/presence/{userId}
+ *
+ * "Who is studying right now", written while a focus block is running and
+ * expiring on its own. Deliberately thin: a name and an expiry, nothing about
+ * what they are studying or for how long they have been at it. The version of
+ * this that ranks people by hours is the one that turns studying into a
+ * competition, which is a different product.
+ */
+export interface GroupPresence {
+  id: string;
+  displayName: string;
+  /** After this instant the entry is ignored by readers. */
+  until: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export type SrsRating = "again" | "hard" | "good" | "easy";

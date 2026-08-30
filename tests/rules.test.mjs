@@ -24,8 +24,10 @@ import {
   collection,
   collectionGroup,
   getDocs,
+  documentId,
   query,
   serverTimestamp,
+  Timestamp,
   where,
 } from "firebase/firestore";
 
@@ -725,6 +727,317 @@ await check("a session may be edited afterwards", async () => {
 await check("a stranger cannot read someone else's study time", async () => {
   await assertFails(getDoc(doc(mallory, `users/${ALICE}/studySessions/s1`)));
 });
+
+
+/* --- study groups ---------------------------------------------------------
+   Group data is the first thing in Tuon that more than one account can read,
+   so these are the checks that matter most in this file. The shape of the risk
+   is one-sided: a rule that is too tight annoys a member, and a rule that is
+   too loose exposes a minor's notes to someone who was never invited. */
+
+const GROUP = "group1";
+const OUTSIDER_GROUP = "group2";
+
+await seed(async (db) => {
+  await setDoc(doc(db, `studyGroups/${GROUP}`), {
+    name: "Bio review batch",
+    courseTag: "General Biology 1",
+    ownerId: ALICE,
+    memberIds: [ALICE],
+    memberCount: 1,
+  });
+  await setDoc(doc(db, `studyGroups/${GROUP}/members/${ALICE}`), {
+    displayName: "Alice",
+    role: "owner",
+  });
+  await setDoc(doc(db, `studyGroups/${OUTSIDER_GROUP}`), {
+    name: "Someone else's group",
+    ownerId: MALLORY,
+    memberIds: [MALLORY],
+    memberCount: 1,
+  });
+  // Alice belongs to GROUP; Mallory belongs only to OUTSIDER_GROUP.
+  await setDoc(doc(db, profile(ALICE)), { groupIds: [GROUP] }, { merge: true });
+  await setDoc(doc(db, profile(MALLORY)), { groupIds: [OUTSIDER_GROUP] }, { merge: true });
+  await setDoc(doc(db, `studyGroups/${GROUP}/sharedSets/shared1`), {
+    ownerId: ALICE,
+    studySetId: "private1",
+    title: "Photosynthesis",
+    cardCount: 8,
+    sharedByName: "Alice",
+  });
+});
+
+await check("a member can read their group", async () => {
+  await assertSucceeds(getDoc(doc(alice, `studyGroups/${GROUP}`)));
+});
+
+await check("a stranger cannot read a group they are not in", async () => {
+  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}`)));
+});
+
+await check("nobody can enumerate every group", async () => {
+  // Rules are not filters: an unconstrained query is refused the moment it
+  // would return a group the caller is not in. This is what stops the list
+  // permission below from becoming a directory of every group in the app.
+  await assertFails(getDocs(collection(alice, "studyGroups")));
+  await assertFails(getDocs(collection(mallory, "studyGroups")));
+});
+
+await check("a student can query the groups they are actually in", async () => {
+  // Which is a list operation, and the reason `list` is not simply denied:
+  // fetching them one at a time would be a request per group per page load.
+  await assertSucceeds(
+    getDocs(query(collection(alice, "studyGroups"), where(documentId(), "in", [GROUP]))),
+  );
+});
+
+await check("naming someone else's group in a query does not get you in", async () => {
+  // The obvious attack on the rule above: ask for a specific id you were never
+  // invited to. It fails because the returned document would not satisfy it.
+  await assertFails(
+    getDocs(query(collection(mallory, "studyGroups"), where(documentId(), "in", [GROUP]))),
+  );
+});
+
+await check("a signed-out visitor sees nothing", async () => {
+  await assertFails(getDoc(doc(anon, `studyGroups/${GROUP}`)));
+});
+
+await check("a client cannot create a group", async () => {
+  // Groups are made by /api/groups/create, which writes the group, the member
+  // record and the creator's profile together. A half-created group is one
+  // nobody can ever reach.
+  await assertFails(
+    setDoc(doc(alice, "studyGroups/newgroup"), {
+      name: "Mine",
+      ownerId: ALICE,
+      memberIds: [ALICE],
+      memberCount: 1,
+    }),
+  );
+});
+
+await check("a member cannot add themselves to a group", async () => {
+  // THE critical one. memberIds is the access-control list; if a client could
+  // edit it, anyone could join any group whose id they could guess.
+  await assertFails(
+    updateDoc(doc(mallory, `studyGroups/${GROUP}`), { memberIds: [ALICE, MALLORY] }),
+  );
+});
+
+await check("even the owner cannot edit the member list", async () => {
+  await assertFails(
+    updateDoc(doc(alice, `studyGroups/${GROUP}`), { memberIds: [ALICE, MALLORY] }),
+  );
+});
+
+await check("the owner may rename the group", async () => {
+  await assertSucceeds(
+    updateDoc(doc(alice, `studyGroups/${GROUP}`), { name: "Bio batch 2026" }),
+  );
+});
+
+await check("a member who is not the owner cannot rename it", async () => {
+  await assertFails(
+    updateDoc(doc(mallory, `studyGroups/${OUTSIDER_GROUP}`), { ownerId: ALICE }),
+  );
+});
+
+await check("the owner cannot hand ownership to themselves elsewhere", async () => {
+  await assertFails(updateDoc(doc(alice, `studyGroups/${GROUP}`), { ownerId: MALLORY }));
+});
+
+await check("a client cannot delete a group", async () => {
+  await assertFails(deleteDoc(doc(alice, `studyGroups/${GROUP}`)));
+});
+
+await check("member records are readable inside the group and nowhere else", async () => {
+  await assertSucceeds(getDoc(doc(alice, `studyGroups/${GROUP}/members/${ALICE}`)));
+  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/members/${ALICE}`)));
+});
+
+await check("a member cannot write a member record", async () => {
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/members/${MALLORY}`), {
+      displayName: "Sneaked in",
+      role: "member",
+    }),
+  );
+});
+
+await check("invite codes are invisible and unmintable", async () => {
+  // Reading them would let anyone enumerate every code in the app; writing
+  // them would let anyone mint an invite to a group they are not in.
+  await assertFails(getDoc(doc(alice, "groupInvites/ABC123")));
+  await assertFails(setDoc(doc(alice, "groupInvites/ABC123"), { groupId: GROUP }));
+});
+
+console.log("\n  Sharing a set into a group");
+
+await check("a member can share their own set", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `studyGroups/${GROUP}/sharedSets/s2`), {
+      ownerId: ALICE,
+      studySetId: "private1",
+      title: "Photosynthesis",
+      cardCount: 8,
+      sharedByName: "Alice",
+    }),
+  );
+});
+
+await check("a member cannot list someone else's set as shared", async () => {
+  // It would not grant access, but it would be a convincing lie in the group.
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/sharedSets/s3`), {
+      ownerId: MALLORY,
+      studySetId: "whatever",
+      title: "Not mine",
+      cardCount: 1,
+      sharedByName: "Alice",
+    }),
+  );
+});
+
+await check("a stranger cannot see what a group is studying", async () => {
+  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/sharedSets/shared1`)));
+});
+
+await check("a set shared to my group becomes readable to me", async () => {
+  await seed(async (db) => {
+    await setDoc(
+      doc(db, set(ALICE, "grouped1")),
+      { title: "Shared with the batch", flashcardCount: 3, quizQuestionCount: 0, sharedWithGroups: [GROUP] },
+    );
+    await setDoc(doc(db, card(ALICE, "grouped1", "c1")), {
+      front: "Q",
+      back: "A",
+      ownerId: ALICE,
+    });
+    // Bob is in Alice's group; Mallory is not.
+    await setDoc(doc(db, `studyGroups/${GROUP}`), {
+      name: "Bio review batch",
+      ownerId: ALICE,
+      memberIds: [ALICE, "bob-uid"],
+      memberCount: 2,
+    });
+    await setDoc(doc(db, profile("bob-uid")), { groupIds: [GROUP] }, { merge: true });
+  });
+
+  const bob = env.authenticatedContext("bob-uid").firestore();
+  await assertSucceeds(getDoc(doc(bob, set(ALICE, "grouped1"))));
+  await assertSucceeds(getDoc(doc(bob, card(ALICE, "grouped1", "c1"))));
+});
+
+await check("a set shared to one group is invisible to another", async () => {
+  // The narrow point of sharedWithGroups: it must not behave like isShared,
+  // which means anyone with the link.
+  await assertFails(getDoc(doc(mallory, set(ALICE, "grouped1"))));
+});
+
+await check("group sharing does not expose the rest of the library", async () => {
+  const bob = env.authenticatedContext("bob-uid").firestore();
+  await assertFails(getDoc(doc(bob, set(ALICE, "private1"))));
+  await assertFails(getDocs(collection(bob, `users/${ALICE}/studySets`)));
+  await assertFails(getDoc(doc(bob, note(ALICE, "n1"))));
+});
+
+await check("a student cannot put themselves in a group to read its sets", async () => {
+  // groupIds is server-owned for exactly this reason: if Mallory could add
+  // Alice's group to her own profile, every set shared into it would open up.
+  await assertFails(updateDoc(doc(mallory, profile(MALLORY)), { groupIds: [GROUP] }));
+});
+
+console.log("\n  Group deadlines and presence");
+
+await check("a member can post a group deadline", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `studyGroups/${GROUP}/deadlines/d1`), {
+      title: "Practical exam",
+      dueDate: "2026-09-15",
+      createdBy: ALICE,
+      createdByName: "Alice",
+    }),
+  );
+});
+
+await check("a deadline cannot be posted in someone else's name", async () => {
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/deadlines/d2`), {
+      title: "Fake",
+      dueDate: "2026-09-15",
+      createdBy: MALLORY,
+      createdByName: "Mallory",
+    }),
+  );
+});
+
+await check("a group deadline needs a real date", async () => {
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/deadlines/d3`), {
+      title: "Sometime",
+      dueDate: "next week",
+      createdBy: ALICE,
+      createdByName: "Alice",
+    }),
+  );
+});
+
+await check("an outsider cannot read or write group deadlines", async () => {
+  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/deadlines/d1`)));
+  await assertFails(
+    setDoc(doc(mallory, `studyGroups/${GROUP}/deadlines/d4`), {
+      title: "Intruder",
+      dueDate: "2026-09-15",
+      createdBy: MALLORY,
+      createdByName: "Mallory",
+    }),
+  );
+});
+
+await check("a member can say they are studying", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`), {
+      displayName: "Alice",
+      until: Timestamp.fromDate(new Date(Date.now() + 25 * 60 * 1000)),
+    }),
+  );
+});
+
+await check("a member cannot post presence as someone else", async () => {
+  // Otherwise one member could fill a group with fake company.
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/presence/bob-uid`), {
+      displayName: "Bob",
+      until: Timestamp.fromDate(new Date(Date.now() + 60 * 1000)),
+    }),
+  );
+});
+
+await check("a member can clear their own presence", async () => {
+  // Delete carries no document to validate, so a single `allow write` guarded
+  // by the shape validator refused it — and a member who stopped studying
+  // stayed lit until the entry expired on its own. Found by pausing the timer
+  // and looking at the group.
+  await assertSucceeds(deleteDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`)));
+});
+
+await check("a member cannot clear someone else's presence", async () => {
+  await assertFails(deleteDoc(doc(alice, `studyGroups/${GROUP}/presence/bob-uid`)));
+});
+
+await check("presence cannot last forever", async () => {
+  // An entry that never expires is a member who appears to be studying for
+  // the rest of the year.
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`), {
+      displayName: "Alice",
+      until: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
+    }),
+  );
+});
+
 
 await env.cleanup();
 

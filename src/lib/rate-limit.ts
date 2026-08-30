@@ -80,6 +80,16 @@ export const RATE_LIMITS = {
     limit: envLimit("RATE_LIMIT_GENERATE", 60),
     windowSeconds: 3600,
   },
+  /**
+   * Creating, joining and leaving study groups. Joining is the one that needs
+   * a ceiling: without it, invite codes could be guessed at machine speed, and
+   * the group on the other side is usually minors.
+   */
+  groups: {
+    scope: "groups",
+    limit: envLimit("RATE_LIMIT_GROUPS", 30),
+    windowSeconds: 3600,
+  },
   /** Deleting an account should never be attempted in bulk. */
   accountDelete: {
     scope: "account-delete",

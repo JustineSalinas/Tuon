@@ -130,6 +130,48 @@ service cloud.firestore {
         && d.get('linkedTitles', []).size() <= 200;
     }
 
+    /* --- study groups ----------------------------------------------------- */
+
+    function validGroupSharedSet() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'ownerId', 'studySetId', 'title', 'courseTag',
+          'cardCount', 'sharedByName', 'sharedAt'
+        ])
+        && d.keys().hasAll(['ownerId', 'studySetId', 'title'])
+        && isText(d.ownerId, 64)
+        && isText(d.studySetId, 64)
+        && isText(d.title, 140)
+        && isOptionalText(d.get('courseTag', null), 80)
+        && isCount(d.get('cardCount', 0), 500)
+        && isText(d.get('sharedByName', ''), 80);
+    }
+
+    function validGroupDeadline() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'title', 'dueDate', 'createdBy', 'createdByName', 'createdAt'
+        ])
+        && d.keys().hasAll(['title', 'dueDate'])
+        && isText(d.title, 140)
+        && d.title.size() > 0
+        && isDayKey(d.dueDate)
+        // Whoever wrote it has to be named honestly, or a member could post a
+        // deadline in someone else's name.
+        && d.get('createdBy', request.auth.uid) == request.auth.uid
+        && isText(d.get('createdByName', ''), 80);
+    }
+
+    function validGroupPresence() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['displayName', 'until', 'updatedAt'])
+        && isText(d.get('displayName', ''), 80)
+        && d.until is timestamp
+        // A presence entry that never expires is a member who appears to be
+        // studying forever. Two hours is well past any real focus block.
+        && d.until < request.time + duration.value(2, 'h');
+    }
+
     /* --- the organiser --------------------------------------------------- */
 
     // One collection with a `kind` discriminator: the calendar wants todos,
@@ -212,7 +254,7 @@ service cloud.firestore {
       let d = request.resource.data;
       return d.keys().hasOnly([
           'noteId', 'title', 'courseTag', 'flashcardCount', 'quizQuestionCount',
-          'source', 'isShared', 'createdAt'
+          'source', 'isShared', 'sharedWithGroups', 'createdAt'
         ])
         && d.keys().hasAll(['title', 'flashcardCount', 'quizQuestionCount'])
         && isText(d.title, 140)
@@ -221,7 +263,12 @@ service cloud.firestore {
         && isCount(d.flashcardCount, 500)
         && isCount(d.quizQuestionCount, 100)
         && (d.get('source', 'manual') in ['ai', 'manual'])
-        && (d.get('isShared', false) is bool);
+        && (d.get('isShared', false) is bool)
+        // Groups the owner has put this set into. Naming a group they are not
+        // in only ever exposes their OWN set to that group, which is their
+        // call; the cap stops the list being used as free storage.
+        && (d.get('sharedWithGroups', []) is list)
+        && d.get('sharedWithGroups', []).size() <= 20;
     }
 
     // `ownerId` is denormalised onto every card so the review queue can read
@@ -316,6 +363,54 @@ service cloud.firestore {
        unguessable ids. Flipping it off revokes access immediately.
        ===================================================================== */
 
+    /* --- study groups ----------------------------------------------------
+
+       Group data is the first thing in Tuón that more than one account can
+       read, so the access rules are worth stating plainly:
+
+       * `memberIds` on the group document IS the access-control list. It is
+         server-owned - only /api/groups/* writes it - because a client that
+         could edit it could add itself to any group whose id it could guess.
+       * `groupIds` on a profile is the same list from the other side, also
+         server-owned, and exists so a set shared into a group can be read
+         without the reader having to enumerate anything.
+       * Nothing here is public. There is no listing of groups, no discovery,
+         and no way to see a group you are not in.
+       -------------------------------------------------------------------- */
+
+    function groupDoc(groupId) {
+      return get(/databases/$(database)/documents/studyGroups/$(groupId));
+    }
+
+    function isGroupMember(groupId) {
+      return request.auth != null
+        && request.auth.uid in groupDoc(groupId).data.get('memberIds', []);
+    }
+
+    function isGroupOwner(groupId) {
+      return request.auth != null
+        && groupDoc(groupId).data.get('ownerId', '') == request.auth.uid;
+    }
+
+    /** The groups the CALLER belongs to, from their own profile. */
+    function myGroupIds() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid))
+        .data.get('groupIds', []);
+    }
+
+    /**
+     * A set the owner has put into a group the caller is also in.
+     *
+     * Deliberately narrower than the link-share above: `isShared` means anyone
+     * with the URL, while this means exactly the members of the named groups.
+     * Sharing to a group must not quietly publish a set to the internet.
+     */
+    function isSharedToMyGroup(userId, studySetId) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(userId)/studySets/$(studySetId))
+             .data.get('sharedWithGroups', []).hasAny(myGroupIds());
+    }
+
     function isSharedSet(userId, studySetId) {
       return get(/databases/$(database)/documents/users/$(userId)/studySets/$(studySetId))
         .data.get('isShared', false) == true;
@@ -346,19 +441,25 @@ service cloud.firestore {
       match /studySets/{studySetId} {
         // `get` may be satisfied by sharing; `list` never can — a stranger
         // must not be able to enumerate a library even if one set is public.
-        allow get: if isOwner(userId) || isSharedSet(userId, studySetId);
+        allow get: if isOwner(userId)
+          || isSharedSet(userId, studySetId)
+          || isSharedToMyGroup(userId, studySetId);
         allow list: if isOwner(userId);
         allow create, update: if isOwner(userId) && validStudySet();
         allow delete: if isOwner(userId);
 
         match /flashcards/{flashcardId} {
-          allow read: if isOwner(userId) || isSharedSet(userId, studySetId);
+          allow read: if isOwner(userId)
+            || isSharedSet(userId, studySetId)
+            || isSharedToMyGroup(userId, studySetId);
           allow create, update: if isOwner(userId) && validFlashcard(userId);
           allow delete: if isOwner(userId);
         }
 
         match /quizQuestions/{questionId} {
-          allow read: if isOwner(userId) || isSharedSet(userId, studySetId);
+          allow read: if isOwner(userId)
+            || isSharedSet(userId, studySetId)
+            || isSharedToMyGroup(userId, studySetId);
           allow create, update: if isOwner(userId) && validQuizQuestion();
           allow delete: if isOwner(userId);
         }
@@ -393,6 +494,101 @@ service cloud.firestore {
         allow create: if isOwner(userId) && validQuizAttempt();
         allow update, delete: if isOwner(userId);
       }
+    }
+
+    /* =====================================================================
+       Study groups
+
+       Invite-only, and deliberately not public rooms. Tuón's core audience is
+       Grade 11 and 12 - minors - and a public room would put them in a live
+       space with adult strangers, making this app responsible for moderation,
+       reporting and blocking. Everything below is scoped to people who already
+       know each other and joined by an invite one of them sent.
+
+       There is no `list` on studyGroups anywhere. A student reaches their own
+       groups through `groupIds` on their profile; nobody can enumerate groups,
+       search them, or discover one they were not invited to.
+       ===================================================================== */
+
+    match /studyGroups/{groupId} {
+      // Membership is the whole access rule, and it is on the document itself.
+      allow get: if isGroupMember(groupId);
+      /**
+       * A query is a list operation, so a student fetching the handful of
+       * groups on their own profile needs this — reading them one at a time
+       * would be a request per group on every page load.
+       *
+       * It is not a discovery hole. Rules are not filters: a query is refused
+       * unless EVERY document it would return satisfies the rule, so an
+       * unconstrained "give me all groups" fails the moment it touches one the
+       * caller is not in. The only queries that succeed are ones already
+       * narrowed to their own groups. Asserted both ways in the rules tests.
+       */
+      allow list: if request.auth != null
+        && request.auth.uid in resource.data.get('memberIds', []);
+
+      // Created and destroyed through /api/groups/*, which writes the group,
+      // the member record and the creator's profile together. A half-created
+      // group is a group with no members that nobody can ever reach.
+      allow create, delete: if false;
+
+      // The owner may rename it. `memberIds`, `ownerId` and `memberCount` are
+      // the access-control list and stay server-owned: a client that could
+      // edit them could add itself to any group whose id it could guess.
+      allow update: if isGroupOwner(groupId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'courseTag', 'updatedAt'])
+        && isText(request.resource.data.name, 80)
+        && request.resource.data.name.size() > 0
+        && isOptionalText(request.resource.data.get('courseTag', null), 80);
+
+      match /members/{memberId} {
+        allow read: if isGroupMember(groupId);
+        // Server-written on join and leave, for the same reason as memberIds.
+        allow write: if false;
+      }
+
+      match /sharedSets/{sharedSetId} {
+        allow read: if isGroupMember(groupId);
+        // You may share your own set into a group you are in, and nothing
+        // else. Without the ownerId check a member could list someone else's
+        // set, which would not grant access but would be a convincing lie.
+        allow create: if isGroupMember(groupId)
+          && request.resource.data.ownerId == request.auth.uid
+          && validGroupSharedSet();
+        allow update: if false;
+        // The person who shared it, or the group owner tidying up.
+        allow delete: if isGroupMember(groupId)
+          && (resource.data.ownerId == request.auth.uid || isGroupOwner(groupId));
+      }
+
+      match /deadlines/{deadlineId} {
+        allow read: if isGroupMember(groupId);
+        allow create, update: if isGroupMember(groupId) && validGroupDeadline();
+        allow delete: if isGroupMember(groupId);
+      }
+
+      match /presence/{memberId} {
+        allow read: if isGroupMember(groupId);
+        // Only ever your own, and only what a presence entry is allowed to
+        // say. Writing someone else's would let a member fake company.
+        allow create, update: if isGroupMember(groupId)
+          && memberId == request.auth.uid
+          && validGroupPresence();
+        // Delete is listed separately because there is no incoming document to
+        // validate: `allow write` covered it, and validGroupPresence() then
+        // failed on a request that has no `resource` to check. The symptom was
+        // a member who stopped their timer and stayed lit until the entry
+        // expired on its own.
+        allow delete: if isGroupMember(groupId) && memberId == request.auth.uid;
+      }
+    }
+
+    /* Invite codes are resolved server-side by /api/groups/join. A client that
+       could read this collection could enumerate every code and walk into any
+       group; a client that could write it could mint one. */
+    match /groupInvites/{code} {
+      allow read, write: if false;
     }
 
     /* =====================================================================

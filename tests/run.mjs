@@ -19,3 +19,4 @@ import "./organiser.test.mjs";
 import "./mastery.test.mjs";
 import "./markdown.test.mjs";
 import "./test-mode.test.mjs";
+import "./groups.test.mjs";

@@ -9,6 +9,7 @@ import {
   Layers,
   LogOut,
   Network,
+  Users,
   Plus,
   TrendingUp,
   Settings,
@@ -19,6 +20,7 @@ import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { VerifyEmailBanner } from "@/components/app/verify-email-banner";
 import { OfflineIndicator } from "@/components/app/offline-indicator";
+import { GroupPresence } from "@/components/app/group-presence";
 import { ReminderRunner } from "@/components/app/reminder-runner";
 import { ServiceWorkerRegistration } from "@/components/app/service-worker";
 import { Button } from "@/components/ui/button";
@@ -39,6 +41,7 @@ const NAV = [
   { href: "/app/notes", label: "Notes", icon: FileText, exact: false },
   { href: "/app/sets", label: "Study sets", icon: Layers, exact: false },
   { href: "/app/calendar", label: "Calendar", icon: CalendarDays, exact: false },
+  { href: "/app/groups", label: "Groups", icon: Users, exact: false },
   { href: "/app/graph", label: "Graph", icon: Network, exact: false },
   { href: "/app/stats", label: "Retention", icon: TrendingUp, exact: false },
 ] as const;
@@ -66,6 +69,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 pb-20 md:pb-0">
         <ServiceWorkerRegistration />
         <ReminderRunner />
+        {/* Renders nothing. Here rather than inside the timer so presence
+            follows the timer's state across navigation, not the screen it
+            happens to be drawn on. */}
+        <GroupPresence />
         <OfflineIndicator />
         <VerifyEmailBanner />
         {children}
