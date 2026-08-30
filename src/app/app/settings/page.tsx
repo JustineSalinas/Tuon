@@ -11,6 +11,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { BillingCard } from "@/components/settings/billing-card";
 import { DataAndAccount } from "@/components/settings/danger-zone";
 import { AccountSecurity } from "@/components/settings/account-security";
+import { ManageSubjects } from "@/components/settings/manage-subjects";
 import { StudyPreferences } from "@/components/settings/study-preferences";
 import { ExamDateField } from "@/components/profile/exam-date-field";
 import {
@@ -109,9 +110,18 @@ function SettingsForm({
   }
 
   function toggleCourse(course: string) {
-    setCourses((prev) =>
-      prev.includes(course) ? prev.filter((c) => c !== course) : [...prev, course],
-    );
+    // Unticking used to be the removal path, and it orphaned everything tagged
+    // with the subject: the material stayed in the database but stopped
+    // matching any subject, so it vanished from every per-subject total with
+    // no way for the student to put it back. Removal now goes through
+    // "Your subjects" below, which moves the work first.
+    if (courses.includes(course)) {
+      toast.info(`To remove ${course}, use “Your subjects” further down.`, {
+        description: "It moves your notes and cards somewhere first, so nothing is stranded.",
+      });
+      return;
+    }
+    setCourses((prev) => (seniorHigh ? [...prev, course] : [course]));
   }
 
   function addCustom() {
@@ -338,6 +348,10 @@ function SettingsForm({
       </section>
 
       <Separator className="my-8" />
+
+      {/* After the profile form, because it operates on what that form saved
+          and is the only safe way to take a subject away again. */}
+      <ManageSubjects courses={profile.courses ?? []} />
 
       <StudyPreferences />
 

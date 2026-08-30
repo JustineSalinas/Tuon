@@ -48,6 +48,14 @@ import {
   totalMinutes,
   weekDayKeys,
 } from "../src/lib/organiser/sessions.ts";
+import {
+  MAX_BATCH_WRITES,
+  chunk,
+  describeContents,
+  planRetag,
+  summariseSubject,
+  tagMatches,
+} from "../src/lib/organiser/subject-cleanup.ts";
 
 let passed = 0;
 function check(name, fn) {
@@ -534,6 +542,113 @@ check("sessions are newest first within the week", () => {
     week.map((s) => `${s.day}/${s.startedAt.seconds}`),
     ["2026-09-01/50", "2026-08-30/200", "2026-08-30/100"],
   );
+});
+
+console.log("\nRemoving a subject");
+
+const CONTENTS = {
+  notes: [
+    { id: "n1", courseTag: "General Biology 1" },
+    { id: "n2", courseTag: "Calculus" },
+    { id: "n3", courseTag: null },
+  ],
+  sets: [
+    { id: "s1", courseTag: "General Biology 1", flashcardCount: 8 },
+    { id: "s2", courseTag: "General Biology 1", flashcardCount: 12 },
+  ],
+  planItems: [{ id: "p1", courseTag: "General Biology 1" }],
+  sessions: [{ id: "x1", courseTag: "Calculus" }],
+};
+
+check("a tag matches regardless of case and padding", () => {
+  // Tags are typed by people and arrive from three different screens.
+  assert.equal(tagMatches("General Biology 1", "general biology 1"), true);
+  assert.equal(tagMatches("  Calculus ", "Calculus"), true);
+  assert.equal(tagMatches("Calculus", "Biology"), false);
+  assert.equal(tagMatches(null, "Biology"), false);
+  assert.equal(tagMatches(undefined, "Biology"), false);
+});
+
+check("everything attached to a subject is counted", () => {
+  const summary = summariseSubject(CONTENTS, "General Biology 1");
+  assert.equal(summary.notes, 1);
+  assert.equal(summary.sets, 2);
+  assert.equal(summary.planItems, 1);
+  assert.equal(summary.sessions, 0);
+  assert.equal(summary.isEmpty, false);
+});
+
+check("cards are counted through their set", () => {
+  // A flashcard has no subject of its own; it inherits its set's. Reporting
+  // "2 study sets" without the 20 cards understates what is at stake.
+  assert.equal(summariseSubject(CONTENTS, "General Biology 1").cards, 20);
+});
+
+check("a subject with nothing attached is marked empty", () => {
+  const summary = summariseSubject(CONTENTS, "Physics");
+  assert.equal(summary.isEmpty, true);
+  assert.equal(summary.cards, 0);
+});
+
+check("the plan names every document that must be rewritten", () => {
+  const plan = planRetag(CONTENTS, "General Biology 1");
+  assert.deepEqual(plan.notes, ["n1"]);
+  assert.deepEqual(plan.sets, ["s1", "s2"]);
+  assert.deepEqual(plan.planItems, ["p1"]);
+  assert.deepEqual(plan.sessions, []);
+  assert.equal(plan.total, 4);
+});
+
+check("untagged material is never swept up", () => {
+  // n3 has no subject. Retagging it would attach material to a subject the
+  // student never put it in.
+  const plan = planRetag(CONTENTS, "General Biology 1");
+  assert.equal(plan.notes.includes("n3"), false);
+});
+
+check("another subject is left completely alone", () => {
+  const plan = planRetag(CONTENTS, "General Biology 1");
+  assert.equal(plan.notes.includes("n2"), false);
+  assert.equal(plan.sessions.includes("x1"), false);
+});
+
+check("writes are chunked below the Firestore batch limit", () => {
+  // A batch over 500 is refused outright, and the failure would land halfway
+  // through - some material retagged, some orphaned, which is the exact state
+  // this module exists to prevent.
+  const ids = Array.from({ length: 950 }, (_, i) => String(i));
+  const batches = chunk(ids);
+  assert.equal(batches.length, 3);
+  assert.ok(batches.every((b) => b.length <= MAX_BATCH_WRITES));
+  assert.equal(batches.flat().length, 950);
+  assert.ok(MAX_BATCH_WRITES < 500);
+});
+
+check("chunking an empty list produces no batches", () => {
+  assert.deepEqual(chunk([]), []);
+});
+
+check("the confirmation says what exists, in words", () => {
+  const summary = summariseSubject(CONTENTS, "General Biology 1");
+  const text = describeContents(summary);
+  assert.match(text, /1 note/);
+  assert.match(text, /2 study sets \(20 cards\)/);
+  assert.match(text, / and /);
+});
+
+check("singulars and plurals both read correctly", () => {
+  const one = describeContents(
+    summariseSubject(
+      { notes: [{ id: "a", courseTag: "X" }], sets: [], planItems: [], sessions: [] },
+      "X",
+    ),
+  );
+  assert.equal(one, "1 note");
+});
+
+check("an empty subject says so rather than listing nothing", () => {
+  const text = describeContents(summariseSubject(CONTENTS, "Physics"));
+  assert.match(text, /Nothing/);
 });
 
 console.log(`\n${passed} checks passed.\n`);
