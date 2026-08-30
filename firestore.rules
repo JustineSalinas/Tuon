@@ -164,8 +164,11 @@ service cloud.firestore {
 
     function validQuizQuestion() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['question', 'choices', 'correctIndex', 'order'])
+      return d.keys().hasOnly(['question', 'choices', 'correctIndex', 'order', 'flashcardId'])
         && d.keys().hasAll(['question', 'choices', 'correctIndex'])
+        // Which card this question tests. Null on older sets and on questions
+        // whose card was dropped in normalisation.
+        && isOptionalText(d.get('flashcardId', null), 64)
         && isText(d.question, 600)
         && d.choices is list
         && d.choices.size() >= 2

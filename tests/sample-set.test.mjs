@@ -102,4 +102,21 @@ check("the note says it is a sample and can be deleted", () => {
   assert.match(SAMPLE_NOTE.content, /delete/i);
 });
 
+check("every quiz question links to a card that exists", () => {
+  // The link is what makes the sample's quiz feed the scheduler. An index
+  // pointing past the end would silently write nothing, and nobody would
+  // notice until the schedule failed to move.
+  SAMPLE_QUIZ.forEach((q, i) => {
+    assert.ok(
+      Number.isInteger(q.testsCardIndex),
+      `q${i} has no testsCardIndex`,
+    );
+    assert.ok(
+      SAMPLE_FLASHCARDS[q.testsCardIndex] !== undefined,
+      `q${i} points at card ${q.testsCardIndex}, which does not exist`,
+    );
+  });
+});
+
+
 console.log(`\n${passed} checks passed.\n`);

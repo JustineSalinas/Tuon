@@ -154,6 +154,14 @@ export interface QuizQuestion {
   choices: string[];
   correctIndex: number;
   order: number;
+  /**
+   * The flashcard this question tests, when the model could say which.
+   *
+   * Absent on every set generated before questions carried the link, and on
+   * questions whose card did not survive normalisation. Those quizzes still
+   * work; they simply do not feed the scheduler.
+   */
+  flashcardId?: string | null;
 }
 
 /**
@@ -206,6 +214,8 @@ export interface GeneratedStudySet {
       question: string;
       choices: string[];
       correct_index: number;
+      /** Index into `flashcards`, or null when the link could not be resolved. */
+      tests_card_index: number | null;
     }[];
   };
 }

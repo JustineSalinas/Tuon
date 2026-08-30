@@ -10,6 +10,10 @@ import {
   parseExamDate,
   daysUntil,
 } from "../src/lib/srs/sm2.ts";
+import {
+  collapseQuizAnswers,
+  ratingForQuizAnswer,
+} from "../src/lib/srs/from-quiz.ts";
 
 import {
   currentPeriodStart,
@@ -289,5 +293,107 @@ check("paid tiers have a real cap rather than being unlimited", () => {
   assert.ok(pro.limit > plus.limit);
   assert.equal(readQuota("pro", pro.limit, start, NOW).exhausted, true);
 });
+
+console.log("\nQuiz answers as review ratings");
+
+check("a correct multiple-choice answer rates HARD, not GOOD", () => {
+  // One in four blind guesses is correct, and recognising an answer among
+  // four is easier than producing it. Rating this "Good" would grow intervals
+  // on evidence the student never gave.
+  assert.equal(ratingForQuizAnswer(true), "hard");
+});
+
+check("a wrong answer rates AGAIN", () => {
+  assert.equal(ratingForQuizAnswer(false), "again");
+});
+
+check("a correct answer still advances the card", () => {
+  // "Hard" has to be a PASSING grade — if it reset the card, a quiz you aced
+  // would set you back, which is the opposite of the intent.
+  const next = scheduleNextReview(initialSrsState(), ratingForQuizAnswer(true));
+  assert.equal(next.repetitions, 1, "a pass increments the repetition count");
+  assert.ok(next.intervalDays >= 1);
+});
+
+check("a wrong answer resets the card", () => {
+  const state = { easeFactor: 2.5, intervalDays: 30, repetitions: 4 };
+  const next = scheduleNextReview(state, ratingForQuizAnswer(false));
+  assert.equal(next.repetitions, 0);
+  assert.equal(next.intervalDays, 1);
+});
+
+check("multiple choice grows intervals more slowly than recall", () => {
+  // The point of the HARD mapping: a card only ever proven by multiple choice
+  // stays on a shorter leash than one proven by free recall.
+  const state = { easeFactor: 2.5, intervalDays: 10, repetitions: 3 };
+  const viaQuiz = scheduleNextReview(state, ratingForQuizAnswer(true));
+  const viaRecall = scheduleNextReview(state, "good");
+  assert.ok(
+    viaQuiz.intervalDays <= viaRecall.intervalDays,
+    `quiz ${viaQuiz.intervalDays} should not exceed recall ${viaRecall.intervalDays}`,
+  );
+  assert.ok(viaQuiz.easeFactor < viaRecall.easeFactor);
+});
+
+console.log("\nCollapsing a quiz into one review per card");
+
+check("one answer per card passes straight through", () => {
+  const r = collapseQuizAnswers([
+    { flashcardId: "a", correct: true },
+    { flashcardId: "b", correct: false },
+  ]);
+  assert.equal(r.get("a"), "hard");
+  assert.equal(r.get("b"), "again");
+  assert.equal(r.size, 2);
+});
+
+check("a card tested twice produces ONE review, not two", () => {
+  // Two writes to the same review log in one submission would mean the second
+  // schedules from the first's result — a review the student never sat.
+  const r = collapseQuizAnswers([
+    { flashcardId: "a", correct: true },
+    { flashcardId: "a", correct: true },
+  ]);
+  assert.equal(r.size, 1);
+  assert.equal(r.get("a"), "hard");
+});
+
+check("when a card is both missed and answered, the miss wins", () => {
+  // Getting it wrong once proves the card is not secure. Over-scheduling a
+  // shaky card is far cheaper than under-scheduling one.
+  for (const order of [
+    [true, false],
+    [false, true],
+  ]) {
+    const r = collapseQuizAnswers(
+      order.map((correct) => ({ flashcardId: "a", correct })),
+    );
+    assert.equal(r.get("a"), "again", `order ${JSON.stringify(order)}`);
+  }
+});
+
+check("unlinked answers are ignored rather than written somewhere", () => {
+  // Sets generated before questions carried a card link have no flashcardId.
+  // Those quizzes must keep working and simply teach the scheduler nothing.
+  const r = collapseQuizAnswers([
+    { flashcardId: "", correct: false },
+    { flashcardId: "real", correct: true },
+  ]);
+  assert.equal(r.size, 1);
+  assert.ok(r.has("real"));
+});
+
+check("an entirely unlinked quiz writes nothing at all", () => {
+  const r = collapseQuizAnswers([
+    { flashcardId: "", correct: true },
+    { flashcardId: "", correct: false },
+  ]);
+  assert.equal(r.size, 0);
+});
+
+check("an empty quiz collapses to nothing", () => {
+  assert.equal(collapseQuizAnswers([]).size, 0);
+});
+
 
 console.log(`\n${passed} checks passed.\n`);

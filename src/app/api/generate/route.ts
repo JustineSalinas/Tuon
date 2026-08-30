@@ -386,6 +386,10 @@ export async function POST(request: Request) {
     const isMerge = intoStudySetId !== null;
 
     let existingFronts = new Set<string>();
+
+    /** Normalised front -> flashcard doc id, so quiz links can be resolved. */
+
+    const cardIdByFront = new Map<string, string>();
     let nextOrder = 0;
 
     if (isMerge) {
@@ -410,6 +414,11 @@ export async function POST(request: Request) {
       const cards = await studySetRef.collection("flashcards").get();
       existingFronts = new Set(
         cards.docs.map((d) => normaliseFront(String(d.get("front") ?? ""))),
+      );
+      // Ids too, not just fronts: on a merge a question may well test a card
+      // that was already here, and it still needs to resolve to that card.
+      cards.docs.forEach((d) =>
+        cardIdByFront.set(normaliseFront(String(d.get("front") ?? "")), d.id),
       );
       nextOrder = cards.docs.reduce(
         (max, d) => Math.max(max, Number(d.get("order") ?? 0) + 1),
@@ -446,7 +455,11 @@ export async function POST(request: Request) {
     }
 
     freshCards.forEach((card, index) => {
-      batch.set(studySetRef.collection("flashcards").doc(), {
+      // The ref is minted here rather than inline, because the questions below
+      // need this id to record which card each one tests.
+      const cardRef = studySetRef.collection("flashcards").doc();
+      cardIdByFront.set(normaliseFront(card.front), cardRef.id);
+      batch.set(cardRef, {
         front: card.front,
         back: card.back,
         order: nextOrder + index,
@@ -457,11 +470,22 @@ export async function POST(request: Request) {
     });
 
     parsed.data.quiz.questions.forEach((question, index) => {
+      // The model answers with a position in ITS flashcard array; the parser
+      // has already remapped that around any cards it dropped. Resolving via
+      // the front text rather than the position again means a merge, where
+      // some cards are old and some are new, lands on the right document.
+      const linked = question.tests_card_index;
+      const front =
+        linked === null ? null : (parsed.data.flashcards[linked]?.front ?? null);
+      const flashcardId =
+        front === null ? null : (cardIdByFront.get(normaliseFront(front)) ?? null);
+
       batch.set(studySetRef.collection("quizQuestions").doc(), {
         question: question.question,
         choices: question.choices,
         correctIndex: question.correct_index,
         order: index,
+        flashcardId,
       });
     });
 

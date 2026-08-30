@@ -337,6 +337,28 @@ await check("a quiz question whose answer key is out of range is rejected", asyn
   );
 });
 
+await check("a quiz question may name the card it tests", async () => {
+  const q = doc(alice, `users/${ALICE}/studySets/private1/quizQuestions/q2`);
+  await assertSucceeds(
+    setDoc(q, {
+      question: "Where do the light-dependent reactions occur?",
+      choices: ["Stroma", "Thylakoid membrane", "Cytoplasm", "Matrix"],
+      correctIndex: 1,
+      order: 0,
+      flashcardId: "card-abc",
+    }),
+  );
+  // Older sets carry no link at all, and must stay writable.
+  await assertSucceeds(
+    setDoc(q, {
+      question: "Where do the light-dependent reactions occur?",
+      choices: ["Stroma", "Thylakoid membrane", "Cytoplasm", "Matrix"],
+      correctIndex: 1,
+      order: 0,
+    }),
+  );
+});
+
 await check("a review log with an impossible ease factor is rejected", async () => {
   await assertFails(
     setDoc(doc(alice, `users/${ALICE}/reviewLogs/c1`), {
@@ -493,5 +515,6 @@ await check("nothing outside /users is writable", async () => {
 });
 
 await env.cleanup();
+
 console.log(`\n${passed} checks passed.\n`);
 assert.ok(passed > 0);

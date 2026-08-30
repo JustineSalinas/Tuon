@@ -73,10 +73,17 @@ export const SAMPLE_FLASHCARDS: { front: string; back: string }[] = [
   },
 ];
 
+/**
+ * `testsCardIndex` points at the flashcard each question checks, by position
+ * in SAMPLE_FLASHCARDS. Generated sets get this from the model; the sample is
+ * hand-written, so it is hand-linked — without it a new account's first quiz
+ * would teach the scheduler nothing, which is the exact gap this closes.
+ */
 export const SAMPLE_QUIZ: {
   question: string;
   choices: string[];
   correctIndex: number;
+  testsCardIndex: number;
 }[] = [
   {
     question: "Where do the light-dependent reactions occur?",
@@ -87,17 +94,20 @@ export const SAMPLE_QUIZ: {
       "In the mitochondrial matrix",
     ],
     correctIndex: 1,
+    testsCardIndex: 0,
   },
   {
     question: "Which of these is NOT a product of the light-dependent reactions?",
     choices: ["ATP", "NADPH", "Oxygen", "Glucose"],
     correctIndex: 3,
+    testsCardIndex: 1,
   },
   {
     question:
       "What is the immediate source of the oxygen released during photosynthesis?",
     choices: ["Carbon dioxide", "Water", "Glucose", "ATP"],
     correctIndex: 1,
+    testsCardIndex: 2,
   },
   {
     question: "The Calvin cycle is called light-independent because…",
@@ -108,5 +118,6 @@ export const SAMPLE_QUIZ: {
       "it works without chlorophyll",
     ],
     correctIndex: 1,
+    testsCardIndex: 7,
   },
 ];

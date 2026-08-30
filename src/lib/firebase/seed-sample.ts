@@ -51,8 +51,13 @@ export async function seedSampleSet(userId: string): Promise<void> {
     createdAt: FieldValue.serverTimestamp(),
   });
 
+  // Refs are minted up front so each quiz question can name the card it tests.
+  const cardRefs = SAMPLE_FLASHCARDS.map(() =>
+    setRef.collection("flashcards").doc(),
+  );
+
   SAMPLE_FLASHCARDS.forEach((card, order) => {
-    batch.create(setRef.collection("flashcards").doc(), {
+    batch.create(cardRefs[order], {
       front: card.front,
       back: card.back,
       order,
@@ -68,6 +73,9 @@ export async function seedSampleSet(userId: string): Promise<void> {
       choices: [...question.choices],
       correctIndex: question.correctIndex,
       order,
+      // So the sample's quiz feeds the scheduler from the very first session,
+      // the same way a generated set now does.
+      flashcardId: cardRefs[question.testsCardIndex]?.id ?? null,
     });
   });
 

@@ -3,12 +3,21 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { ArrowRight, Check, Loader2, RotateCcw, X } from "lucide-react";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useQuizQuestions, useStudySet } from "@/lib/hooks/use-firestore";
+import { useQuizQuestions, useReviewLogs, useStudySet } from "@/lib/hooks/use-firestore";
+import { initialSrsState, parseExamDate, scheduleNextReview } from "@/lib/srs/sm2";
+import { collapseQuizAnswers } from "@/lib/srs/from-quiz";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -16,9 +25,11 @@ import { cn } from "@/lib/utils";
 const CHOICE_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 export function QuizRunner({ studySetId }: { studySetId: string }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { data: studySet } = useStudySet(user?.uid, studySetId);
   const { data: questions, loading } = useQuizQuestions(user?.uid, studySetId);
+  // Needed to schedule FROM each card's current state rather than from scratch.
+  const { byFlashcardId } = useReviewLogs(user?.uid);
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -76,6 +87,55 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
       } catch {
         // Non-critical.
       }
+
+      // Feed the result back into the schedule. Questions generated before
+      // they carried a card link have no `flashcardId`, so those sets keep
+      // behaving exactly as they did — the quiz still works, it just teaches
+      // the scheduler nothing.
+      const graded = questions
+        .map((q, i) => ({
+          flashcardId: q.flashcardId ?? "",
+          correct: answers[i] === q.correctIndex,
+        }))
+        .filter((a) => a.flashcardId);
+
+      const examDate = parseExamDate(profile?.examDate);
+      const now = new Date();
+
+      await Promise.all(
+        [...collapseQuizAnswers(graded)].map(async ([flashcardId, rating]) => {
+          const log = byFlashcardId.get(flashcardId);
+          const state = log
+            ? {
+                easeFactor: log.easeFactor,
+                intervalDays: log.intervalDays,
+                repetitions: log.repetitions ?? 0,
+              }
+            : initialSrsState();
+
+          const next = scheduleNextReview(state, rating, now, examDate);
+          try {
+            await setDoc(
+              doc(db, "users", user.uid, "reviewLogs", flashcardId),
+              {
+                flashcardId,
+                studySetId,
+                easeFactor: next.easeFactor,
+                intervalDays: next.intervalDays,
+                repetitions: next.repetitions,
+                nextReviewAt: Timestamp.fromDate(next.nextReviewAt),
+                lastReviewedAt: serverTimestamp(),
+                lastRating: rating,
+              },
+              { merge: true },
+            );
+          } catch {
+            // A schedule that failed to save is not worth blocking the score
+            // screen for; the card simply stays where it was.
+          }
+        }),
+      );
+
       setSavingAttempt(false);
     }
   }

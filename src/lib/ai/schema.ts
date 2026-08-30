@@ -17,6 +17,14 @@ const questionSchema = z.object({
   question: z.string().min(1).max(600),
   choices: z.array(z.string().min(1).max(400)),
   correct_index: z.number().int().nonnegative(),
+  /**
+   * Which flashcard this question tests, as an index into `flashcards`.
+   *
+   * Optional so a model that omits it costs us the link rather than the whole
+   * generation — a set with unlinked questions still works, it just cannot
+   * feed the scheduler.
+   */
+  tests_card_index: z.number().int().nonnegative().optional(),
 });
 
 const studySetSchema = z.object({
@@ -68,8 +76,9 @@ export const STUDY_SET_JSON_SCHEMA = {
               question: { type: "string" },
               choices: { type: "array", items: { type: "string" } },
               correct_index: { type: "integer" },
+              tests_card_index: { type: "integer" },
             },
-            required: ["question", "choices", "correct_index"],
+            required: ["question", "choices", "correct_index", "tests_card_index"],
             additionalProperties: false,
           },
         },
@@ -145,17 +154,27 @@ export function parseGeneratedStudySet(raw: string): ParseResult {
   }
 
   // --- Normalise flashcards ---
+  //
+  // Written as a loop rather than filter+slice because the surviving index has
+  // to be tracked. Questions point at a card by its index in the model's OWN
+  // array, and dropping a duplicate shifts everything after it — so a link
+  // resolved against the filtered array would silently test the wrong card.
   const seenFronts = new Set<string>();
-  const flashcards = result.data.flashcards
-    .map((card) => ({ front: card.front.trim(), back: card.back.trim() }))
-    .filter((card) => {
-      if (!card.front || !card.back) return false;
-      const key = card.front.toLowerCase();
-      if (seenFronts.has(key)) return false; // drop duplicate prompts
-      seenFronts.add(key);
-      return true;
-    })
-    .slice(0, MAX_FLASHCARDS);
+  const flashcards: { front: string; back: string }[] = [];
+  /** Model's card index -> index in `flashcards`. Absent means dropped. */
+  const survivingIndex = new Map<number, number>();
+
+  result.data.flashcards.forEach((raw, modelIndex) => {
+    if (flashcards.length >= MAX_FLASHCARDS) return;
+    const front = raw.front.trim();
+    const back = raw.back.trim();
+    if (!front || !back) return;
+    const key = front.toLowerCase();
+    if (seenFronts.has(key)) return; // drop duplicate prompts
+    seenFronts.add(key);
+    survivingIndex.set(modelIndex, flashcards.length);
+    flashcards.push({ front, back });
+  });
 
   // --- Normalise quiz questions ---
   const questions = result.data.quiz.questions
@@ -163,6 +182,13 @@ export function parseGeneratedStudySet(raw: string): ParseResult {
       question: q.question.trim(),
       choices: q.choices.map((c) => c.trim()).filter(Boolean),
       correct_index: q.correct_index,
+      // Null when the model omitted the link or pointed at a card that did
+      // not survive normalisation. The question is still perfectly usable;
+      // it just will not contribute to that card's schedule.
+      tests_card_index:
+        q.tests_card_index === undefined
+          ? null
+          : (survivingIndex.get(q.tests_card_index) ?? null),
     }))
     .filter(
       (q) =>
