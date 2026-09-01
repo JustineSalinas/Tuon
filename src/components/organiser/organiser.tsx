@@ -240,7 +240,7 @@ function DeadlineList({
                     overdue
                       ? "text-destructive"
                       : urgent
-                        ? "text-warning-foreground"
+                        ? "text-warning-text"
                         : "text-muted-foreground",
                   )}
                 >

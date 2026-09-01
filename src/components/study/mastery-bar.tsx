@@ -22,8 +22,8 @@ import { cn } from "@/lib/utils";
 
 const LEVEL_STYLES: Record<MasteryReport["level"], { bar: string; text: string }> = {
   untouched: { bar: "bg-muted-foreground/30", text: "text-muted-foreground" },
-  learning: { bar: "bg-warning/70", text: "text-warning-foreground" },
-  familiar: { bar: "bg-warning", text: "text-warning-foreground" },
+  learning: { bar: "bg-warning/70", text: "text-warning-text" },
+  familiar: { bar: "bg-warning", text: "text-warning-text" },
   confident: { bar: "bg-primary", text: "text-primary" },
   mastered: { bar: "bg-success", text: "text-success" },
 };

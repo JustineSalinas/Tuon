@@ -78,6 +78,12 @@ export interface UserProfile {
    */
   typedRecall?: boolean;
   /**
+   * Colour palette id. A separate axis from light/dark, which lives in
+   * localStorage under next-themes. On the profile so the choice follows
+   * the student to a shared machine.
+   */
+  palette?: string;
+  /**
    * Pomodoro phase lengths in minutes. Absent means the classic 25/5/15.
    * On the profile rather than the device so a student who studies on a
    * phone and a lab machine gets the same blocks on both.

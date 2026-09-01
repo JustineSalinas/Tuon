@@ -68,7 +68,7 @@ const RATINGS: {
     value: "hard",
     label: "Hard",
     key: "2",
-    className: "border-warning/50 text-warning-foreground hover:bg-warning/15",
+    className: "border-warning/50 text-warning-text hover:bg-warning/15",
   },
   {
     value: "good",
@@ -633,7 +633,7 @@ function Verdict({
         ? {
             icon: Minus,
             label: "Almost",
-            className: "border-warning/40 bg-warning/10 text-warning-foreground",
+            className: "border-warning/40 bg-warning/10 text-warning-text",
           }
         : {
             icon: X,

@@ -3,6 +3,10 @@ import { Fraunces, Geist_Mono, Inter } from "next/font/google";
 
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import {
+  PaletteProvider,
+  paletteScript,
+} from "@/components/providers/palette-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { siteUrl } from "@/lib/site";
 
@@ -84,6 +88,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
+        {/* Paints the chosen palette before first paint. Without it the app
+            renders terracotta and then swaps colour once the profile lands,
+            which is worse than not offering palettes at all. */}
+        <script dangerouslySetInnerHTML={{ __html: paletteScript }} />
+
         {/* Scroll reveals ship as opacity:0 in the SSR HTML and are only
             revealed by JS. If JS never runs, everything below the hero would
             be invisible — so force it visible when scripting is off. */}
@@ -98,7 +107,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <PaletteProvider />
+            {children}
+          </AuthProvider>
           <Toaster position="top-center" richColors closeButton />
         </ThemeProvider>
       </body>

@@ -43,7 +43,7 @@ export function QuotaIndicator({ className }: { className?: string }) {
             quota.exhausted
               ? "text-destructive font-medium"
               : quota.runningLow
-                ? "text-warning-foreground font-medium"
+                ? "text-warning-text font-medium"
                 : "text-muted-foreground",
           )}
         >

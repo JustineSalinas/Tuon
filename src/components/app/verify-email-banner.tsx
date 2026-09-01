@@ -61,7 +61,7 @@ export function VerifyEmailBanner() {
     // screens and the buttons drop underneath it.
     <div className="bg-warning/12 border-warning/30 flex flex-col gap-2 border-b px-4 py-2.5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 md:px-8">
       <p className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
-        <MailCheck className="text-warning-foreground mt-0.5 size-4 shrink-0 sm:mt-0" />
+        <MailCheck className="text-warning-text mt-0.5 size-4 shrink-0 sm:mt-0" />
         <span>
           Confirm your email to start generating study sets.{" "}
           <span className="text-muted-foreground">

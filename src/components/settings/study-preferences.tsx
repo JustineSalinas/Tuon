@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { Check, Keyboard, Loader2, Monitor, Moon, Sun, Timer, Wand2 } from "lucide-react";
+import {
+  PALETTES,
+  readPalette,
+  type PaletteId,
+} from "@/lib/theme/palettes";
+import { applyPalette } from "@/components/providers/palette-provider";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -54,6 +60,8 @@ export function StudyPreferences() {
       <div className="mt-4 space-y-6">
         <ThemeRow />
         <Separator />
+        <PaletteRow />
+        <Separator />
         <TimeZoneRow />
         <Separator />
         <DailyGoalRow />
@@ -98,6 +106,87 @@ function ThemeRow() {
             {label}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The colour palette, which is a separate choice from light/dark.
+ *
+ * Two axes rather than one list: a student who likes indigo should not have to
+ * re-pick it when they switch to dark at midnight, and folding the two
+ * together doubles the options every time either grows.
+ *
+ * Applied to the document immediately on click, before the write finishes.
+ * Waiting on Firestore to see a colour change makes the picker feel broken on
+ * a slow connection, and the profile write is what makes it stick — not what
+ * makes it happen.
+ */
+function PaletteRow() {
+  const { user, profile } = useAuth();
+  const current = readPalette(profile?.palette);
+  const [saving, setSaving] = useState<PaletteId | null>(null);
+
+  async function choose(palette: PaletteId) {
+    applyPalette(palette);
+    if (!user || palette === current) return;
+    setSaving(palette);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        palette,
+        updatedAt: serverTimestamp(),
+      });
+    } catch {
+      toast.error("Could not save that colour. It will reset on another device.");
+    }
+    setSaving(null);
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-medium">Colour</p>
+      <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+        Separate from light and dark — pick a colour once and it follows you
+        into whichever one you are in.
+      </p>
+
+      <div className="mt-3 grid max-w-md gap-2 sm:grid-cols-2">
+        {PALETTES.map((palette) => {
+          const active = palette.id === current;
+          return (
+            <button
+              key={palette.id}
+              type="button"
+              onClick={() => choose(palette.id)}
+              aria-pressed={active}
+              className={cn(
+                "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                active
+                  ? "border-primary bg-accent/60"
+                  : "border-border hover:border-primary/50 hover:bg-accent/30",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className="size-5 shrink-0 rounded-full border border-black/10"
+                style={{ background: palette.swatch }}
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium">{palette.label}</span>
+                <span className="text-muted-foreground block text-xs leading-snug">
+                  {palette.hint}
+                </span>
+              </span>
+              {saving === palette.id ? (
+                <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />
+              ) : active ? (
+                <Check className="text-primary size-4 shrink-0" />
+              ) : null}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -63,6 +63,7 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-text: var(--warning-text);
   --color-paper: var(--paper);
   --color-ink: var(--ink);
 
@@ -105,6 +106,14 @@
   --success-foreground: oklch(0.985 0.006 84);
   --warning: oklch(0.705 0.128 68);
   --warning-foreground: oklch(0.24 0.02 60);
+  /* Amber as TEXT, which the two above cannot be. `--warning` is tuned as a
+     fill for bars and chips, and at L=0.705 it is too light to read on the
+     card; `--warning-foreground` is the near-black that sits ON solid amber,
+     the same role `--primary-foreground` plays. Reaching for that one as a
+     text colour is what made the "Hard" rating render near-black in light and
+     invisible in dark. Tuned to sit beside `--success` in weight so the four
+     review ratings read as one row. */
+  --warning-text: oklch(0.505 0.105 62);
 
   --border: oklch(0.892 0.011 78);
   --input: oklch(0.892 0.011 78);
@@ -163,6 +172,7 @@
   --success-foreground: oklch(0.185 0.012 45);
   --warning: oklch(0.775 0.122 72);
   --warning-foreground: oklch(0.185 0.012 45);
+  --warning-text: oklch(0.800 0.115 74);
 
   --border: oklch(0.938 0.010 82 / 12%);
   --input: oklch(0.938 0.010 82 / 16%);
@@ -230,6 +240,160 @@
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
 }
+/* =========================================================================
+   Palettes
+
+   Palette and light/dark are two separate axes: `data-palette` on <html> picks
+   the colour, `.dark` picks the mode, and the two compose. A student who likes
+   indigo keeps it when they switch to dark at midnight.
+
+   Each block overrides only the hue-bearing tokens — the brand colour, its
+   accent wash, the ring, the first chart slot, and a light tint on the
+   surfaces so the neutrals agree with the brand instead of fighting it.
+   Surfaces' LIGHTNESS and every semantic colour (success, warning,
+   destructive) are shared with :root above, so the contrast work behind them
+   is done once rather than five times and a new palette cannot quietly make
+   error text unreadable.
+
+   Terracotta is the default and lives in :root, so it needs no block here.
+   ========================================================================= */
+
+[data-palette="indigo"] {
+  --primary: oklch(0.545 0.168 275);
+  --ring: oklch(0.545 0.168 275);
+  --accent: oklch(0.928 0.028 278);
+  --accent-foreground: oklch(0.415 0.125 275);
+  --chart-1: oklch(0.545 0.168 275);
+
+  --background: oklch(0.982 0.004 272);
+  --paper: oklch(0.982 0.004 272);
+  --card: oklch(0.996 0.002 272);
+  --popover: oklch(0.996 0.002 272);
+  --secondary: oklch(0.938 0.008 272);
+  --muted: oklch(0.938 0.008 272);
+  --muted-foreground: oklch(0.495 0.014 272);
+  --border: oklch(0.892 0.010 272);
+  --input: oklch(0.892 0.010 272);
+}
+
+.dark[data-palette="indigo"] {
+  --primary: oklch(0.688 0.152 278);
+  --ring: oklch(0.688 0.152 278);
+  --accent: oklch(0.325 0.048 278);
+  --accent-foreground: oklch(0.885 0.058 278);
+  --chart-1: oklch(0.688 0.152 278);
+
+  --background: oklch(0.172 0.010 274);
+  --paper: oklch(0.172 0.010 274);
+  --card: oklch(0.224 0.012 274);
+  --popover: oklch(0.224 0.012 274);
+  --secondary: oklch(0.278 0.014 274);
+  --muted: oklch(0.278 0.014 274);
+  --muted-foreground: oklch(0.685 0.018 274);
+}
+
+[data-palette="forest"] {
+  --primary: oklch(0.508 0.098 158);
+  --ring: oklch(0.508 0.098 158);
+  --accent: oklch(0.925 0.030 158);
+  --accent-foreground: oklch(0.398 0.075 158);
+  --chart-1: oklch(0.508 0.098 158);
+
+  --background: oklch(0.982 0.005 152);
+  --paper: oklch(0.982 0.005 152);
+  --card: oklch(0.996 0.003 152);
+  --popover: oklch(0.996 0.003 152);
+  --secondary: oklch(0.938 0.010 152);
+  --muted: oklch(0.938 0.010 152);
+  --muted-foreground: oklch(0.492 0.015 152);
+  --border: oklch(0.890 0.012 152);
+  --input: oklch(0.890 0.012 152);
+}
+
+.dark[data-palette="forest"] {
+  --primary: oklch(0.688 0.108 158);
+  --ring: oklch(0.688 0.108 158);
+  --accent: oklch(0.322 0.038 158);
+  --accent-foreground: oklch(0.885 0.048 158);
+  --chart-1: oklch(0.688 0.108 158);
+
+  --background: oklch(0.172 0.009 155);
+  --paper: oklch(0.172 0.009 155);
+  --card: oklch(0.224 0.011 155);
+  --popover: oklch(0.224 0.011 155);
+  --secondary: oklch(0.278 0.013 155);
+  --muted: oklch(0.278 0.013 155);
+  --muted-foreground: oklch(0.685 0.017 155);
+}
+
+[data-palette="plum"] {
+  --primary: oklch(0.512 0.128 328);
+  --ring: oklch(0.512 0.128 328);
+  --accent: oklch(0.928 0.028 328);
+  --accent-foreground: oklch(0.412 0.098 328);
+  --chart-1: oklch(0.512 0.128 328);
+
+  --background: oklch(0.982 0.005 330);
+  --paper: oklch(0.982 0.005 330);
+  --card: oklch(0.996 0.003 330);
+  --popover: oklch(0.996 0.003 330);
+  --secondary: oklch(0.938 0.010 330);
+  --muted: oklch(0.938 0.010 330);
+  --muted-foreground: oklch(0.495 0.015 330);
+  --border: oklch(0.892 0.011 330);
+  --input: oklch(0.892 0.011 330);
+}
+
+.dark[data-palette="plum"] {
+  --primary: oklch(0.688 0.128 330);
+  --ring: oklch(0.688 0.128 330);
+  --accent: oklch(0.325 0.042 330);
+  --accent-foreground: oklch(0.885 0.052 330);
+  --chart-1: oklch(0.688 0.128 330);
+
+  --background: oklch(0.175 0.010 332);
+  --paper: oklch(0.175 0.010 332);
+  --card: oklch(0.228 0.012 332);
+  --popover: oklch(0.228 0.012 332);
+  --secondary: oklch(0.282 0.014 332);
+  --muted: oklch(0.282 0.014 332);
+  --muted-foreground: oklch(0.685 0.018 332);
+}
+
+[data-palette="slate"] {
+  --primary: oklch(0.485 0.042 258);
+  --ring: oklch(0.485 0.042 258);
+  --accent: oklch(0.925 0.012 258);
+  --accent-foreground: oklch(0.398 0.032 258);
+  --chart-1: oklch(0.485 0.042 258);
+
+  --background: oklch(0.980 0.003 258);
+  --paper: oklch(0.980 0.003 258);
+  --card: oklch(0.996 0.002 258);
+  --popover: oklch(0.996 0.002 258);
+  --secondary: oklch(0.936 0.006 258);
+  --muted: oklch(0.936 0.006 258);
+  --muted-foreground: oklch(0.492 0.012 258);
+  --border: oklch(0.890 0.008 258);
+  --input: oklch(0.890 0.008 258);
+}
+
+.dark[data-palette="slate"] {
+  --primary: oklch(0.712 0.042 258);
+  --ring: oklch(0.712 0.042 258);
+  --accent: oklch(0.318 0.018 258);
+  --accent-foreground: oklch(0.885 0.022 258);
+  --chart-1: oklch(0.712 0.042 258);
+
+  --background: oklch(0.170 0.008 258);
+  --paper: oklch(0.170 0.008 258);
+  --card: oklch(0.222 0.010 258);
+  --popover: oklch(0.222 0.010 258);
+  --secondary: oklch(0.276 0.012 258);
+  --muted: oklch(0.276 0.012 258);
+  --muted-foreground: oklch(0.685 0.014 258);
+}
+
 .dark .paper-grain::before {
   mix-blend-mode: screen;
   opacity: 0.22;

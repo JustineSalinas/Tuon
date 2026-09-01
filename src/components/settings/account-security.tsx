@@ -134,7 +134,7 @@ function EmailRow() {
                 Verified
               </Badge>
             ) : (
-              <Badge variant="secondary" className="text-warning-foreground gap-1">
+              <Badge variant="secondary" className="text-warning-text gap-1">
                 Not verified
               </Badge>
             )}

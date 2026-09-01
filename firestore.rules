@@ -62,6 +62,7 @@ service cloud.firestore {
         'timeZone',
         'dailyCardGoal',
         'typedRecall',
+        'palette',
         'pomodoroFocus',
         'pomodoroShortBreak',
         'pomodoroLongBreak',
@@ -96,6 +97,7 @@ service cloud.firestore {
         && isOptionalText(d.get('timeZone', null), 64)
         && (d.get('dailyCardGoal', 0) is int)
         && (d.get('typedRecall', true) is bool)
+        && isOptionalText(d.get('palette', null), 32)
         // 1 to 120 minutes. A zero-length phase would complete instantly
         // and log blocks forever; a huge one would never end.
         && isPhaseMinutes(d.get('pomodoroFocus', 25))
