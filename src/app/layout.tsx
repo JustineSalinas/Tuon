@@ -7,6 +7,7 @@ import {
   PaletteProvider,
   paletteScript,
 } from "@/components/providers/palette-provider";
+import { I18nProvider } from "@/components/providers/i18n-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { siteUrl } from "@/lib/site";
 
@@ -109,7 +110,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           <AuthProvider>
             <PaletteProvider />
-            {children}
+            <I18nProvider>{children}</I18nProvider>
           </AuthProvider>
           <Toaster position="top-center" richColors closeButton />
         </ThemeProvider>

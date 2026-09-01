@@ -10,6 +10,13 @@ import {
   type PaletteId,
 } from "@/lib/theme/palettes";
 import { applyPalette } from "@/components/providers/palette-provider";
+import {
+  isReady,
+  offeredLocales,
+  readLocale,
+  type LocaleId,
+} from "@/lib/i18n/locales";
+import { setStoredLocale } from "@/lib/i18n/locale-store";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -61,6 +68,8 @@ export function StudyPreferences() {
         <ThemeRow />
         <Separator />
         <PaletteRow />
+        <Separator />
+        <LanguageRow />
         <Separator />
         <TimeZoneRow />
         <Separator />
@@ -180,6 +189,86 @@ function PaletteRow() {
                 </span>
               </span>
               {saving === palette.id ? (
+                <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />
+              ) : active ? (
+                <Check className="text-primary size-4 shrink-0" />
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The language Tuón speaks.
+ *
+ * Separate from the content: a student's notes and cards stay in whatever
+ * language they were written in, which for most Filipino students is a mix.
+ * This only changes Tuón's own words.
+ *
+ * A translation still being checked is listed and marked rather than hidden,
+ * because the person reviewing it has to read it on the real screens.
+ */
+function LanguageRow() {
+  const { user, profile } = useAuth();
+  const current = readLocale(profile?.locale);
+  const [saving, setSaving] = useState<LocaleId | null>(null);
+
+  async function choose(locale: LocaleId) {
+    if (locale === current) return;
+    // Through the store so every subscriber re-renders in the same tick; the
+    // profile write below is what carries it to another device.
+    setStoredLocale(locale);
+    if (!user) return;
+    setSaving(locale);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        locale,
+        updatedAt: serverTimestamp(),
+      });
+    } catch {
+      toast.error("Could not save that language.");
+    }
+    setSaving(null);
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-medium">Language</p>
+      <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+        Tuón&rsquo;s own words. Your notes and cards stay in whatever language
+        you wrote them &mdash; including Taglish.
+      </p>
+
+      <div className="mt-3 grid max-w-md gap-2 sm:grid-cols-2">
+        {offeredLocales().map((locale) => {
+          const active = locale.id === current;
+          const ready = isReady(locale.id);
+          return (
+            <button
+              key={locale.id}
+              type="button"
+              onClick={() => choose(locale.id)}
+              aria-pressed={active}
+              className={cn(
+                "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                active
+                  ? "border-primary bg-accent/60"
+                  : "border-border hover:border-primary/50 hover:bg-accent/30",
+              )}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium">{locale.label}</span>
+                {!ready ? (
+                  <span className="text-muted-foreground block text-xs leading-snug">
+                    Draft &mdash; not checked by a native speaker yet
+                  </span>
+                ) : null}
+              </span>
+              {saving === locale.id ? (
                 <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />
               ) : active ? (
                 <Check className="text-primary size-4 shrink-0" />

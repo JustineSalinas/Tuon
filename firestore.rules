@@ -65,6 +65,7 @@ service cloud.firestore {
         'dailyCardGoal',
         'typedRecall',
         'palette',
+        'locale',
         'photoURL',
         'pomodoroFocus',
         'pomodoroShortBreak',
@@ -108,6 +109,7 @@ service cloud.firestore {
         && (d.get('dailyCardGoal', 0) is int)
         && (d.get('typedRecall', true) is bool)
         && isOptionalText(d.get('palette', null), 32)
+        && isOptionalText(d.get('locale', null), 16)
         // A picture, inline. The ceiling matters: this document is read on
         // every page load, so an unbounded blob here would slow every
         // screen in the app. Mirrors MAX_AVATAR_CHARS.

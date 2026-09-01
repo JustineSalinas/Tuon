@@ -17,6 +17,7 @@ import {
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { isUsableAvatar } from "@/lib/profile/avatar";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { PomodoroDock } from "@/components/app/pomodoro-dock";
@@ -39,13 +40,13 @@ import { educationLevelLabel, strandLabel } from "@/lib/curriculum";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/app", label: "Home", icon: Home, exact: true },
-  { href: "/app/notes", label: "Notes", icon: FileText, exact: false },
-  { href: "/app/sets", label: "Study sets", icon: Layers, exact: false },
-  { href: "/app/calendar", label: "Calendar", icon: CalendarDays, exact: false },
-  { href: "/app/groups", label: "Groups", icon: Users, exact: false },
-  { href: "/app/graph", label: "Graph", icon: Network, exact: false },
-  { href: "/app/stats", label: "Retention", icon: TrendingUp, exact: false },
+  { href: "/app", key: "home", icon: Home, exact: true },
+  { href: "/app/notes", key: "notes", icon: FileText, exact: false },
+  { href: "/app/sets", key: "sets", icon: Layers, exact: false },
+  { href: "/app/calendar", key: "calendar", icon: CalendarDays, exact: false },
+  { href: "/app/groups", key: "groups", icon: Users, exact: false },
+  { href: "/app/graph", key: "graph", icon: Network, exact: false },
+  { href: "/app/stats", key: "retention", icon: TrendingUp, exact: false },
 ] as const;
 
 /** The bottom bar only has room for four; the rest live in the sidebar. */
@@ -91,6 +92,7 @@ function isActive(pathname: string, href: string, exact: boolean) {
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
   const { profile } = useAuth();
+  const { t } = useI18n();
   const courses = profile?.courses ?? [];
 
   return (
@@ -114,7 +116,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
               )}
             >
               <item.icon className="size-4" />
-              {item.label}
+              {t.nav[item.key]}
             </Link>
           );
         })}
@@ -169,6 +171,7 @@ function MobileHeader() {
 }
 
 function MobileNav({ pathname }: { pathname: string }) {
+  const { t } = useI18n();
   return (
     <nav className="bg-background/90 fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
       {MOBILE_NAV.map((item) => {
@@ -183,7 +186,7 @@ function MobileNav({ pathname }: { pathname: string }) {
             )}
           >
             <item.icon className="size-5" />
-            {item.label}
+            {t.nav[item.key]}
           </Link>
         );
       })}
@@ -194,7 +197,7 @@ function MobileNav({ pathname }: { pathname: string }) {
         <span className="bg-primary text-primary-foreground grid size-5 place-items-center rounded-full">
           <Plus className="size-3.5" strokeWidth={3} />
         </span>
-        New
+        {t.nav.newNote}
       </Link>
     </nav>
   );
@@ -202,6 +205,7 @@ function MobileNav({ pathname }: { pathname: string }) {
 
 function UserMenu({ align }: { align: "start" | "end" }) {
   const { profile, user, signOut } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
 
   const name = profile?.displayName || user?.displayName || "Student";
@@ -245,12 +249,12 @@ function UserMenu({ align }: { align: "start" | "end" }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/app/settings" />}>
             <Settings className="size-4" />
-            Settings
+            {t.nav.settings}
           </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} variant="destructive">
           <LogOut className="size-4" />
-          Sign out
+          {t.nav.signOut}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -93,6 +93,8 @@ export interface UserProfile {
    * the student to a shared machine.
    */
   palette?: string;
+  /** Language for Tuón's own words. Notes and cards are unaffected. */
+  locale?: string;
   /**
    * Profile picture as a small JPEG data URL, not a Storage path.
    * See lib/profile/avatar for why, and for the ceiling that keeps this
