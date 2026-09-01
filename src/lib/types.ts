@@ -42,6 +42,16 @@ export interface UserProfile {
    * Kept as an array in both cases so downstream code has one shape to handle.
    */
   courses: string[];
+  /**
+   * Terms, each with its own subject list.
+   *
+   * A LAYER ABOVE `courses`, not a replacement: switching semester rewrites
+   * `courses` from the chosen term's list, so everything reading `courses`
+   * keeps working and an account that has never seen a semester behaves
+   * exactly as it did before. See lib/profile/semesters.
+   */
+  semesters?: { id: string; name: string; subjects: string[] }[];
+  activeSemesterId?: string | null;
   /** Only meaningful for grade_11 / grade_12. Null for college. */
   strand: Strand | null;
   /**

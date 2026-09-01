@@ -23,3 +23,4 @@ import "./groups.test.mjs";
 import "./heatmap.test.mjs";
 import "./avatar.test.mjs";
 import "./scoring.test.mjs";
+import "./semesters.test.mjs";

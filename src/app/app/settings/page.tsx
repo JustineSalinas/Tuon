@@ -11,6 +11,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { BillingCard } from "@/components/settings/billing-card";
 import { DataAndAccount } from "@/components/settings/danger-zone";
 import { ProfilePicture } from "@/components/settings/profile-picture";
+import { Semesters } from "@/components/settings/semesters";
+import { readSemesters } from "@/lib/profile/semesters";
 import { AccountSecurity } from "@/components/settings/account-security";
 import { ManageSubjects } from "@/components/settings/manage-subjects";
 import { StudyPreferences } from "@/components/settings/study-preferences";
@@ -58,6 +60,8 @@ function SettingsForm({
   const [displayName, setDisplayName] = useState(profile.displayName ?? "");
   const [school, setSchool] = useState(profile.school ?? "");
   const [courses, setCourses] = useState<string[]>(profile.courses ?? []);
+  // Semesters own the subject list once they exist; see the guard below.
+  const hasSemesters = readSemesters(profile.semesters).length > 0;
   const [customCourse, setCustomCourse] = useState("");
   const [examDate, setExamDate] = useState(profile.examDate ?? null);
   const [saving, setSaving] = useState(false);
@@ -261,6 +265,24 @@ function SettingsForm({
           <div className="space-y-3">
             <Label>{seniorHigh ? "Subjects" : "Course"}</Label>
 
+            {/* Once semesters exist they own this list, and two editors on one
+                field is a data-loss path: this form holds its own copy from
+                page load, so saving it after switching terms would write the
+                previous term's subjects back and silently undo the switch. */}
+            {hasSemesters ? (
+              <p className="text-muted-foreground rounded-xl border border-dashed px-4 py-3 text-sm leading-relaxed">
+                Your subjects come from the term you have marked as current.{" "}
+                <a
+                  href="#semesters"
+                  className="text-primary underline underline-offset-4"
+                >
+                  Edit them under Semesters
+                </a>
+                .
+              </p>
+            ) : (
+              <>
+
             {seniorHigh && profile.strand ? (
               <div className="space-y-4">
                 {getSubjectGroups(profile.strand).map((group) => (
@@ -333,6 +355,8 @@ function SettingsForm({
                 <Plus />
               </Button>
             </div>
+              </>
+            )}
           </div>
 
           {/* Only board and licensure reviewers sit on a fixed date; for
@@ -353,6 +377,12 @@ function SettingsForm({
       </section>
 
       <Separator className="my-8" />
+
+      {/* Above "Manage subjects" on purpose: this decides which subjects are
+          on offer, and that one deals with the material already tagged. */}
+      <section className="mt-8">
+        <Semesters />
+      </section>
 
       {/* After the profile form, because it operates on what that form saved
           and is the only safe way to take a subject away again. */}

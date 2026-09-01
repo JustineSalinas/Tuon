@@ -58,6 +58,8 @@ service cloud.firestore {
         'school',
         'examDate',
         'courses',
+        'semesters',
+        'activeSemesterId',
         'onboardingCompleted',
         'timeZone',
         'dailyCardGoal',
@@ -94,6 +96,13 @@ service cloud.firestore {
         && (d.get('examDate', null) == null || d.examDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
         && d.courses is list
         && d.courses.size() <= 40
+        // Terms, each carrying its own subject list. Bounded because this
+        // rides on a document read on every page load, and rules cannot
+        // look inside the entries — the client validates their shape, this
+        // stops the array being used as storage.
+        && (d.get('semesters', []) is list)
+        && d.get('semesters', []).size() <= 16
+        && isOptionalText(d.get('activeSemesterId', null), 64)
         && d.onboardingCompleted is bool
         && isOptionalText(d.get('timeZone', null), 64)
         && (d.get('dailyCardGoal', 0) is int)
