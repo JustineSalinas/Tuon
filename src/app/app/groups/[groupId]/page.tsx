@@ -6,10 +6,13 @@
  * Three things, which is what the plan asked for and no more: what the group
  * is studying, when their deadline is, and who is at it right now.
  *
- * What it deliberately does NOT have is a leaderboard. Ranking a group by
- * hours studied turns a review batch into a competition, rewards the person
- * who leaves a timer running, and is the mechanic that makes public study
- * rooms feel bad to be in. Presence here says "here now" and nothing else.
+ * There IS a leaderboard, and the axis it ranks on is the whole argument.
+ * Hours would reward whoever leaves a timer running and turn a review batch
+ * into a contest about endurance; XP earned from recall can only be moved by
+ * remembering cards when they come back due. See lib/groups/scoring.
+ *
+ * Presence stays separate and says "here now" and nothing else — it is company,
+ * not a score.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -44,6 +47,7 @@ import { usePreferences } from "@/lib/hooks/use-preferences";
 import { useNow } from "@/lib/hooks/use-now";
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import { callGroups } from "@/lib/groups/client";
+import { GroupStandings } from "@/components/groups/group-standings";
 import { describeDueDate, isUsableTitle } from "@/lib/organiser/plan-items";
 import type {
   GroupDeadline,
@@ -196,6 +200,8 @@ export default function GroupPage() {
         displayName={profile?.displayName ?? "A classmate"}
         uid={user?.uid ?? ""}
       />
+
+      <GroupStandings groupId={groupId} />
 
       <SharedSets
         groupId={groupId}

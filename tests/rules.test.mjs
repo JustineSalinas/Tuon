@@ -996,6 +996,61 @@ await check("an outsider cannot read or write group deadlines", async () => {
   );
 });
 
+await check("a member can publish their own standing", async () => {
+  await assertSucceeds(
+    setDoc(doc(alice, `studyGroups/${GROUP}/scores/${ALICE}`), {
+      displayName: "Alice",
+      xp: 240,
+      recalls: 140,
+      mastered: 10,
+      studied: 60,
+    }),
+  );
+});
+
+await check("a member cannot write someone else's standing", async () => {
+  // Otherwise one member could put a classmate at the bottom of the table.
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/scores/bob-uid`), {
+      displayName: "Bob",
+      xp: 0,
+      recalls: 0,
+      mastered: 0,
+      studied: 0,
+    }),
+  );
+});
+
+await check("an absurd score is refused", async () => {
+  // These numbers are computed on the member's own device, so the rules cannot
+  // prove them — but they can stop a billion appearing in the table.
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/scores/${ALICE}`), {
+      displayName: "Alice",
+      xp: 999999999,
+      recalls: 1,
+      mastered: 1,
+      studied: 1,
+    }),
+  );
+});
+
+await check("a negative score is refused", async () => {
+  await assertFails(
+    setDoc(doc(alice, `studyGroups/${GROUP}/scores/${ALICE}`), {
+      displayName: "Alice",
+      xp: -10,
+      recalls: 0,
+      mastered: 0,
+      studied: 0,
+    }),
+  );
+});
+
+await check("a stranger cannot read the standings", async () => {
+  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/scores/${ALICE}`)));
+});
+
 await check("a member can say they are studying", async () => {
   await assertSucceeds(
     setDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`), {

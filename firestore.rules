@@ -181,6 +181,30 @@ service cloud.firestore {
         && isText(d.get('createdByName', ''), 80);
     }
 
+    /**
+     * A member's published standing.
+     *
+     * These numbers are computed on the member's own device from their own
+     * review history — verifying them here would mean reading everyone's
+     * private logs, which is a far worse trade in an invite-only group of
+     * people who already know each other. What the rules CAN do is stop
+     * anything absurd appearing, so the caps are the honest guarantee: a
+     * forged score can be wrong, but it cannot be a billion.
+     */
+    function validGroupScore() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'displayName', 'photoURL', 'xp', 'recalls', 'mastered',
+          'studied', 'updatedAt'
+        ])
+        && isText(d.get('displayName', ''), 80)
+        && isOptionalText(d.get('photoURL', null), 48000)
+        && isCount(d.get('xp', 0), 1000000)
+        && isCount(d.get('recalls', 0), 1000000)
+        && isCount(d.get('mastered', 0), 100000)
+        && isCount(d.get('studied', 0), 100000);
+    }
+
     function validGroupPresence() {
       let d = request.resource.data;
       return d.keys().hasOnly(['displayName', 'until', 'updatedAt'])
@@ -585,6 +609,16 @@ service cloud.firestore {
         allow read: if isGroupMember(groupId);
         allow create, update: if isGroupMember(groupId) && validGroupDeadline();
         allow delete: if isGroupMember(groupId);
+      }
+
+      match /scores/{memberId} {
+        allow read: if isGroupMember(groupId);
+        // Only your own row. Writing someone else's would let a member put a
+        // classmate at the bottom of the table.
+        allow create, update: if isGroupMember(groupId)
+          && memberId == request.auth.uid
+          && validGroupScore();
+        allow delete: if isGroupMember(groupId) && memberId == request.auth.uid;
       }
 
       match /presence/{memberId} {

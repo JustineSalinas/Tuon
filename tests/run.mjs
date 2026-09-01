@@ -22,3 +22,4 @@ import "./test-mode.test.mjs";
 import "./groups.test.mjs";
 import "./heatmap.test.mjs";
 import "./avatar.test.mjs";
+import "./scoring.test.mjs";
