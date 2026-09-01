@@ -21,3 +21,4 @@ import "./markdown.test.mjs";
 import "./test-mode.test.mjs";
 import "./groups.test.mjs";
 import "./heatmap.test.mjs";
+import "./avatar.test.mjs";

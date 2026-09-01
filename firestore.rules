@@ -63,6 +63,7 @@ service cloud.firestore {
         'dailyCardGoal',
         'typedRecall',
         'palette',
+        'photoURL',
         'pomodoroFocus',
         'pomodoroShortBreak',
         'pomodoroLongBreak',
@@ -98,6 +99,10 @@ service cloud.firestore {
         && (d.get('dailyCardGoal', 0) is int)
         && (d.get('typedRecall', true) is bool)
         && isOptionalText(d.get('palette', null), 32)
+        // A picture, inline. The ceiling matters: this document is read on
+        // every page load, so an unbounded blob here would slow every
+        // screen in the app. Mirrors MAX_AVATAR_CHARS.
+        && isOptionalText(d.get('photoURL', null), 48000)
         // 1 to 120 minutes. A zero-length phase would complete instantly
         // and log blocks forever; a huge one would never end.
         && isPhaseMinutes(d.get('pomodoroFocus', 25))

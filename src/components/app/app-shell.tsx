@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { isUsableAvatar } from "@/lib/profile/avatar";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { PomodoroDock } from "@/components/app/pomodoro-dock";
@@ -25,7 +26,7 @@ import { GroupPresence } from "@/components/app/group-presence";
 import { ReminderRunner } from "@/components/app/reminder-runner";
 import { ServiceWorkerRegistration } from "@/components/app/service-worker";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -205,6 +206,9 @@ function UserMenu({ align }: { align: "start" | "end" }) {
 
   const name = profile?.displayName || user?.displayName || "Student";
   const initial = name.trim().charAt(0).toUpperCase() || "S";
+  // Validated rather than trusted: the profile is client-writable, and this
+  // src goes straight into an <img>.
+  const photo = isUsableAvatar(profile?.photoURL) ? profile.photoURL : null;
 
   const context = [
     educationLevelLabel(profile?.educationLevel ?? null),
@@ -222,6 +226,7 @@ function UserMenu({ align }: { align: "start" | "end" }) {
     <DropdownMenu>
       <DropdownMenuTrigger render={<button className="hover:bg-sidebar-accent/60 flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors" />}>
           <Avatar className="size-8">
+            {photo ? <AvatarImage src={photo} alt="" /> : null}
             <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
               {initial}
             </AvatarFallback>

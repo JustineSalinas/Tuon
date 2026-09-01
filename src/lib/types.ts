@@ -84,6 +84,12 @@ export interface UserProfile {
    */
   palette?: string;
   /**
+   * Profile picture as a small JPEG data URL, not a Storage path.
+   * See lib/profile/avatar for why, and for the ceiling that keeps this
+   * document small enough to read on every page load.
+   */
+  photoURL?: string | null;
+  /**
    * Pomodoro phase lengths in minutes. Absent means the classic 25/5/15.
    * On the profile rather than the device so a student who studies on a
    * phone and a lab machine gets the same blocks on both.

@@ -10,6 +10,7 @@ import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { BillingCard } from "@/components/settings/billing-card";
 import { DataAndAccount } from "@/components/settings/danger-zone";
+import { ProfilePicture } from "@/components/settings/profile-picture";
 import { AccountSecurity } from "@/components/settings/account-security";
 import { ManageSubjects } from "@/components/settings/manage-subjects";
 import { StudyPreferences } from "@/components/settings/study-preferences";
@@ -149,6 +150,10 @@ function SettingsForm({
       {/* Profile */}
       <section className="mt-8">
         <h2 className="font-display text-lg font-semibold tracking-tight">Profile</h2>
+
+        <div className="mt-4">
+          <ProfilePicture />
+        </div>
 
         <div className="mt-4 space-y-5">
           <div className="space-y-2">
