@@ -415,30 +415,29 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                   style={{ transform: reduceMotion ? undefined : "rotateY(180deg)" }}
                   hidden={reduceMotion ? !flipped : false}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <FaceLabel>Answer</FaceLabel>
-                    {/* Sits on the answer face only — judging a card before
-                        seeing its answer is judging half of it. Stops the
-                        flip, or tapping it would also rate the card. */}
-                    {user ? (
-                      <span
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                      >
-                        <CardFeedback
-                          userId={user.uid}
-                          studySetId={currentCard!.studySetId}
-                          flashcardId={currentCard!.id}
-                          className="-mt-1 -mr-1"
-                        />
-                      </span>
-                    ) : null}
-                  </div>
+                  <FaceLabel>Answer</FaceLabel>
                   <p className="mt-4 text-lg leading-relaxed text-pretty md:text-xl">
                     {currentCard!.back}
                   </p>
                 </CardFace>
               </motion.button>
+
+              {/* Outside the card on purpose. It used to sit on the answer
+                  face, which put a <button> inside the card's own <button> —
+                  invalid HTML, and React reported a hydration error on every
+                  single review. Rendering it here keeps the original intent
+                  (it only appears once the answer is visible) without nesting
+                  anything, and it no longer needs to swallow click events to
+                  stop the card flipping underneath it. */}
+              {user && flipped ? (
+                <div className="mt-3 flex justify-end">
+                  <CardFeedback
+                    userId={user.uid}
+                    studySetId={currentCard!.studySetId}
+                    flashcardId={currentCard!.id}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
 

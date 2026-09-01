@@ -23,7 +23,9 @@ export default function GraphPage() {
         <h1 className="font-display text-3xl font-semibold tracking-tight">Graph</h1>
         <p className="text-muted-foreground mt-1.5 text-sm">
           {linkedCount > 0
-            ? `${linkedCount} connected notes · ${graph.edges.length} links`
+            ? `${linkedCount} connected ${linkedCount === 1 ? "note" : "notes"} · ${
+                graph.edges.length
+              } ${graph.edges.length === 1 ? "link" : "links"}`
             : "How your notes connect to each other."}
         </p>
       </header>
