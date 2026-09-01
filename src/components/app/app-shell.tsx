@@ -17,6 +17,7 @@ import {
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { isUsableAvatar } from "@/lib/profile/avatar";
+import { activeSemester, readSemesters } from "@/lib/profile/semesters";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
@@ -214,7 +215,15 @@ function UserMenu({ align }: { align: "start" | "end" }) {
   // src goes straight into an <img>.
   const photo = isUsableAvatar(profile?.photoURL) ? profile.photoURL : null;
 
+  // The current term leads when there is one: it changes, and it is the thing
+  // that decides which subjects the rest of the app offers. Education level
+  // and strand are set once and never move, so they give way.
+  const term = activeSemester(
+    readSemesters(profile?.semesters),
+    profile?.activeSemesterId,
+  );
   const context = [
+    term?.name,
     educationLevelLabel(profile?.educationLevel ?? null),
     strandLabel(profile?.strand ?? null),
   ]

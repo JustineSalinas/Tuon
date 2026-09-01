@@ -6,6 +6,11 @@ import { motion } from "motion/react";
 import { Layers, Plus, Search, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import {
+  activeSemester,
+  readSemesters,
+} from "@/lib/profile/semesters";
+import { cn } from "@/lib/utils";
 import { usePagedStudySets, useReviewLogs } from "@/lib/hooks/use-firestore";
 import { LoadMore } from "@/components/app/load-more";
 import { useNow } from "@/lib/hooks/use-now";
@@ -15,11 +20,29 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudySetsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { data: sets, loading, hasMore, loadMore } = usePagedStudySets(user?.uid);
   const { logs } = useReviewLogs(user?.uid);
   const [search, setSearch] = useState("");
+  const [thisTermOnly, setThisTermOnly] = useState(false);
   const now = useNow(60_000);
+
+  /**
+   * The current term, and the subjects in it.
+   *
+   * This is where semesters earn their keep and where students find out they
+   * exist at all: a set belongs to a term through the subject it is tagged
+   * with, so this page is the one place the grouping is actually useful.
+   */
+  const semesters = useMemo(
+    () => readSemesters(profile?.semesters),
+    [profile?.semesters],
+  );
+  const term = activeSemester(semesters, profile?.activeSemesterId);
+  const termSubjects = useMemo(
+    () => new Set((term?.subjects ?? []).map((s) => s.trim().toLowerCase())),
+    [term],
+  );
 
   const withStats = useMemo(() => {
     const bySet = new Map<string, { due: number; reviewed: number }>();
@@ -30,13 +53,22 @@ export default function StudySetsPage() {
       bySet.set(log.studySetId, entry);
     }
 
-    const term = search.trim().toLowerCase();
+    const query = search.trim().toLowerCase();
     return sets
       .filter(
         (set) =>
-          !term ||
-          set.title.toLowerCase().includes(term) ||
-          set.courseTag?.toLowerCase().includes(term),
+          !query ||
+          set.title.toLowerCase().includes(query) ||
+          set.courseTag?.toLowerCase().includes(query),
+      )
+      // Untagged sets are never hidden by the term filter. A set with no
+      // subject belongs to no term, and dropping it would make material
+      // disappear with no way to tell why.
+      .filter(
+        (set) =>
+          !thisTermOnly ||
+          !set.courseTag ||
+          termSubjects.has(set.courseTag.trim().toLowerCase()),
       )
       .map((set) => {
         const entry = bySet.get(set.id) ?? { due: 0, reviewed: 0 };
@@ -46,7 +78,7 @@ export default function StudySetsPage() {
           fresh: Math.max(0, (set.flashcardCount ?? 0) - entry.reviewed),
         };
       });
-  }, [sets, logs, search, now]);
+  }, [sets, logs, search, now, thisTermOnly, termSubjects]);
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
@@ -67,6 +99,44 @@ export default function StudySetsPage() {
             placeholder="Search study sets"
             className="pl-9"
           />
+        </div>
+      ) : null}
+
+      {/* Only shown when there is a term to filter by. A toggle that does
+          nothing is worse than no toggle, and this is also where a student who
+          has never opened settings finds out semesters exist. */}
+      {sets.length > 0 && term && term.subjects.length > 0 ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {[
+            { label: "All sets", value: false },
+            { label: term.name, value: true },
+          ].map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => setThisTermOnly(option.value)}
+              aria-pressed={thisTermOnly === option.value}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-[13px] transition-colors",
+                "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                thisTermOnly === option.value
+                  ? "border-primary bg-accent/60 font-medium"
+                  : "border-border hover:border-primary/50 hover:bg-accent/30",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+          <span className="text-muted-foreground text-xs">
+            Terms and their subjects live in{" "}
+            <Link
+              href="/app/settings#semesters"
+              className="text-primary underline underline-offset-4"
+            >
+              settings
+            </Link>
+            .
+          </span>
         </div>
       ) : null}
 
