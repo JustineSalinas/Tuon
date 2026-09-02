@@ -15,6 +15,8 @@ import { ArrowRight, Check, Loader2, RotateCcw, X } from "lucide-react";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { useQuizQuestions, useReviewLogs, useStudySet } from "@/lib/hooks/use-firestore";
 import { initialSrsState, parseExamDate, scheduleNextReview } from "@/lib/srs/sm2";
 import { collapseQuizAnswers } from "@/lib/srs/from-quiz";
@@ -26,6 +28,7 @@ const CHOICE_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 export function QuizRunner({ studySetId }: { studySetId: string }) {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { data: studySet } = useStudySet(user?.uid, studySetId);
   const { data: questions, loading } = useQuizQuestions(user?.uid, studySetId);
   // Needed to schedule FROM each card's current state rather than from scratch.
@@ -79,7 +82,7 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
       try {
         await addDoc(collection(db, "users", user.uid, "quizAttempts"), {
           studySetId,
-          studySetTitle: studySet?.title ?? "Quiz",
+          studySetTitle: studySet?.title ?? t.quiz.title,
           score: finalScore,
           total: questions.length,
           completedAt: serverTimestamp(),
@@ -160,12 +163,14 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
       <div className="grid min-h-dvh place-items-center px-6 text-center">
         <div className="max-w-sm">
           <h1 className="font-display text-2xl font-semibold tracking-tight">
-            No quiz yet
+            {t.quiz.noneYet}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            This study set does not have any quiz questions.
+            {t.quiz.noneYetHint}
           </p>
-          <Button className="mt-6" render={<Link href={`/app/sets/${studySetId}`} />}>Back to set</Button>
+          <Button className="mt-6" render={<Link href={`/app/sets/${studySetId}`} />}>
+            {t.quiz.backToSet}
+          </Button>
         </div>
       </div>
     );
@@ -180,6 +185,7 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
         score={score}
         saving={savingAttempt}
         onRestart={restart}
+        t={t}
       />
     );
   }
@@ -187,15 +193,20 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center gap-4 px-4 py-3 md:px-6">
-        <Button variant="ghost" size="icon" aria-label="Exit quiz" render={<Link href={`/app/sets/${studySetId}`} />}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t.quiz.exit}
+          render={<Link href={`/app/sets/${studySetId}`} />}
+        >
             <X />
           </Button>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">{studySet?.title ?? "Quiz"}</div>
+          <div className="truncate text-sm font-medium">{studySet?.title ?? t.quiz.title}</div>
           <Progress value={(index / questions.length) * 100} className="mt-1.5 h-1" />
         </div>
         <span className="text-muted-foreground shrink-0 text-sm tabular-nums">
-          {index + 1} / {questions.length}
+          {t.quiz.progress(index + 1, questions.length)}
         </span>
       </header>
 
@@ -258,9 +269,9 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
                           screen reader — it would announce "FOR loop, disabled"
                           either way. Say it in words. */}
                       {reveal && isCorrect ? (
-                        <span className="sr-only">— correct answer</span>
+                        <span className="sr-only">{t.quiz.correctAnswer}</span>
                       ) : reveal && isPicked ? (
-                        <span className="sr-only">— your answer, incorrect</span>
+                        <span className="sr-only">{t.quiz.yourAnswerWrong}</span>
                       ) : null}
                     </button>
                   );
@@ -281,7 +292,7 @@ export function QuizRunner({ studySetId }: { studySetId: string }) {
                 transition={{ duration: 0.2 }}
               >
                 <Button size="lg" className="w-full" onClick={handleNext}>
-                  {isLast ? "See results" : "Next question"}
+                  {isLast ? t.quiz.seeResults : t.quiz.nextQuestion}
                   <ArrowRight />
                 </Button>
               </motion.div>
@@ -300,6 +311,7 @@ function QuizResults({
   score,
   saving,
   onRestart,
+  t,
 }: {
   studySetId: string;
   questions: { id: string; question: string; choices: string[]; correctIndex: number }[];
@@ -307,6 +319,7 @@ function QuizResults({
   score: number;
   saving: boolean;
   onRestart: () => void;
+  t: Messages;
 }) {
   const total = questions.length;
   const percent = Math.round((score / total) * 100);
@@ -320,7 +333,7 @@ function QuizResults({
         transition={{ duration: 0.35 }}
         className="text-center"
       >
-        <div className="text-muted-foreground text-sm">{verdict(percent)}</div>
+        <div className="text-muted-foreground text-sm">{verdict(percent, t)}</div>
         <div className="font-display mt-2 text-5xl font-semibold tracking-tight tabular-nums">
           {score}
           <span className="text-muted-foreground text-3xl">/{total}</span>
@@ -333,7 +346,7 @@ function QuizResults({
       {missed.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-lg font-semibold tracking-tight">
-            Worth another look
+            {t.quiz.worthAnotherLook}
           </h2>
           <div className="mt-4 space-y-3">
             {missed.map((question) => {
@@ -358,30 +371,36 @@ function QuizResults({
         </section>
       ) : (
         <p className="text-success mt-10 text-center text-sm font-medium">
-          Perfect score. Every question correct.
+          {t.quiz.perfect}
         </p>
       )}
 
       <div className="mt-10 flex flex-col gap-2 sm:flex-row-reverse">
-        <Button className="flex-1" render={<Link href={`/app/sets/${studySetId}/review`} />}>Review the flashcards</Button>
+        <Button className="flex-1" render={<Link href={`/app/sets/${studySetId}/review`} />}>
+          {t.quiz.reviewFlashcards}
+        </Button>
         <Button variant="outline" className="flex-1" onClick={onRestart}>
           <RotateCcw />
-          Retake quiz
+          {t.quiz.retake}
         </Button>
-        <Button variant="ghost" className="flex-1" render={<Link href={`/app/sets/${studySetId}`} />}>Back to set</Button>
+        <Button variant="ghost" className="flex-1" render={<Link href={`/app/sets/${studySetId}`} />}>
+          {t.quiz.backToSet}
+        </Button>
       </div>
 
       {saving ? (
-        <p className="text-muted-foreground mt-4 text-center text-xs">Saving result…</p>
+        <p className="text-muted-foreground mt-4 text-center text-xs">
+          {t.quiz.savingResult}
+        </p>
       ) : null}
     </div>
   );
 }
 
-function verdict(percent: number): string {
-  if (percent === 100) return "Flawless";
-  if (percent >= 80) return "Solid";
-  if (percent >= 60) return "Getting there";
-  if (percent >= 40) return "Needs another pass";
-  return "Worth restudying the note";
+function verdict(percent: number, t: Messages): string {
+  if (percent === 100) return t.quiz.flawless;
+  if (percent >= 80) return t.quiz.solid;
+  if (percent >= 60) return t.quiz.gettingThere;
+  if (percent >= 40) return t.quiz.needsAnotherPass;
+  return t.quiz.worthRestudying;
 }

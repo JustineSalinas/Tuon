@@ -8,6 +8,7 @@ import { requestVerificationEmail } from "@/lib/email/request-verification";
 
 import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
  */
 export function VerifyEmailBanner() {
   const { user, refreshVerification } = useAuth();
+  const { t } = useI18n();
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -33,13 +35,11 @@ export function VerifyEmailBanner() {
     const outcome = await requestVerificationEmail(current);
     setSending(false);
     if (outcome === "failed") {
-      toast.error("Could not send just now. Try again in a minute.");
+      toast.error(t.banners.sendFailed);
     } else if (outcome === "already-verified") {
-      toast.success("This address is already verified.");
+      toast.success(t.banners.alreadyVerified);
     } else {
-      toast.success(
-        `Sent to ${current.email}. Check spam if it doesn't arrive.`,
-      );
+      toast.success(t.banners.sentTo(current.email ?? ""));
     }
   }
 
@@ -48,7 +48,7 @@ export function VerifyEmailBanner() {
     const verified = await refreshVerification().catch(() => false);
     setChecking(false);
     if (!verified) {
-      toast.error("Still not confirmed. Open the link in the email first.");
+      toast.error(t.banners.stillNotConfirmed);
     }
     // When it worked the banner unmounts on its own — `user.emailVerified`
     // is now true — so there is nothing to announce.
@@ -63,9 +63,9 @@ export function VerifyEmailBanner() {
       <p className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
         <MailCheck className="text-warning-text mt-0.5 size-4 shrink-0 sm:mt-0" />
         <span>
-          Confirm your email to start generating study sets.{" "}
+          {t.banners.confirmEmail}{" "}
           <span className="text-muted-foreground">
-            Everything else works in the meantime.
+            {t.banners.confirmEmailRest}
           </span>
         </span>
       </p>
@@ -76,16 +76,16 @@ export function VerifyEmailBanner() {
           onClick={recheck}
           disabled={checking}
         >
-          {checking ? "Checking…" : "I've confirmed it"}
+          {checking ? t.banners.checking : t.banners.confirmedIt}
         </Button>
         <Button variant="ghost" size="sm" onClick={resend} disabled={sending}>
-          {sending ? "Sending…" : "Resend"}
+          {sending ? t.banners.sending : t.banners.resend}
         </Button>
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={() => setDismissed(true)}
-          aria-label="Dismiss"
+          aria-label={t.banners.dismiss}
         >
           <X />
         </Button>

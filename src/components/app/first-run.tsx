@@ -5,6 +5,8 @@ import { motion } from "motion/react";
 import { ArrowRight, FileText, Layers, Plus, Sparkles } from "lucide-react";
 
 import { PaperCreature } from "@/components/brand/paper-creature";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { CREATURE_NAME } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,25 +27,13 @@ import { cn } from "@/lib/utils";
  * "Tuón writes the flashcards" is a claim, while showing one is not.
  */
 
-const STEPS = [
-  {
-    icon: FileText,
-    title: "Paste your notes",
-    body: "Lecture notes, a textbook excerpt, your handwritten reviewer typed up.",
-  },
-  {
-    icon: Sparkles,
-    title: "Generate a study set",
-    body: "Flashcards and a practice quiz, written from your material and nothing else.",
-  },
-  {
-    icon: Layers,
-    title: "Review on schedule",
-    body: "Each card comes back right before you would have forgotten it.",
-  },
-];
+/** The words are in the catalogue; only the icons are structural. */
+const STEP_ICONS = [FileText, Sparkles, Layers];
 
 export function FirstRun() {
+  const { t } = useI18n();
+  const steps = t.firstRun.steps;
+
   return (
     <div className="py-4 md:py-8">
       {/* Welcome. Centred and given room, because everything below is optional
@@ -58,16 +48,14 @@ export function FirstRun() {
           <PaperCreature
             state="idle"
             className="mx-auto size-28 sm:size-32"
-            title={`${CREATURE_NAME}, your study companion`}
+            title={t.firstRun.companion(CREATURE_NAME)}
           />
 
           <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Let&rsquo;s make your first study set
+            {t.firstRun.heading}
           </h2>
           <p className="text-muted-foreground mx-auto mt-3 max-w-md leading-relaxed text-balance">
-            Paste one page of notes. {CREATURE_NAME} turns it into flashcards
-            and a practice quiz, then brings each card back right before you
-            would have forgotten it.
+            {t.firstRun.body(CREATURE_NAME)}
           </p>
 
           <Button
@@ -76,10 +64,10 @@ export function FirstRun() {
             render={<Link href="/app/notes/new" />}
           >
             <Plus />
-            Create your first note
+            {t.firstRun.createFirst}
           </Button>
           <p className="text-muted-foreground mt-3 text-sm">
-            About a minute, and nothing to install.
+            {t.firstRun.aboutAMinute}
           </p>
         </div>
 
@@ -92,7 +80,9 @@ export function FirstRun() {
 
       {/* The loop, across the page rather than down it. */}
       <div className="mt-12 grid gap-8 sm:grid-cols-3 sm:gap-6">
-        {STEPS.map((step, index) => (
+        {steps.map((step, index) => {
+          const Icon = STEP_ICONS[index];
+          return (
           <motion.div
             key={step.title}
             initial={{ opacity: 0, y: 10 }}
@@ -102,7 +92,7 @@ export function FirstRun() {
           >
             {/* Joins the steps into one sequence on wide screens. Decorative,
                 so it stops before the last column rather than dangling. */}
-            {index < STEPS.length - 1 ? (
+            {index < steps.length - 1 ? (
               <span
                 aria-hidden="true"
                 className="bg-border absolute top-5 left-[calc(50%+2rem)] hidden h-px w-[calc(100%-4rem)] sm:block"
@@ -116,10 +106,10 @@ export function FirstRun() {
                   index === 0 ? "border-primary/50 text-primary" : "text-muted-foreground",
                 )}
               >
-                <step.icon className="size-4.5" />
+                <Icon className="size-4.5" />
               </span>
               <div className="text-muted-foreground text-xs font-medium tracking-widest uppercase sm:mt-4">
-                Step {index + 1}
+                {t.firstRun.step(index + 1)}
               </div>
             </div>
 
@@ -130,10 +120,11 @@ export function FirstRun() {
               {step.body}
             </p>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
 
-      <SampleOutput />
+      <SampleOutput t={t} />
     </div>
   );
 }
@@ -144,7 +135,7 @@ export function FirstRun() {
  * Static markup on purpose: this renders before the account has any data, and
  * it must never wait on a request or look like something that failed to load.
  */
-function SampleOutput() {
+function SampleOutput({ t }: { t: Messages }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -153,19 +144,17 @@ function SampleOutput() {
       className="mt-14"
     >
       <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
-        What comes out
+        {t.firstRun.whatComesOut}
       </p>
 
       <div className="mt-4 grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
         <div className="border-border bg-card rounded-2xl border p-4">
           <div className="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium">
             <FileText className="size-3.5" />
-            Your note
+            {t.firstRun.yourNote}
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            &ldquo;Light-dependent reactions occur in the thylakoid membrane.
-            Water is split, releasing O₂, and the energy is stored as ATP and
-            NADPH…&rdquo;
+            {t.firstRun.sampleNote}
           </p>
         </div>
 
@@ -176,15 +165,15 @@ function SampleOutput() {
 
         <div className="border-primary/30 bg-accent/30 rounded-2xl border p-4">
           <div className="text-primary mb-2 text-xs font-medium tracking-widest uppercase">
-            Card 3 of 12
+            {t.firstRun.sampleCardIndex}
           </div>
           <p className="font-display text-base font-semibold">
-            Where do the light-dependent reactions take place?
+            {t.firstRun.sampleFront}
           </p>
           <p className="text-muted-foreground mt-2 border-t pt-2 text-sm">
-            In the thylakoid membrane of the chloroplast.
+            {t.firstRun.sampleBack}
           </p>
-          <p className="text-muted-foreground mt-2 text-xs">Next review in 6 days</p>
+          <p className="text-muted-foreground mt-2 text-xs">{t.firstRun.sampleNext}</p>
         </div>
       </div>
     </motion.div>
