@@ -50,18 +50,8 @@ export function checkFile(file: { type: string; size: number }): AvatarProblem |
   return null;
 }
 
-export function describeProblem(problem: AvatarProblem): string {
-  switch (problem) {
-    case "type":
-      return "That has to be a JPEG, PNG or WebP.";
-    case "too-big":
-      return "That image is too large. Try one under 10MB.";
-    case "decode":
-      return "That file could not be read as an image.";
-    case "encode":
-      return "That image could not be resized. Try a different one.";
-  }
-}
+// What each problem SAYS lives in the message catalogue, keyed by the
+// problem — this module runs in the browser but knows nothing about locales.
 
 /**
  * The square crop, as source-pixel coordinates.

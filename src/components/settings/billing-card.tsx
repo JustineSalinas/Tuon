@@ -6,6 +6,7 @@ import { AlertTriangle, Check, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { useQuota } from "@/components/app/quota-indicator";
 import {
   GENERATION_EXPLAINER,
@@ -37,6 +38,7 @@ import { cn } from "@/lib/utils";
  * generation is refused.
  */
 export function BillingCard({ profile }: { profile: UserProfile }) {
+  const { t } = useI18n();
   const quota = useQuota();
   const access = effectiveAccess(readPlanState(profile));
   const plan = PLANS[access.plan];
@@ -49,10 +51,11 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-medium">{paid ? `Tuón ${plan.name}` : "Free plan"}</h2>
+            <h2 className="font-medium">
+              {paid ? t.billing.planName(plan.name) : t.billing.freePlan}
+            </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {plan.monthlyGenerations} AI study sets per month. Notes, PDF
-              imports, and flashcards you write yourself are always unlimited.
+              {t.billing.included(plan.monthlyGenerations)}
             </p>
           </div>
           <Badge variant={paid ? "default" : "secondary"}>{plan.name}</Badge>
@@ -62,12 +65,13 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
           <div className="border-warning/40 bg-warning/10 flex gap-3 rounded-xl border p-3.5">
             <AlertTriangle className="text-warning mt-0.5 size-4 shrink-0" />
             <div className="text-sm">
-              <p className="font-medium">Your last payment didn&rsquo;t go through.</p>
+              <p className="font-medium">{t.billing.paymentFailed}</p>
               <p className="text-muted-foreground mt-1 leading-relaxed">
-                You keep everything for{" "}
-                {access.graceDaysLeft === 1 ? "one more day" : `${access.graceDaysLeft} more days`}{" "}
-                while you sort it out. Nothing is deleted either way — after
-                that the account just goes back to free limits.
+                {t.billing.graceBody(
+                  access.graceDaysLeft === 1
+                    ? t.billing.graceOneDay
+                    : t.billing.graceDays(access.graceDaysLeft ?? 0),
+                )}
               </p>
             </div>
           </div>
@@ -75,38 +79,41 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
 
         {access.status === "cancelled" && access.expiresAt ? (
           <p className="text-muted-foreground text-sm">
-            Cancelled. You keep {plan.name} until{" "}
-            {access.expiresAt.toLocaleDateString("en-PH", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-            .
+            {t.billing.cancelledUntil(
+              plan.name,
+              access.expiresAt.toLocaleDateString(t.common.dateLocale, {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }),
+            )}
           </p>
         ) : access.status === "active" && access.expiresAt ? (
           <p className="text-muted-foreground text-sm">
-            Renews{" "}
-            {access.expiresAt.toLocaleDateString("en-PH", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-            .
+            {t.billing.renews(
+              access.expiresAt.toLocaleDateString(t.common.dateLocale, {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }),
+            )}
           </p>
         ) : null}
 
         {quota ? (
           <div>
             <div className="flex items-baseline justify-between text-sm">
-              <span className="text-muted-foreground">Used this month</span>
+              <span className="text-muted-foreground">{t.billing.usedThisMonth}</span>
               <span className="tabular-nums">
                 {quota.used}/{quota.limit}
               </span>
             </div>
             <Progress value={(quota.used / quota.limit) * 100} className="mt-2 h-1.5" />
             <p className="text-muted-foreground mt-2 text-xs">
-              One study set is {GENERATION_EXPLAINER}. Resets{" "}
-              {formatResetDate(quota.resetsAt)}.
+              {t.billing.resets(
+                GENERATION_EXPLAINER,
+                formatResetDate(quota.resetsAt),
+              )}
             </p>
           </div>
         ) : null}
@@ -124,6 +131,7 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
 
 function UpgradePicker() {
   const { authedFetch } = useAuth();
+  const { t } = useI18n();
   const [period, setPeriod] = useState<BillingPeriod>("annual");
   const [pending, setPending] = useState<Plan | null>(null);
 
@@ -143,8 +151,8 @@ function UpgradePicker() {
         // failure the student caused — say which it is.
         throw new Error(
           body?.code === "BILLING_NOT_CONFIGURED"
-            ? "Payments aren't live yet. Hang tight — your free plan keeps working."
-            : (body?.error ?? "Could not start checkout."),
+            ? t.billing.notLive
+            : (body?.error ?? t.billing.checkoutFailed),
         );
       }
 
@@ -153,7 +161,9 @@ function UpgradePicker() {
       // exactly what it is for.
       window.location.assign(body.url);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not start checkout.");
+      toast.error(
+        error instanceof Error ? error.message : t.billing.checkoutFailed,
+      );
       setPending(null);
     }
   }
@@ -164,7 +174,7 @@ function UpgradePicker() {
     <div>
       <div className="flex items-center gap-2">
         <Sparkles className="text-primary size-4" />
-        <span className="font-medium">Upgrade</span>
+        <span className="font-medium">{t.billing.upgrade}</span>
         <div className="bg-secondary ml-auto flex rounded-full p-0.5 text-xs">
           {(["monthly", "annual"] as const).map((option) => (
             <button
@@ -179,7 +189,7 @@ function UpgradePicker() {
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {option === "annual" ? "Yearly" : "Monthly"}
+              {option === "annual" ? t.billing.yearly : t.billing.monthly}
             </button>
           ))}
         </div>
@@ -187,7 +197,7 @@ function UpgradePicker() {
 
       {period === "annual" ? (
         <p className="text-muted-foreground mt-2 text-xs">
-          Pay for {12 - annualFreeMonths(UPGRADE_TARGET)} months, get 12.
+          {t.billing.annualDeal(12 - annualFreeMonths(UPGRADE_TARGET))}
         </p>
       ) : null}
 
@@ -208,15 +218,17 @@ function UpgradePicker() {
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">{definition.name}</span>
                 <span className="font-display text-lg font-semibold tabular-nums">
-                  ₱{price?.toLocaleString("en-PH")}
+                  ₱{price?.toLocaleString(t.common.dateLocale)}
                   <span className="text-muted-foreground text-xs font-normal">
-                    /{period === "annual" ? "yr" : "mo"}
+                    /{period === "annual" ? t.billing.perYear : t.billing.perMonth}
                   </span>
                 </span>
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">{definition.tagline}</p>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {t.plans[id].tagline}
+              </p>
               <ul className="mt-3 space-y-1">
-                {definition.features.slice(0, 3).map((feature) => (
+                {t.plans[id].features.slice(0, 3).map((feature) => (
                   <li key={feature} className="flex gap-2 text-sm">
                     <Check className="text-primary mt-0.5 size-3.5 shrink-0" />
                     <span>{feature}</span>
@@ -230,7 +242,7 @@ function UpgradePicker() {
                 disabled={pending !== null}
               >
                 {pending === id ? <Loader2 className="animate-spin" /> : null}
-                Choose {definition.name}
+                {t.billing.choose(definition.name)}
               </Button>
             </div>
           );
@@ -238,8 +250,7 @@ function UpgradePicker() {
       </div>
 
       <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-        Pay with GCash, Maya, or a card. You can cancel any time — nothing you
-        have written is ever deleted when a plan ends.
+        {t.billing.payWith}
       </p>
     </div>
   );
@@ -247,6 +258,7 @@ function UpgradePicker() {
 
 /** Feedback after PayMongo redirects back. */
 function CheckoutResultBanner() {
+  const { t } = useI18n();
   const params = useSearchParams();
   const result = params.get("checkout");
   if (result !== "success" && result !== "cancelled") return null;
@@ -262,13 +274,10 @@ function CheckoutResultBanner() {
         // Careful wording: the redirect proves nothing. Only the webhook can
         // say the payment cleared, and it may land a second or two later.
         <p>
-          <strong>Thanks — we&rsquo;re confirming your payment.</strong> Your plan
-          updates here as soon as it clears, usually within a few seconds.
+          <strong>{t.billing.confirmingTitle}</strong> {t.billing.confirmingBody}
         </p>
       ) : (
-        <p className="text-muted-foreground">
-          Checkout cancelled. Nothing was charged.
-        </p>
+        <p className="text-muted-foreground">{t.billing.checkoutCancelled}</p>
       )}
     </div>
   );

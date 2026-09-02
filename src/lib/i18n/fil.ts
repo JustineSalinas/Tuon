@@ -559,6 +559,311 @@ export const fil: Messages = {
     },
   },
 
+  settingsPage: {
+    profile: "Profile",
+    displayName: "Pangalang ipapakita",
+    school: "Eskwelahan",
+    schoolPlaceholder: "Pangalan ng eskwelahan mo",
+    schoolNote: "Opsyonal. Ikaw lang ang nakakakita nito.",
+    educationLevel: "Antas ng pag-aaral",
+    strandNote:
+      "Ang pagpapalit ng strand mo ay nagpapalit ng mga subject na inaalok. Mananatili sa mga nota at study set mo ang tag na meron na sila — walang mare-retag o mabubura.",
+    change: "Palitan",
+    subjects: "Mga subject",
+    course: "Kurso",
+    fromCurrentTerm: "Galing ang mga subject mo sa term na minarkahan mong kasalukuyan.",
+    editUnderSemesters: "I-edit ang mga ito sa Semesters",
+    addAnotherSubject: "Magdagdag pa ng subject",
+    addYourOwnCourse: "Idagdag ang sarili mong kurso",
+    removeChip: (name: string) => `Alisin ang ${name}`,
+    saveChanges: "I-save ang mga pagbabago",
+    saved: "Na-save ang settings.",
+    saveFailed: "Hindi ma-save ang settings mo.",
+    levelUpdated: "Na-update ang antas ng pag-aaral.",
+    changeFailed: "Hindi ma-save ang pagbabagong iyon.",
+    removeElsewhere: (subject: string) =>
+      `Para alisin ang ${subject}, gamitin ang “Mga subject mo” sa ibaba.`,
+    removeElsewhereWhy:
+      "Inilipat muna nito ang mga nota at kard mo, para walang maiwan.",
+    signedIn: "Naka-sign in",
+  },
+
+  picture: {
+    title: "Larawan",
+    hint: "Nakikita mo, at ng sinumang kasama mo sa study group. Nire-resize sa device mo bago i-save, kaya hindi ka gagastos ng data sa larawang galing mismo sa telepono mo.",
+    updated: "Na-update ang larawan.",
+    saveFailed: "Hindi ma-save ang larawang iyon.",
+    removeFailed: "Hindi maalis ang larawang iyon.",
+    type: "Kailangang JPEG, PNG o WebP iyon.",
+    tooBig: "Masyadong malaki ang larawang iyon. Subukan ang mas mababa sa 10MB.",
+    decode: "Hindi mabasa ang file na iyon bilang larawan.",
+    encode: "Hindi ma-resize ang larawang iyon. Subukan ang iba.",
+  },
+
+  semesters: {
+    title: "Mga semester",
+    firstRun:
+      "Sa ngayon ay isang listahan lang ang mga subject mo. Hatiin sa mga term at ipapakita ng Tuón ang kinukuha mo ngayon, habang nananatili sa kinalalagyan nila ang mga nota at kard noong nakaraang term.",
+    setUp: "I-set up ang mga semester",
+    hint: "Ang term na minarkahan mong kasalukuyan ang magdedesisyon kung anong subject ang lalabas kapag nag-tag ka ng nota o study set. Napapanatili ng mga lumang term ang lahat ng nasa kanila.",
+    addSemester: "Magdagdag ng semester",
+    atMost: (count: number) => `${count} semester ang pinakamarami na itinatago ng Tuón.`,
+    termFull: (count: number) => `May ${count} subject na ang term na iyon.`,
+    current: "Kasalukuyan",
+    makeCurrent: "Gawing kasalukuyan",
+    deleteTerm: (name: string) => `Burahin ang ${name}`,
+    noSubjectsYet: "Wala pang subject.",
+    addASubject: "Magdagdag ng subject",
+    addSubjectTo: (name: string) => `Magdagdag ng subject sa ${name}`,
+    removeSubject: (name: string) => `Alisin ang ${name}`,
+    removalNote:
+      "Ang pag-alis ng subject dito ay tinatanggal lang ito sa listahan ng term na ito. Hindi magagalaw ang mga nota at study set na naka-tag dito.",
+    ordinal: (index: number) => `Ika-${index + 1} Semester`,
+  },
+
+  manageSubjects: {
+    title: "Mga subject mo",
+    titleOne: "Subject mo",
+    hint: "Kung ano ang laman ng bawat isa, at kung paano tanggalin ang isa nang hindi ito nawawala. Ang pag-alis ng subject ay hindi kailanman nagbubura ng nota, kard, o oras na naitala mo.",
+    orphanTitle: "Wala na sa profile mo",
+    orphanHint:
+      "Mga gawaing naka-tag sa subject na wala ka na. Nasa library mo pa rin ang lahat at lumalabas pa rin sa review — hindi lang ito nabibilang sa alinmang subject. Ilipat ito, o alisin ang label.",
+    sortOut: "Ayusin",
+    removeTitle: (subject: string) => `Alisin ang ${subject}?`,
+    nothingTagged: "Walang naka-tag sa subject na ito, kaya walang ililipat.",
+    subjectHolds: (contents: string) => `May ${contents} ang subject na ito.`,
+    nothingDeleted: "Walang mabubura rito.",
+    nothingDeletedBody:
+      "Mananatiling gaya ng dati ang mga nota, kard, review history at naitalang oras mo — ang label lang ang magbabago.",
+    whereShouldItGo: "Saan ito dapat pumunta?",
+    leaveUntagged: "Iwanang walang tag",
+    moveTo: (subject: string) => `Ilipat sa ${subject}`,
+    untaggedWarning:
+      "Lumalabas pa rin sa library mo ang materyal na walang tag at lumalabas pa rin sa review. Hindi lang ito mabibilang sa alinmang subject sa dashboard.",
+    removed: (subject: string) => `Naalis ang ${subject}.`,
+    removedMoved: (subject: string, target: string) =>
+      `Naalis ang ${subject}. Nailipat lahat sa ${target}.`,
+    removedUntagged: (subject: string, count: number) =>
+      `Naalis ang ${subject}. Wala nang tag ang ${count} bagay nito.`,
+    removeFailed: "Hindi maalis ang subject na iyon. Walang nabago.",
+    contents: {
+      notes: (count: number) => `${count} nota`,
+      sets: (count: number) => `${count} study set`,
+      setsWithCards: (sets: number, cards: number) =>
+        `${sets} study set (${cards} kard)`,
+      planItems: (count: number) => `${count} bagay sa linggo mo`,
+      sessions: (count: number) => `${count} naitalang session`,
+      nothing: "wala pa",
+      separator: ", ",
+      lastSeparator: " at ",
+      none: "Walang naka-tag sa subject na ito.",
+    },
+  },
+
+  preferences: {
+    appearanceHint:
+      "Ang dark ay mainit sa mata, hindi itim na itim — para sa pag-review nang ala-una ng umaga nang hindi sumisigaw ang screen.",
+    colourHint:
+      "Hiwalay sa light at dark — pumili ng kulay minsan at susunod ito sa iyo kahit saan ka pumunta.",
+    colourFailed: "Hindi ma-save ang kulay na iyon. Magre-reset ito sa ibang device.",
+    languageHint:
+      "Ang sariling salita ng Tuón. Mananatili ang mga nota at kard mo sa kung anong wika mo isinulat — pati na ang Taglish.",
+    languageFailed: "Hindi ma-save ang wikang iyon.",
+    draftLocale: "Draft — hindi pa nasusuri ng katutubong nagsasalita",
+    timeZoneHint:
+      "Nagdedesisyon kung kailan itinuturing na due ang isang kard ngayong araw. Kapag mali ito, malilipat ang bawat petsa ng review, at walang magmumukhang mali sa screen.",
+    timeZoneSaved: "Na-update ang time zone. Susunod dito ang mga due date mo mula ngayon.",
+    timeZoneFailed: "Hindi ma-save ang time zone mo.",
+    deviceSays: "Sabi ng device na ito, nasa",
+    deviceSaysTail: " ka, na hindi ang pinagbabatayan ng mga review mo.",
+    useThisDevice: "Gamitin ang device na ito",
+    timerHint:
+      "Ang timer sa sidebar. Dalawampu’t limang minuto ang klasikong block at bagay sa marami; kung hindi ito bagay sa iyo, mas mahalaga ang maikling natatapos mo kaysa sa mahabang iniiwan mo.",
+    timerSaved: "Na-update ang timer.",
+    timerFailed: "Hindi ma-save ang mga haba na iyon.",
+    longBreakNote: "Dumarating ang mahabang break pagkatapos ng bawat ikaapat na focus block.",
+    typedRecallHint:
+      "Ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Sinasagot ng pag-type ang tanong bago mo makita. Sa mga sagot lang na kayang i-type, at pinapatawad ang spelling, ayos ng salita at accent.",
+    typedRecallFailed: "Hindi ma-save ang setting na iyon.",
+    dailyGoalHint:
+      "Ginagawang session na kaya mong tapusin ang “i-review lahat”. Naghihintay pa rin sa iyo ang mga kard na lampas dito — walang nilalaktawan.",
+    dailyGoalSaved: "Na-update ang pang-araw-araw na target.",
+    dailyGoalFailed: "Hindi ma-save ang pang-araw-araw na target mo.",
+    cardsUnit: "kard",
+  },
+
+  reminder: {
+    title: "Pang-araw-araw na paalala",
+    hint: "Isang paalala sa isang araw kapag may due kang kard. Bilang ng kard ang tinitingnan, hindi sunod-sunod na araw — hindi kabiguan ang makalimutan ang isang araw tuwing exam.",
+    remindMeAt: "Paalalahanan ako sa",
+    deviceNote:
+      "Galing ang paalala sa device na ito, kaya lalabas lang ito sa araw na binuksan mo ang Tuón. Malaki ang maitutulong ng pag-install nito sa home screen mo.",
+    unsupported: "Hindi makapagpakita ng paalala ang browser na ito.",
+    blocked: "Hinarang ng browser mo ang mga notification. Pwede mo itong payagan sa site settings.",
+    set: (time: string) => `Nakatakda ang paalala sa ${time}.`,
+  },
+
+  examDate: {
+    label: "Petsa ng exam",
+    yourExam: "Ang exam mo",
+    countdown: (subject: string, days: number) =>
+      `${subject} sa loob ng ${days} araw — walang kard na iiskedyul lampas dito.`,
+    passed:
+      "Lumipas na ang petsang iyon. Bumalik na sa normal na iskedyul ang mga review; alisin ang laman ng field o itakda ang susunod.",
+    hint: "Opsyonal. Itakda ito at babalikan ang bawat kard nang hindi bababa sa isang beses bago ang petsa, na humihigpit ang agwat habang papalapit. Kung wala nito, ang kard na alam na alam mo ay pwedeng maiskedyul nang ilang buwan — lampas sa exam.",
+  },
+
+  security: {
+    title: "Account at seguridad",
+    emailAddress: "Email address",
+    verified: "Na-verify",
+    notVerified: "Hindi pa na-verify",
+    resend: "Ipadala ulit",
+    change: "Palitan",
+    newEmail: "Bagong email address",
+    emailPlaceholder: "juan@example.com",
+    currentPassword: "Kasalukuyang password mo",
+    googleReauth: "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
+    emailChangeNote:
+      "Magpapadala muna kami ng link sa bagong address. Magbabago lang ang email mo kapag pinindot mo ito, kaya hindi ka mai-lock out ng isang typo.",
+    sendConfirmation: "Ipadala ang kumpirmasyon",
+    confirmationSent:
+      "Tingnan ang bagong address mo para sa link ng kumpirmasyon. Magbabago ang email mo kapag pinindot mo ito.",
+    verificationFailed: "Hindi maipadala ang email na iyon. Subukan ulit sa loob ng isang minuto.",
+    alreadyVerified: "Na-verify na ang address na ito.",
+    verificationSent: "Naipadala ang verification email. Tingnan ang inbox at spam folder mo.",
+    password: "Password",
+    passwordHint: "Palitan ito kung sa tingin mo ay may ibang nakakaalam nito.",
+    currentPasswordLabel: "Kasalukuyang password",
+    newPassword: "Bagong password",
+    passwordPlaceholder: "Hindi bababa sa 6 na karakter",
+    updatePassword: "I-update ang password",
+    passwordChanged: "Napalitan ang password.",
+    googleOnly:
+      "Nag-sign in ka gamit ang Google, kaya walang password sa Tuón na papalitan. Pamahalaan ito sa Google Account mo.",
+    signOutEverywhere: "Mag-sign out sa lahat ng lugar",
+    signOutEverywhereHint:
+      "Tinatapos ang bawat session, pati ang computer lab na nakalimutan mong sign-outan. Masi-sign out ka rin dito.",
+    signedOutEverywhere: "Naka-sign out na sa lahat. Sini-sign out ka na rin dito.",
+    signOutFailed: "Hindi ma-sign out ang ibang device mo. Subukan ulit.",
+    noEmail: "Walang email address ang account na ito.",
+    error: {
+      wrongPassword: "Mali ang password na iyon.",
+      emailInUse: "May ibang account nang gumagamit ng email address na iyon.",
+      invalidEmail: "Mukhang hindi wastong email address iyon.",
+      weakPassword: "Gumamit ng password na hindi bababa sa 6 na karakter.",
+      recentLogin: "Mag-sign in ulit, tapos subukan muli.",
+      tooManyRequests: "Masyadong maraming pagsubok. Maghintay sandali at subukan ulit.",
+      cancelled: "Kinansela ang pag-sign in.",
+      unknown: "May naging problema.",
+    },
+  },
+
+  data: {
+    title: "Ang datos mo",
+    intro: "Sa iyo ang lahat ng nandito. Tingnan ang",
+    privacyNotice: "Paunawa sa Privacy",
+    introTail: "para sa kung ano ang hawak namin at bakit.",
+    downloadTitle: "I-download ang datos mo",
+    downloadHint: "Profile, nota, study set, at review history bilang isang JSON file.",
+    download: "I-download",
+    downloaded: "Na-download na ang datos mo.",
+    exportFailed: "Nabigo ang export.",
+    deleteTitle: "Burahin ang account mo",
+    deleteHint: "Tinatanggal ang mga nota, study set, at review history mo. Hindi na mababawi.",
+    deleteBody:
+      "Buburahin nito ang profile mo, bawat nota, bawat study set, at ang buong review history mo. Hindi na ito maibabalik, at hindi na mabubuo muli ang progreso mo sa spaced repetition.",
+    downloadFirst: "I-download muna ang datos mo kung gusto mo itong itago.",
+    typeToConfirmBefore: "I-type ang",
+    typeToConfirmAfter: "para kumpirmahin",
+    yourPassword: "Password mo",
+    googleReauth: "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
+    deletePermanently: "Burahin nang tuluyan",
+    deleted: "Nabura na ang account mo at lahat ng datos nito.",
+    deleteFailed: "Hindi mabura ang account mo.",
+  },
+
+  billing: {
+    freePlan: "Libreng plan",
+    planName: (name: string) => `Tuón ${name}`,
+    included: (count: number) =>
+      `${count} AI study set kada buwan. Palaging walang limitasyon ang mga nota, PDF import, at flashcard na ikaw ang gumawa.`,
+    paymentFailed: "Hindi natuloy ang huling bayad mo.",
+    graceOneDay: "isa pang araw",
+    graceDays: (days: number) => `${days} pang araw`,
+    graceBody: (window: string) =>
+      `Mananatili sa iyo ang lahat sa loob ng ${window} habang inaayos mo ito. Walang mabubura sa alinmang paraan — pagkatapos niyon, babalik lang sa libreng limitasyon ang account.`,
+    cancelledUntil: (plan: string, date: string) =>
+      `Kinansela. Sa iyo pa rin ang ${plan} hanggang ${date}.`,
+    renews: (date: string) => `Magre-renew sa ${date}.`,
+    usedThisMonth: "Nagamit ngayong buwan",
+    resets: (explainer: string, date: string) =>
+      `Ang isang study set ay ${explainer}. Magre-reset sa ${date}.`,
+    upgrade: "Mag-upgrade",
+    monthly: "Buwanan",
+    yearly: "Taunan",
+    annualDeal: (months: number) => `Magbayad ng ${months} buwan, makakuha ng 12.`,
+    perYear: "taon",
+    perMonth: "buwan",
+    choose: (plan: string) => `Piliin ang ${plan}`,
+    payWith:
+      "Magbayad gamit ang GCash, Maya, o card. Pwede kang mag-cancel anumang oras — walang naisulat mo ang nabubura kapag natapos ang isang plan.",
+    notLive: "Hindi pa live ang mga bayad. Sandali lang — patuloy na gagana ang libreng plan mo.",
+    checkoutFailed: "Hindi masimulan ang checkout.",
+    confirmingTitle: "Salamat — kinukumpirma namin ang bayad mo.",
+    confirmingBody: "Mag-a-update dito ang plan mo pagkatapos itong ma-clear, kadalasan sa loob ng ilang segundo.",
+    checkoutCancelled: "Kinansela ang checkout. Walang siningil.",
+  },
+
+  plans: {
+    free: {
+      tagline: "Sapat para sa reviewer ng isang subject kada buwan.",
+      features: [
+        "5 AI study set kada buwan",
+        "Walang limitasyong nota, PDF import, at sarili mong flashcard",
+        "Spaced repetition na may typed recall at hint",
+        "May-oras na test mula sa pinakamahina mong kard",
+        "Mga deadline, iskedyul, Pomodoro, at study log",
+        "Pribadong study group kasama ang klase mo",
+        "Mag-import at mag-export ng nota bilang Markdown",
+      ],
+    },
+    plus: {
+      tagline: "Buong course load — anim na subject, dalawang beses sa isang linggo.",
+      features: [
+        "50 AI study set kada buwan",
+        "Mga notang hanggang 60,000 karakter",
+        "I-export ang study set sa Anki, CSV, o PDF",
+        "Retention stats — kung ano ang malilimutan mo na",
+        "Mag-share ng set sa link kasama ang mga blockmate mo",
+        "Lahat ng nasa Free",
+      ],
+    },
+    pro: {
+      tagline: "Para sa finals week, thesis season, at board review.",
+      features: [
+        "120 AI study set kada buwan — mga apat sa isang araw",
+        "Mga notang hanggang 120,000 karakter",
+        "Priority generation — walang paghihintay sa pagitan ng mga set",
+        "Lahat ng nasa Plus",
+      ],
+    },
+  },
+
+  palettes: {
+    terracotta: { label: "Terracotta", hint: "Mainit na luad at cream — ang orihinal" },
+    indigo: { label: "Indigo", hint: "Malamig at tahimik, para sa pag-aaral sa gabi" },
+    forest: {
+      label: "Forest",
+      hint: "Malalim na berde, magaan sa mata sa mahabang session",
+    },
+    plum: { label: "Plum", hint: "Malamlam na lila na may mainit na abo" },
+    slate: {
+      label: "Slate",
+      hint: "Halos walang kulay — walang nakikipagtagisan sa nota mo",
+    },
+  },
+
   settings: {
     title: "Settings",
     studying: "Pag-aaral",

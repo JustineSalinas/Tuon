@@ -14,9 +14,9 @@ import {
   MAX_UPLOAD_BYTES,
   checkFile,
   coverCrop,
-  describeProblem,
   isUsableAvatar,
 } from "../src/lib/profile/avatar.ts";
+import { en } from "../src/lib/i18n/en.ts";
 
 let passed = 0;
 function check(name, fn) {
@@ -55,8 +55,16 @@ check("an enormous file is refused before it is decoded", () => {
 });
 
 check("every problem has something a person can act on", () => {
+  // The words live in the message catalogue now, keyed by the problem this
+  // module reports — so this checks the catalogue answers for every one.
+  const messages = {
+    type: en.picture.type,
+    "too-big": en.picture.tooBig,
+    decode: en.picture.decode,
+    encode: en.picture.encode,
+  };
   for (const problem of ["type", "too-big", "decode", "encode"]) {
-    const message = describeProblem(problem);
+    const message = messages[problem];
     assert.ok(message.length > 10, problem);
     assert.doesNotMatch(message, /error|failed|invalid/i, problem);
   }

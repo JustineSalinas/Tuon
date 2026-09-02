@@ -7,6 +7,8 @@
  */
 import assert from "node:assert/strict";
 
+import { en } from "../src/lib/i18n/en.ts";
+
 import {
   MAX_SEMESTERS,
   MAX_SEMESTER_NAME,
@@ -35,11 +37,13 @@ console.log("\nNaming and ids");
 
 check("semesters are numbered, not dated", () => {
   // "1st Semester 2026-27" spans two calendar years, so a date would be a
-  // guess the student never made.
-  assert.equal(defaultSemesterName(0), "1st Semester");
-  assert.equal(defaultSemesterName(1), "2nd Semester");
-  assert.equal(defaultSemesterName(2), "3rd Semester");
-  assert.equal(defaultSemesterName(3), "4th Semester");
+  // guess the student never made. The ordinal itself is passed in, because
+  // ordinals are one of the things every language does differently.
+  const ordinal = en.semesters.ordinal;
+  assert.equal(defaultSemesterName(0, ordinal), "1st Semester");
+  assert.equal(defaultSemesterName(1, ordinal), "2nd Semester");
+  assert.equal(defaultSemesterName(2, ordinal), "3rd Semester");
+  assert.equal(defaultSemesterName(3, ordinal), "4th Semester");
 });
 
 check("ids are unique across rapid creation", () => {
@@ -139,7 +143,11 @@ console.log("\nNot losing anything");
 
 check("an existing flat subject list becomes semester one", () => {
   // The migration path for every account that predates semesters.
-  const seeded = seedFromCourses(["General Biology 1", "Pre-Calculus"], "s1");
+  const seeded = seedFromCourses(
+    ["General Biology 1", "Pre-Calculus"],
+    en.semesters.ordinal,
+    "s1",
+  );
   assert.equal(seeded.name, "1st Semester");
   assert.deepEqual(seeded.subjects, ["General Biology 1", "Pre-Calculus"]);
 });

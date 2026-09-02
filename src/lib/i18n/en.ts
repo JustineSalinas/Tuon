@@ -562,6 +562,313 @@ export const en = {
     },
   },
 
+  settingsPage: {
+    profile: "Profile",
+    displayName: "Display name",
+    school: "School",
+    schoolPlaceholder: "Your school's name",
+    schoolNote: "Optional. Only you can see this.",
+    educationLevel: "Education level",
+    strandNote:
+      "Changing your strand changes which subjects are offered. Your notes and study sets keep whatever tag they already have — nothing is retagged or deleted.",
+    change: "Change",
+    subjects: "Subjects",
+    course: "Course",
+    fromCurrentTerm: "Your subjects come from the term you have marked as current.",
+    editUnderSemesters: "Edit them under Semesters",
+    addAnotherSubject: "Add another subject",
+    addYourOwnCourse: "Add your own course",
+    removeChip: (name: string) => `Remove ${name}`,
+    saveChanges: "Save changes",
+    saved: "Settings saved.",
+    saveFailed: "Could not save your settings.",
+    levelUpdated: "Education level updated.",
+    changeFailed: "Could not save that change.",
+    removeElsewhere: (subject: string) =>
+      `To remove ${subject}, use “Your subjects” further down.`,
+    removeElsewhereWhy:
+      "It moves your notes and cards somewhere first, so nothing is stranded.",
+    signedIn: "Signed in",
+  },
+
+  picture: {
+    title: "Picture",
+    hint: "Shown to you, and to anyone in a study group with you. Resized on your device before it is saved, so a photo straight off your phone does not cost you data.",
+    updated: "Picture updated.",
+    saveFailed: "Could not save that picture.",
+    removeFailed: "Could not remove that picture.",
+    type: "That has to be a JPEG, PNG or WebP.",
+    tooBig: "That image is too large. Try one under 10MB.",
+    decode: "That file could not be read as an image.",
+    encode: "That image could not be resized. Try a different one.",
+  },
+
+  semesters: {
+    title: "Semesters",
+    firstRun:
+      "Right now your subjects are one flat list. Split them into terms and Tuón shows you the ones you are taking now, while last term’s notes and cards stay exactly where they are.",
+    setUp: "Set up semesters",
+    hint: "The term you mark as current decides which subjects appear when you tag a note or a study set. Older terms keep everything in them.",
+    addSemester: "Add a semester",
+    atMost: (count: number) => `${count} semesters is the most Tuón keeps.`,
+    termFull: (count: number) => `That term already has ${count} subjects.`,
+    current: "Current",
+    makeCurrent: "Make current",
+    deleteTerm: (name: string) => `Delete ${name}`,
+    noSubjectsYet: "No subjects yet.",
+    addASubject: "Add a subject",
+    addSubjectTo: (name: string) => `Add a subject to ${name}`,
+    removeSubject: (name: string) => `Remove ${name}`,
+    removalNote:
+      "Removing a subject here only takes it off this term’s list. Notes and study sets tagged with it are untouched.",
+    ordinal: (index: number) => {
+      const names = ["1st", "2nd", "3rd"];
+      return `${names[index] ?? `${index + 1}th`} Semester`;
+    },
+  },
+
+  manageSubjects: {
+    title: "Your subjects",
+    titleOne: "Your subject",
+    hint: "What each one holds, and how to remove one without losing it. Removing a subject never deletes a note, a card, or an hour you logged.",
+    orphanTitle: "Not on your profile any more",
+    orphanHint:
+      "Work tagged with a subject you no longer have. It is all still in your library and still comes up for review — it just is not counted under any subject. Move it somewhere, or clear the label.",
+    sortOut: "Sort out",
+    removeTitle: (subject: string) => `Remove ${subject}?`,
+    nothingTagged: "Nothing is tagged with this subject, so there is nothing to move.",
+    subjectHolds: (contents: string) => `This subject has ${contents}.`,
+    nothingDeleted: "None of it is deleted.",
+    nothingDeletedBody:
+      "Your notes, cards, review history and logged hours all stay exactly as they are — only the label on them changes.",
+    whereShouldItGo: "Where should it go?",
+    leaveUntagged: "Leave it untagged",
+    moveTo: (subject: string) => `Move to ${subject}`,
+    untaggedWarning:
+      "Untagged material still appears in your library and still comes up for review. It just will not be counted under any subject on the dashboard.",
+    removed: (subject: string) => `${subject} removed.`,
+    removedMoved: (subject: string, target: string) =>
+      `${subject} removed. Everything moved to ${target}.`,
+    removedUntagged: (subject: string, count: number) =>
+      `${subject} removed. Its ${count === 1 ? "item is" : "items are"} now untagged.`,
+    removeFailed: "Could not remove that subject. Nothing was changed.",
+    contents: {
+      notes: (count: number) => `${count} ${count === 1 ? "note" : "notes"}`,
+      sets: (count: number) => `${count} study ${count === 1 ? "set" : "sets"}`,
+      setsWithCards: (sets: number, cards: number) =>
+        `${sets} study ${sets === 1 ? "set" : "sets"} (${cards} cards)`,
+      planItems: (count: number) => `${count} ${count === 1 ? "item" : "items"} in your week`,
+      sessions: (count: number) =>
+        `${count} logged ${count === 1 ? "session" : "sessions"}`,
+      nothing: "nothing yet",
+      /** Joins a list of the above: "a, b and c". */
+      separator: ", ",
+      lastSeparator: " and ",
+      none: "Nothing is tagged with this subject.",
+    },
+  },
+
+  preferences: {
+    appearanceHint:
+      "Dark is warm rather than black — it is meant for reviewing at 1am without the screen shouting at you.",
+    colourHint:
+      "Separate from light and dark — pick a colour once and it follows you into whichever one you are in.",
+    colourFailed: "Could not save that colour. It will reset on another device.",
+    languageHint:
+      "Tuón’s own words. Your notes and cards stay in whatever language you wrote them — including Taglish.",
+    languageFailed: "Could not save that language.",
+    draftLocale: "Draft — not checked by a native speaker yet",
+    timeZoneHint:
+      "Decides when a card counts as due today. Getting this wrong shifts every review date, and nothing on screen would look wrong.",
+    timeZoneSaved: "Time zone updated. Your due dates follow it from now on.",
+    timeZoneFailed: "Could not save your time zone.",
+    deviceSays: "This device says you are in",
+    deviceSaysTail: ", which is not what your reviews are scheduled against.",
+    useThisDevice: "Use this device",
+    timerHint:
+      "The timer in the sidebar. Twenty-five minutes is the classic block and suits plenty of people; if it does not suit you, a shorter one you actually finish is worth more than a long one you abandon.",
+    timerSaved: "Timer updated.",
+    timerFailed: "Could not save those lengths.",
+    longBreakNote: "The long break comes after every fourth focus block.",
+    typedRecallHint:
+      "Reading the back and thinking “yeah, I knew that” is not the same as remembering it. Typing settles the question before you see it. Only on answers short enough to type, and spelling, word order and accents are all forgiven.",
+    typedRecallFailed: "Could not save that setting.",
+    dailyGoalHint:
+      "Turns “review everything” into a session you can actually finish. Cards past this still wait for you — nothing is skipped.",
+    dailyGoalSaved: "Daily goal updated.",
+    dailyGoalFailed: "Could not save your daily goal.",
+    cardsUnit: "cards",
+  },
+
+  reminder: {
+    title: "Daily reminder",
+    hint: "One nudge a day when you have cards due. It counts cards, not days in a row — missing a day during exams is not a failure.",
+    remindMeAt: "Remind me at",
+    deviceNote:
+      "The reminder comes from this device, so it can only appear on a day you open Tuón. Installing it to your home screen makes that far more likely.",
+    unsupported: "This browser cannot show reminders.",
+    blocked: "Your browser blocked notifications. You can allow them in site settings.",
+    set: (time: string) => `Reminder set for ${time}.`,
+  },
+
+  examDate: {
+    label: "Exam date",
+    yourExam: "Your exam",
+    countdown: (subject: string, days: number) =>
+      `${subject} in ${days} ${days === 1 ? "day" : "days"} — no card will be scheduled past it.`,
+    passed:
+      "That date has passed. Reviews are back on the normal schedule; clear the field or set the next one.",
+    hint: "Optional. Set it and every card is brought back at least once before the date, with the gaps tightening as it approaches. Without it, a card you know well can be scheduled months out — past the exam.",
+  },
+
+  security: {
+    title: "Account & security",
+    emailAddress: "Email address",
+    verified: "Verified",
+    notVerified: "Not verified",
+    resend: "Resend",
+    change: "Change",
+    newEmail: "New email address",
+    emailPlaceholder: "juan@example.com",
+    currentPassword: "Your current password",
+    googleReauth: "You’ll be asked to sign in with Google once more to confirm.",
+    emailChangeNote:
+      "We send a link to the new address first. Your email only changes once you click it, so a typo cannot lock you out.",
+    sendConfirmation: "Send confirmation",
+    confirmationSent:
+      "Check your new address for a confirmation link. Your email changes once you click it.",
+    verificationFailed: "Could not send that email. Please try again in a minute.",
+    alreadyVerified: "This address is already verified.",
+    verificationSent: "Verification email sent. Check your inbox and spam folder.",
+    password: "Password",
+    passwordHint: "Change it if you think someone else knows it.",
+    currentPasswordLabel: "Current password",
+    newPassword: "New password",
+    passwordPlaceholder: "At least 6 characters",
+    updatePassword: "Update password",
+    passwordChanged: "Password changed.",
+    googleOnly:
+      "You sign in with Google, so there is no Tuón password to change. Manage it in your Google Account.",
+    signOutEverywhere: "Sign out everywhere",
+    signOutEverywhereHint:
+      "Ends every session, including any computer lab you forgot to sign out of. You will be signed out here too.",
+    signedOutEverywhere: "Signed out everywhere. Signing you out here too.",
+    signOutFailed: "Could not sign out your other devices. Please try again.",
+    noEmail: "This account has no email address.",
+    error: {
+      wrongPassword: "That password is not correct.",
+      emailInUse: "Another account already uses that email address.",
+      invalidEmail: "That does not look like a valid email address.",
+      weakPassword: "Please use a password of at least 6 characters.",
+      recentLogin: "Please sign in again, then retry.",
+      tooManyRequests: "Too many attempts. Please wait a moment and try again.",
+      cancelled: "Sign-in was cancelled.",
+      unknown: "Something went wrong.",
+    },
+  },
+
+  data: {
+    title: "Your data",
+    intro: "Everything here is yours. See the",
+    privacyNotice: "Privacy Notice",
+    introTail: "for what we hold and why.",
+    downloadTitle: "Download your data",
+    downloadHint: "Profile, notes, study sets, and review history as one JSON file.",
+    download: "Download",
+    downloaded: "Your data has been downloaded.",
+    exportFailed: "Export failed.",
+    deleteTitle: "Delete your account",
+    deleteHint: "Removes your notes, study sets, and review history. Not reversible.",
+    deleteBody:
+      "This deletes your profile, every note, every study set, and your whole review history. It cannot be undone, and your spaced repetition progress cannot be rebuilt.",
+    downloadFirst: "Download your data first if you want to keep it.",
+    typeToConfirmBefore: "Type",
+    typeToConfirmAfter: "to confirm",
+    yourPassword: "Your password",
+    googleReauth: "You will be asked to sign in with Google once more to confirm.",
+    deletePermanently: "Delete permanently",
+    deleted: "Your account and all of its data have been deleted.",
+    deleteFailed: "Could not delete your account.",
+  },
+
+  billing: {
+    freePlan: "Free plan",
+    planName: (name: string) => `Tuón ${name}`,
+    included: (count: number) =>
+      `${count} AI study sets per month. Notes, PDF imports, and flashcards you write yourself are always unlimited.`,
+    paymentFailed: "Your last payment didn’t go through.",
+    graceOneDay: "one more day",
+    graceDays: (days: number) => `${days} more days`,
+    graceBody: (window: string) =>
+      `You keep everything for ${window} while you sort it out. Nothing is deleted either way — after that the account just goes back to free limits.`,
+    cancelledUntil: (plan: string, date: string) =>
+      `Cancelled. You keep ${plan} until ${date}.`,
+    renews: (date: string) => `Renews ${date}.`,
+    usedThisMonth: "Used this month",
+    resets: (explainer: string, date: string) =>
+      `One study set is ${explainer}. Resets ${date}.`,
+    upgrade: "Upgrade",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    annualDeal: (months: number) => `Pay for ${months} months, get 12.`,
+    perYear: "yr",
+    perMonth: "mo",
+    choose: (plan: string) => `Choose ${plan}`,
+    payWith:
+      "Pay with GCash, Maya, or a card. You can cancel any time — nothing you have written is ever deleted when a plan ends.",
+    notLive: "Payments aren’t live yet. Hang tight — your free plan keeps working.",
+    checkoutFailed: "Could not start checkout.",
+    confirmingTitle: "Thanks — we’re confirming your payment.",
+    confirmingBody: "Your plan updates here as soon as it clears, usually within a few seconds.",
+    checkoutCancelled: "Checkout cancelled. Nothing was charged.",
+  },
+
+  plans: {
+    free: {
+      tagline: "Enough for one subject's reviewers each month.",
+      features: [
+        "5 AI study sets a month",
+        "Unlimited notes, PDF imports, and your own flashcards",
+        "Spaced repetition with typed recall and hints",
+        "Timed tests drawn from your weakest cards",
+        "Deadlines, timetable, Pomodoro, and a study log",
+        "Private study groups with your class",
+        "Import and export your notes as Markdown",
+      ],
+    },
+    plus: {
+      tagline: "A full course load — six subjects, twice a week.",
+      features: [
+        "50 AI study sets a month",
+        "Notes up to 60,000 characters",
+        "Export study sets to Anki, CSV, or PDF",
+        "Retention stats — what you're about to forget",
+        "Share a set by link with your blockmates",
+        "Everything in Free",
+      ],
+    },
+    pro: {
+      tagline: "For finals week, thesis season, and board review.",
+      features: [
+        "120 AI study sets a month — about four a day",
+        "Notes up to 120,000 characters",
+        "Priority generation — no waiting between sets",
+        "Everything in Plus",
+      ],
+    },
+  },
+
+  palettes: {
+    terracotta: { label: "Terracotta", hint: "Warm clay and cream — the original" },
+    indigo: { label: "Indigo", hint: "Cool and quiet, for studying at night" },
+    forest: { label: "Forest", hint: "Deep green, easy on the eyes for long sessions" },
+    plum: { label: "Plum", hint: "Muted purple with a warm grey" },
+    slate: {
+      label: "Slate",
+      hint: "Almost no colour at all — nothing competes with your notes",
+    },
+  },
+
   settings: {
     title: "Settings",
     studying: "Studying",

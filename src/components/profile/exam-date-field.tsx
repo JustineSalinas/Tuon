@@ -2,6 +2,7 @@
 
 import { CalendarClock } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,9 +29,10 @@ export function ExamDateField({
   examName?: string | null;
   id?: string;
 }) {
+  const { t } = useI18n();
   const parsed = parseExamDate(value);
   const left = parsed ? daysUntil(parsed) : null;
-  const subject = examName?.trim() || "Your exam";
+  const subject = examName?.trim() || t.examDate.yourExam;
 
   // Today in the user's own timezone, so the picker cannot offer yesterday.
   const now = new Date();
@@ -42,7 +44,7 @@ export function ExamDateField({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>Exam date</Label>
+      <Label htmlFor={id}>{t.examDate.label}</Label>
       <Input
         id={id}
         type="date"
@@ -54,19 +56,15 @@ export function ExamDateField({
       {left !== null && left > 0 ? (
         <p className="text-primary flex items-center gap-1.5 text-sm font-medium">
           <CalendarClock className="size-4 shrink-0" />
-          {subject} in {left} {left === 1 ? "day" : "days"} — no card will be
-          scheduled past it.
+          {t.examDate.countdown(subject, left)}
         </p>
       ) : left !== null ? (
         <p className="text-muted-foreground text-sm">
-          That date has passed. Reviews are back on the normal schedule; clear
-          the field or set the next one.
+          {t.examDate.passed}
         </p>
       ) : (
         <p className="text-muted-foreground text-sm leading-relaxed">
-          Optional. Set it and every card is brought back at least once before
-          the date, with the gaps tightening as it approaches. Without it, a
-          card you know well can be scheduled months out — past the exam.
+          {t.examDate.hint}
         </p>
       )}
     </div>

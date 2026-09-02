@@ -23,6 +23,8 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import { renderContents } from "@/lib/i18n/format";
 import {
   useNotes,
   usePlanItems,
@@ -31,7 +33,7 @@ import {
 } from "@/lib/hooks/use-firestore";
 import {
   chunk,
-  describeContents,
+  contentParts,
   planRetag,
   summariseSubject,
   type SubjectContents,
@@ -50,6 +52,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function ManageSubjects({ courses }: { courses: string[] }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { data: notes, loading: notesLoading } = useNotes(user?.uid);
   const { data: sets, loading: setsLoading } = useStudySets(user?.uid);
   const { items: planItems, loading: planLoading } = usePlanItems(user?.uid);
@@ -92,12 +95,11 @@ export function ManageSubjects({ courses }: { courses: string[] }) {
       <div className="flex items-center gap-2">
         <Tags className="text-muted-foreground size-4" />
         <h2 className="font-display text-lg font-semibold tracking-tight">
-          {courses.length === 1 ? "Your subject" : "Your subjects"}
+          {courses.length === 1 ? t.manageSubjects.titleOne : t.manageSubjects.title}
         </h2>
       </div>
       <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-        What each one holds, and how to remove one without losing it. Removing a
-        subject never deletes a note, a card, or an hour you logged.
+        {t.manageSubjects.hint}
       </p>
 
       {loading ? (
@@ -111,7 +113,7 @@ export function ManageSubjects({ courses }: { courses: string[] }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{subject}</p>
                   <p className="text-muted-foreground mt-0.5 text-xs">
-                    {describeContents(summary)}
+                    {renderContents(contentParts(summary), t)}
                   </p>
                 </div>
                 <Button
@@ -121,7 +123,7 @@ export function ManageSubjects({ courses }: { courses: string[] }) {
                   className="text-muted-foreground hover:text-destructive shrink-0"
                 >
                   <Trash2 />
-                  Remove
+                  {t.common.remove}
                 </Button>
               </li>
             );
@@ -131,11 +133,9 @@ export function ManageSubjects({ courses }: { courses: string[] }) {
 
       {!loading && orphans.length > 0 ? (
         <div className="mt-6">
-          <h3 className="text-sm font-medium">Not on your profile any more</h3>
+          <h3 className="text-sm font-medium">{t.manageSubjects.orphanTitle}</h3>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            Work tagged with a subject you no longer have. It is all still in
-            your library and still comes up for review — it just is not counted
-            under any subject. Move it somewhere, or clear the label.
+            {t.manageSubjects.orphanHint}
           </p>
           <ul className="mt-3 divide-y rounded-xl border border-dashed">
             {orphans.map((subject) => (
@@ -143,11 +143,11 @@ export function ManageSubjects({ courses }: { courses: string[] }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{subject}</p>
                   <p className="text-muted-foreground mt-0.5 text-xs">
-                    {describeContents(summariseSubject(contents, subject))}
+                    {renderContents(contentParts(summariseSubject(contents, subject)), t)}
                   </p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setRemoving(subject)}>
-                  Sort out
+                  {t.manageSubjects.sortOut}
                 </Button>
               </li>
             ))}
@@ -179,6 +179,7 @@ function RemoveDialog({
   onClose: () => void;
 }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const summary = useMemo(() => summariseSubject(contents, subject), [contents, subject]);
   const others = courses.filter((c) => c !== subject);
 
@@ -222,14 +223,14 @@ function RemoveDialog({
 
       toast.success(
         plan.total === 0
-          ? `${subject} removed.`
+          ? t.manageSubjects.removed(subject)
           : target
-            ? `${subject} removed. Everything moved to ${target}.`
-            : `${subject} removed. Its ${plan.total === 1 ? "item is" : "items are"} now untagged.`,
+            ? t.manageSubjects.removedMoved(subject, target)
+            : t.manageSubjects.removedUntagged(subject, plan.total),
       );
       onClose();
     } catch {
-      toast.error("Could not remove that subject. Nothing was changed.");
+      toast.error(t.manageSubjects.removeFailed);
       setWorking(false);
     }
   }
@@ -238,11 +239,13 @@ function RemoveDialog({
     <Dialog open onOpenChange={(open) => (open ? null : onClose())}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remove {subject}?</DialogTitle>
+          <DialogTitle>{t.manageSubjects.removeTitle(subject)}</DialogTitle>
           <DialogDescription>
             {summary.isEmpty
-              ? "Nothing is tagged with this subject, so there is nothing to move."
-              : `This subject has ${describeContents(summary)}.`}
+              ? t.manageSubjects.nothingTagged
+              : t.manageSubjects.subjectHolds(
+                  renderContents(contentParts(summary), t),
+                )}
           </DialogDescription>
         </DialogHeader>
 
@@ -250,15 +253,14 @@ function RemoveDialog({
           <div className="space-y-3">
             <div className="border-primary/30 bg-accent/40 rounded-xl border p-3">
               <p className="text-sm leading-relaxed">
-                <strong>None of it is deleted.</strong> Your notes, cards,
-                review history and logged hours all stay exactly as they are —
-                only the label on them changes.
+                <strong>{t.manageSubjects.nothingDeleted}</strong>{" "}
+                {t.manageSubjects.nothingDeletedBody}
               </p>
             </div>
 
             <div>
               <label htmlFor="move-to" className="text-sm font-medium">
-                Where should it go?
+                {t.manageSubjects.whereShouldItGo}
               </label>
               <select
                 id="move-to"
@@ -266,19 +268,17 @@ function RemoveDialog({
                 onChange={(e) => setMoveTo(e.target.value)}
                 className="border-input bg-background focus-visible:ring-ring mt-2 h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-[3px] focus-visible:outline-none"
               >
-                <option value="">Leave it untagged</option>
+                <option value="">{t.manageSubjects.leaveUntagged}</option>
                 {others.map((other) => (
                   <option key={other} value={other}>
-                    Move to {other}
+                    {t.manageSubjects.moveTo(other)}
                   </option>
                 ))}
               </select>
               {moveTo === "" ? (
                 <p className="text-muted-foreground mt-2 flex items-start gap-1.5 text-xs leading-relaxed">
                   <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                  Untagged material still appears in your library and still
-                  comes up for review. It just will not be counted under any
-                  subject on the dashboard.
+                  {t.manageSubjects.untaggedWarning}
                 </p>
               ) : null}
             </div>
@@ -289,13 +289,13 @@ function RemoveDialog({
           <DialogClose
             render={
               <Button variant="ghost" disabled={working}>
-                Cancel
+                {t.common.cancel}
               </Button>
             }
           />
           <Button onClick={confirm} disabled={working}>
             {working ? <Loader2 className="animate-spin" /> : null}
-            Remove {subject}
+            {t.settingsPage.removeChip(subject)}
           </Button>
         </DialogFooter>
       </DialogContent>

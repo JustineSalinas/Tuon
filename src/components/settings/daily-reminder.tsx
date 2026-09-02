@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import {
   DEFAULT_REMINDER_TIME,
   reminderEnabled,
@@ -25,6 +26,8 @@ import { Input } from "@/components/ui/input";
  * costs trust the first time someone notices.
  */
 export function DailyReminder() {
+  const { t } = useI18n();
+
   // Read once on mount rather than during render — localStorage is not
   // available on the server and would break hydration.
   const [enabled, setEnabled] = useState(() =>
@@ -44,7 +47,7 @@ export function DailyReminder() {
     }
 
     if (permission === "unsupported") {
-      toast.error("This browser cannot show reminders.");
+      toast.error(t.reminder.unsupported);
       return;
     }
 
@@ -55,15 +58,13 @@ export function DailyReminder() {
       granted = (await Notification.requestPermission()) === "granted";
     }
     if (!granted) {
-      toast.error(
-        "Your browser blocked notifications. You can allow them in site settings.",
-      );
+      toast.error(t.reminder.blocked);
       return;
     }
 
     setEnabled(true);
     setReminderEnabled(true);
-    toast.success(`Reminder set for ${time}.`);
+    toast.success(t.reminder.set(time));
   }
 
   function changeTime(next: string) {
@@ -77,11 +78,10 @@ export function DailyReminder() {
         <div className="min-w-0">
           <Label htmlFor="reminder" className="flex items-center gap-2">
             <Bell className="text-muted-foreground size-4" />
-            Daily reminder
+            {t.reminder.title}
           </Label>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            One nudge a day when you have cards due. It counts cards, not days
-            in a row — missing a day during exams is not a failure.
+            {t.reminder.hint}
           </p>
         </div>
         <Switch
@@ -94,7 +94,7 @@ export function DailyReminder() {
       {enabled ? (
         <div className="flex items-center gap-3">
           <Label htmlFor="reminder-time" className="text-sm font-normal">
-            Remind me at
+            {t.reminder.remindMeAt}
           </Label>
           <Input
             id="reminder-time"
@@ -107,9 +107,7 @@ export function DailyReminder() {
       ) : null}
 
       <p className="text-muted-foreground text-xs leading-relaxed">
-        The reminder comes from this device, so it can only appear on a day you
-        open Tuón. Installing it to your home screen makes that far more
-        likely.
+        {t.reminder.deviceNote}
       </p>
     </div>
   );

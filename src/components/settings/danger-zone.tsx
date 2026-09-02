@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -35,15 +36,19 @@ import { Separator } from "@/components/ui/separator";
  * emailing support: portability and erasure.
  */
 export function DataAndAccount() {
+  const { t } = useI18n();
+
   return (
     <section className="mt-8">
-      <h2 className="font-display text-lg font-semibold tracking-tight">Your data</h2>
+      <h2 className="font-display text-lg font-semibold tracking-tight">
+        {t.data.title}
+      </h2>
       <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-        Everything here is yours. See the{" "}
+        {t.data.intro}{" "}
         <Link href="/privacy" className="text-primary underline underline-offset-4">
-          Privacy Notice
+          {t.data.privacyNotice}
         </Link>{" "}
-        for what we hold and why.
+        {t.data.introTail}
       </p>
 
       <div className="mt-4 space-y-4">
@@ -57,6 +62,7 @@ export function DataAndAccount() {
 
 function ExportRow() {
   const { authedFetch } = useAuth();
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
   async function handleExport() {
@@ -67,7 +73,7 @@ function ExportRow() {
         const body = (await response.json().catch(() => null)) as
           | { error?: string }
           | null;
-        throw new Error(body?.error ?? "Export failed.");
+        throw new Error(body?.error ?? t.data.exportFailed);
       }
 
       // The route streams JSON rather than a URL, so the download is built
@@ -80,9 +86,9 @@ function ExportRow() {
       anchor.click();
       URL.revokeObjectURL(url);
 
-      toast.success("Your data has been downloaded.");
+      toast.success(t.data.downloaded);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Export failed.");
+      toast.error(error instanceof Error ? error.message : t.data.exportFailed);
     }
     setBusy(false);
   }
@@ -90,14 +96,12 @@ function ExportRow() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-sm font-medium">Download your data</p>
-        <p className="text-muted-foreground text-sm">
-          Profile, notes, study sets, and review history as one JSON file.
-        </p>
+        <p className="text-sm font-medium">{t.data.downloadTitle}</p>
+        <p className="text-muted-foreground text-sm">{t.data.downloadHint}</p>
       </div>
       <Button variant="outline" onClick={handleExport} disabled={busy}>
         {busy ? <Loader2 className="animate-spin" /> : <Download />}
-        Download
+        {t.data.download}
       </Button>
     </div>
   );
@@ -106,6 +110,7 @@ function ExportRow() {
 function DeleteRow() {
   const router = useRouter();
   const { user, authedFetch, signOut, beginAccountDeletion } = useAuth();
+  const { t } = useI18n();
 
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -126,7 +131,7 @@ function DeleteRow() {
     setError(null);
     try {
       if (usesPassword) {
-        if (!current.email) throw new Error("This account has no email address.");
+        if (!current.email) throw new Error(t.security.noEmail);
         await reauthenticateWithCredential(
           current,
           EmailAuthProvider.credential(current.email, password),
@@ -147,21 +152,21 @@ function DeleteRow() {
         const body = (await response.json().catch(() => null)) as
           | { error?: string }
           | null;
-        throw new Error(body?.error ?? "Could not delete your account.");
+        throw new Error(body?.error ?? t.data.deleteFailed);
       }
 
       // The auth user is gone server-side; clear the local session so the app
       // does not sit on a token for an account that no longer exists.
       await signOut().catch(() => {});
       router.replace("/");
-      toast.success("Your account and all of its data have been deleted.");
+      toast.success(t.data.deleted);
     } catch (err) {
       setError(
         err instanceof Error && err.message.includes("auth/wrong-password")
-          ? "That password is not correct."
+          ? t.security.error.wrongPassword
           : err instanceof Error
             ? err.message
-            : "Could not delete your account.",
+            : t.data.deleteFailed,
       );
       setBusy(false);
     }
@@ -170,10 +175,8 @@ function DeleteRow() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-sm font-medium">Delete your account</p>
-        <p className="text-muted-foreground text-sm">
-          Removes your notes, study sets, and review history. Not reversible.
-        </p>
+        <p className="text-sm font-medium">{t.data.deleteTitle}</p>
+        <p className="text-muted-foreground text-sm">{t.data.deleteHint}</p>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -181,7 +184,7 @@ function DeleteRow() {
           render={
             <Button variant="outline" className="text-destructive border-destructive/40">
               <Trash2 />
-              Delete
+              {t.common.delete}
             </Button>
           }
         />
@@ -189,24 +192,21 @@ function DeleteRow() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="text-destructive size-5" />
-              Delete your account
+              {t.data.deleteTitle}
             </DialogTitle>
-            <DialogDescription>
-              This deletes your profile, every note, every study set, and your
-              whole review history. It cannot be undone, and your spaced
-              repetition progress cannot be rebuilt.
-            </DialogDescription>
+            <DialogDescription>{t.data.deleteBody}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm">
-              Download your data first if you want to keep it.
+              {t.data.downloadFirst}
             </p>
 
             <div className="space-y-2">
               <Label htmlFor="confirm-delete">
-                Type <span className="text-foreground font-medium">DELETE</span> to
-                confirm
+                {t.data.typeToConfirmBefore}{" "}
+                <span className="text-foreground font-medium">DELETE</span>{" "}
+                {t.data.typeToConfirmAfter}
               </Label>
               <Input
                 id="confirm-delete"
@@ -219,7 +219,7 @@ function DeleteRow() {
 
             {usesPassword ? (
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Your password</Label>
+                <Label htmlFor="confirm-password">{t.data.yourPassword}</Label>
                 <PasswordInput
                   id="confirm-password"
                   value={password}
@@ -229,7 +229,7 @@ function DeleteRow() {
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">
-                You will be asked to sign in with Google once more to confirm.
+                {t.data.googleReauth}
               </p>
             )}
 
@@ -240,7 +240,7 @@ function DeleteRow() {
             <DialogClose
               render={
                 <Button variant="ghost" disabled={busy}>
-                  Cancel
+                  {t.common.cancel}
                 </Button>
               }
             />
@@ -252,7 +252,7 @@ function DeleteRow() {
               }
             >
               {busy ? <Loader2 className="animate-spin" /> : <Trash2 />}
-              Delete permanently
+              {t.data.deletePermanently}
             </Button>
           </DialogFooter>
         </DialogContent>

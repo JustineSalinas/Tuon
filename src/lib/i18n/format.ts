@@ -14,6 +14,7 @@
 import type { GroupResult } from "@/lib/groups/client";
 import type { Messages } from "@/lib/i18n/en";
 import { formatDayKey, type DueLabel } from "@/lib/organiser/plan-items";
+import type { ContentPart } from "@/lib/organiser/subject-cleanup";
 
 /**
  * Why a group action failed, in the reader's language.
@@ -28,6 +29,37 @@ export function renderGroupError(result: GroupResult, t: Messages): string {
     return t.groups.error[code as keyof typeof t.groups.error];
   }
   return result.error ?? t.groups.error.unknown;
+}
+
+/**
+ * "1 note, 2 study sets (20 cards) and 3 logged sessions".
+ *
+ * The joining is part of the translation, not part of the data: a language
+ * that puts its "and" somewhere else, or uses a different separator, cannot
+ * be served by a list assembled in a pure module.
+ */
+export function renderContents(parts: ContentPart[], t: Messages): string {
+  const words = t.manageSubjects.contents;
+  const items = parts.map((part) => {
+    switch (part.kind) {
+      case "notes":
+        return words.notes(part.count);
+      case "sets":
+        return part.cards
+          ? words.setsWithCards(part.count, part.cards)
+          : words.sets(part.count);
+      case "planItems":
+        return words.planItems(part.count);
+      case "sessions":
+        return words.sessions(part.count);
+    }
+  });
+
+  if (items.length === 0) return words.none;
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(words.separator)}${words.lastSeparator}${
+    items[items.length - 1]
+  }`;
 }
 
 /** "Today", "In 3 days", "30 Sep". */

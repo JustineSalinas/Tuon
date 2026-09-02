@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { BillingCard } from "@/components/settings/billing-card";
 import { DataAndAccount } from "@/components/settings/danger-zone";
 import { ProfilePicture } from "@/components/settings/profile-picture";
@@ -56,6 +57,7 @@ function SettingsForm({
 }) {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { t } = useI18n();
 
   const [displayName, setDisplayName] = useState(profile.displayName ?? "");
   const [school, setSchool] = useState(profile.school ?? "");
@@ -90,9 +92,9 @@ function SettingsForm({
         examDate: examDate ?? null,
         updatedAt: serverTimestamp(),
       });
-      toast.success("Settings saved.");
+      toast.success(t.settingsPage.saved);
     } catch {
-      toast.error("Could not save your settings.");
+      toast.error(t.settingsPage.saveFailed);
     }
     setSaving(false);
   }
@@ -107,9 +109,9 @@ function SettingsForm({
         updatedAt: serverTimestamp(),
       });
       setEditingLevel(false);
-      toast.success("Education level updated.");
+      toast.success(t.settingsPage.levelUpdated);
     } catch {
-      toast.error("Could not save that change.");
+      toast.error(t.settingsPage.changeFailed);
     }
     setSaving(false);
   }
@@ -121,8 +123,8 @@ function SettingsForm({
     // no way for the student to put it back. Removal now goes through
     // "Your subjects" below, which moves the work first.
     if (courses.includes(course)) {
-      toast.info(`To remove ${course}, use “Your subjects” further down.`, {
-        description: "It moves your notes and cards somewhere first, so nothing is stranded.",
+      toast.info(t.settingsPage.removeElsewhere(course), {
+        description: t.settingsPage.removeElsewhereWhy,
       });
       return;
     }
@@ -146,14 +148,18 @@ function SettingsForm({
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6 md:px-8 md:py-10">
-      <h1 className="font-display text-3xl font-semibold tracking-tight">Settings</h1>
+      <h1 className="font-display text-3xl font-semibold tracking-tight">
+        {t.settings.title}
+      </h1>
 
       {/* Plan */}
       <BillingCard profile={profile} />
 
       {/* Profile */}
       <section className="mt-8">
-        <h2 className="font-display text-lg font-semibold tracking-tight">Profile</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight">
+          {t.settingsPage.profile}
+        </h2>
 
         <div className="mt-4">
           <ProfilePicture />
@@ -161,7 +167,7 @@ function SettingsForm({
 
         <div className="mt-4 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="displayName">Display name</Label>
+            <Label htmlFor="displayName">{t.settingsPage.displayName}</Label>
             <Input
               id="displayName"
               value={displayName}
@@ -171,22 +177,22 @@ function SettingsForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="school">School</Label>
+            <Label htmlFor="school">{t.settingsPage.school}</Label>
             <Input
               id="school"
               value={school}
               onChange={(e) => setSchool(e.target.value)}
-              placeholder="Your school's name"
+              placeholder={t.settingsPage.schoolPlaceholder}
               maxLength={MAX_SCHOOL_LENGTH}
               autoComplete="organization"
             />
             <p className="text-muted-foreground text-xs">
-              Optional. Only you can see this.
+              {t.settingsPage.schoolNote}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label>Education level</Label>
+            <Label>{t.settingsPage.educationLevel}</Label>
             {editingLevel ? (
               <div className="space-y-3 rounded-xl border p-4">
                 <div className="grid gap-2 sm:grid-cols-3">
@@ -219,15 +225,13 @@ function SettingsForm({
                 ) : null}
 
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  Changing your strand changes which subjects are offered. Your
-                  notes and study sets keep whatever tag they already have —
-                  nothing is retagged or deleted.
+                  {t.settingsPage.strandNote}
                 </p>
 
                 <div className="flex gap-2">
                   <Button size="sm" onClick={saveLevel} disabled={!levelValid || saving}>
                     {saving ? <Loader2 className="animate-spin" /> : <Check />}
-                    Save
+                    {t.common.save}
                   </Button>
                   <Button
                     size="sm"
@@ -238,7 +242,7 @@ function SettingsForm({
                       setStrand(profile.strand);
                     }}
                   >
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                 </div>
               </div>
@@ -256,14 +260,14 @@ function SettingsForm({
                   className="ml-auto"
                   onClick={() => setEditingLevel(true)}
                 >
-                  Change
+                  {t.settingsPage.change}
                 </Button>
               </div>
             )}
           </div>
 
           <div className="space-y-3">
-            <Label>{seniorHigh ? "Subjects" : "Course"}</Label>
+            <Label>{seniorHigh ? t.settingsPage.subjects : t.settingsPage.course}</Label>
 
             {/* Once semesters exist they own this list, and two editors on one
                 field is a data-loss path: this form holds its own copy from
@@ -271,12 +275,12 @@ function SettingsForm({
                 previous term's subjects back and silently undo the switch. */}
             {hasSemesters ? (
               <p className="text-muted-foreground rounded-xl border border-dashed px-4 py-3 text-sm leading-relaxed">
-                Your subjects come from the term you have marked as current.{" "}
+                {t.settingsPage.fromCurrentTerm}{" "}
                 <a
                   href="#semesters"
                   className="text-primary underline underline-offset-4"
                 >
-                  Edit them under Semesters
+                  {t.settingsPage.editUnderSemesters}
                 </a>
                 .
               </p>
@@ -329,7 +333,7 @@ function SettingsForm({
                         type="button"
                         onClick={() => toggleCourse(course)}
                         className="hover:bg-foreground/10 rounded-full p-0.5"
-                        aria-label={`Remove ${course}`}
+                        aria-label={t.settingsPage.removeChip(course)}
                       >
                         <X className="size-3" />
                       </button>
@@ -348,7 +352,11 @@ function SettingsForm({
                     addCustom();
                   }
                 }}
-                placeholder={seniorHigh ? "Add another subject" : "Add your own course"}
+                placeholder={
+                  seniorHigh
+                    ? t.settingsPage.addAnotherSubject
+                    : t.settingsPage.addYourOwnCourse
+                }
                 maxLength={80}
               />
               <Button variant="outline" onClick={addCustom} disabled={!customCourse.trim()}>
@@ -371,7 +379,7 @@ function SettingsForm({
 
           <Button onClick={handleSave} disabled={!dirty || saving}>
             {saving ? <Loader2 className="animate-spin" /> : <Check />}
-            Save changes
+            {t.settingsPage.saveChanges}
           </Button>
         </div>
       </section>
@@ -403,11 +411,11 @@ function SettingsForm({
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{email}</p>
-          <p className="text-muted-foreground text-xs">Signed in</p>
+          <p className="text-muted-foreground text-xs">{t.settingsPage.signedIn}</p>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
           <LogOut />
-          Sign out
+          {t.nav.signOut}
         </Button>
       </div>
     </main>

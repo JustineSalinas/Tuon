@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import {
   MAX_DAILY_CARD_GOAL,
   MIN_DAILY_CARD_GOAL,
@@ -53,16 +54,17 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-const THEMES = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
-] as const;
+const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } as const;
+const THEMES = ["light", "dark", "system"] as const;
 
 export function StudyPreferences() {
+  const { t } = useI18n();
+
   return (
     <section className="mt-8">
-      <h2 className="font-display text-lg font-semibold tracking-tight">Studying</h2>
+      <h2 className="font-display text-lg font-semibold tracking-tight">
+        {t.settings.studying}
+      </h2>
 
       <div className="mt-4 space-y-6">
         <ThemeRow />
@@ -86,18 +88,20 @@ export function StudyPreferences() {
 }
 
 function ThemeRow() {
+  const { t } = useI18n();
   const { theme, setTheme } = useTheme();
 
   return (
     <div>
-      <p className="text-sm font-medium">Appearance</p>
+      <p className="text-sm font-medium">{t.settings.appearance}</p>
       <p className="text-muted-foreground mt-0.5 text-sm">
-        Dark is warm rather than black — it is meant for reviewing at 1am
-        without the screen shouting at you.
+        {t.preferences.appearanceHint}
       </p>
 
       <div className="mt-3 grid max-w-md grid-cols-3 gap-2">
-        {THEMES.map(({ value, label, icon: Icon }) => (
+        {THEMES.map((value) => {
+          const Icon = THEME_ICONS[value];
+          return (
           <button
             key={value}
             type="button"
@@ -112,9 +116,10 @@ function ThemeRow() {
             )}
           >
             <Icon className="size-4" />
-            {label}
+            {t.settings[value]}
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -134,6 +139,7 @@ function ThemeRow() {
  */
 function PaletteRow() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const current = readPalette(profile?.palette);
   const [saving, setSaving] = useState<PaletteId | null>(null);
 
@@ -147,17 +153,16 @@ function PaletteRow() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not save that colour. It will reset on another device.");
+      toast.error(t.preferences.colourFailed);
     }
     setSaving(null);
   }
 
   return (
     <div>
-      <p className="text-sm font-medium">Colour</p>
+      <p className="text-sm font-medium">{t.settings.colour}</p>
       <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
-        Separate from light and dark — pick a colour once and it follows you
-        into whichever one you are in.
+        {t.preferences.colourHint}
       </p>
 
       <div className="mt-3 grid max-w-md gap-2 sm:grid-cols-2">
@@ -183,9 +188,11 @@ function PaletteRow() {
                 style={{ background: palette.swatch }}
               />
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">{palette.label}</span>
+                <span className="block text-sm font-medium">
+                  {t.palettes[palette.id].label}
+                </span>
                 <span className="text-muted-foreground block text-xs leading-snug">
-                  {palette.hint}
+                  {t.palettes[palette.id].hint}
                 </span>
               </span>
               {saving === palette.id ? (
@@ -213,6 +220,7 @@ function PaletteRow() {
  */
 function LanguageRow() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const current = readLocale(profile?.locale);
   const [saving, setSaving] = useState<LocaleId | null>(null);
 
@@ -229,17 +237,16 @@ function LanguageRow() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not save that language.");
+      toast.error(t.preferences.languageFailed);
     }
     setSaving(null);
   }
 
   return (
     <div>
-      <p className="text-sm font-medium">Language</p>
+      <p className="text-sm font-medium">{t.settings.language}</p>
       <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
-        Tuón&rsquo;s own words. Your notes and cards stay in whatever language
-        you wrote them &mdash; including Taglish.
+        {t.preferences.languageHint}
       </p>
 
       <div className="mt-3 grid max-w-md gap-2 sm:grid-cols-2">
@@ -264,7 +271,7 @@ function LanguageRow() {
                 <span className="block text-sm font-medium">{locale.label}</span>
                 {!ready ? (
                   <span className="text-muted-foreground block text-xs leading-snug">
-                    Draft &mdash; not checked by a native speaker yet
+                    {t.preferences.draftLocale}
                   </span>
                 ) : null}
               </span>
@@ -283,6 +290,7 @@ function LanguageRow() {
 
 function TimeZoneRow() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { timeZone } = usePreferences();
   const [saving, setSaving] = useState(false);
 
@@ -303,9 +311,9 @@ function TimeZoneRow() {
         timeZone: normaliseTimeZone(next),
         updatedAt: serverTimestamp(),
       });
-      toast.success("Time zone updated. Your due dates follow it from now on.");
+      toast.success(t.preferences.timeZoneSaved);
     } catch {
-      toast.error("Could not save your time zone.");
+      toast.error(t.preferences.timeZoneFailed);
     }
     setSaving(false);
   }
@@ -313,12 +321,11 @@ function TimeZoneRow() {
   return (
     <div>
       <div className="flex items-center gap-2">
-        <p className="text-sm font-medium">Time zone</p>
+        <p className="text-sm font-medium">{t.settings.timeZone}</p>
         {saving ? <Loader2 className="text-muted-foreground size-3.5 animate-spin" /> : null}
       </div>
       <p className="text-muted-foreground mt-0.5 text-sm">
-        Decides when a card counts as due today. Getting this wrong shifts every
-        review date, and nothing on screen would look wrong.
+        {t.preferences.timeZoneHint}
       </p>
 
       <div className="mt-3 flex max-w-md flex-wrap items-center gap-2">
@@ -352,8 +359,8 @@ function TimeZoneRow() {
       {mismatched ? (
         <div className="border-warning/40 bg-warning/10 mt-3 flex flex-wrap items-center gap-3 rounded-xl border p-3">
           <p className="min-w-0 flex-1 text-sm">
-            This device says you are in <strong>{detected}</strong>, which is not
-            what your reviews are scheduled against.
+            {t.preferences.deviceSays} <strong>{detected}</strong>
+            {t.preferences.deviceSaysTail}
           </p>
           <Button
             variant="outline"
@@ -362,7 +369,7 @@ function TimeZoneRow() {
             disabled={saving}
           >
             <Wand2 />
-            Use this device
+            {t.preferences.useThisDevice}
           </Button>
         </div>
       ) : null}
@@ -380,6 +387,7 @@ function TimeZoneRow() {
  */
 function TimerRow() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { pomodoro } = usePreferences();
   const [focus, setFocus] = useState(String(pomodoro.focus));
   const [shortBreak, setShortBreak] = useState(String(pomodoro.shortBreak));
@@ -409,9 +417,9 @@ function TimerRow() {
       setFocus(String(next.focus));
       setShortBreak(String(next.shortBreak));
       setLongBreak(String(next.longBreak));
-      toast.success("Timer updated.");
+      toast.success(t.preferences.timerSaved);
     } catch {
-      toast.error("Could not save those lengths.");
+      toast.error(t.preferences.timerFailed);
     }
     setSaving(false);
   }
@@ -445,26 +453,24 @@ function TimerRow() {
     <div id="timer" className="scroll-mt-20">
       <p className="flex items-center gap-2 text-sm font-medium">
         <Timer className="text-muted-foreground size-4" />
-        Focus timer
+        {t.settings.focusTimer}
       </p>
       <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
-        The timer in the sidebar. Twenty-five minutes is the classic block and
-        suits plenty of people; if it does not suit you, a shorter one you
-        actually finish is worth more than a long one you abandon.
+        {t.preferences.timerHint}
       </p>
 
       <div className="mt-3 flex flex-wrap items-end gap-3">
-        {field("pomo-focus", "Focus", focus, setFocus, pomodoro.focus)}
-        {field("pomo-short", "Short break", shortBreak, setShortBreak, pomodoro.shortBreak)}
-        {field("pomo-long", "Long break", longBreak, setLongBreak, pomodoro.longBreak)}
-        <span className="text-muted-foreground pb-2.5 text-sm">minutes</span>
+        {field("pomo-focus", t.timer.focus, focus, setFocus, pomodoro.focus)}
+        {field("pomo-short", t.timer.shortBreak, shortBreak, setShortBreak, pomodoro.shortBreak)}
+        {field("pomo-long", t.timer.longBreak, longBreak, setLongBreak, pomodoro.longBreak)}
+        <span className="text-muted-foreground pb-2.5 text-sm">{t.common.minutes}</span>
         <Button size="sm" className="mb-0.5" onClick={save} disabled={!dirty || saving}>
           {saving ? <Loader2 className="animate-spin" /> : <Check />}
-          Save
+          {t.common.save}
         </Button>
       </div>
       <p className="text-muted-foreground mt-2 text-xs">
-        The long break comes after every fourth focus block.
+        {t.preferences.longBreakNote}
       </p>
     </div>
   );
@@ -472,6 +478,7 @@ function TimerRow() {
 
 function TypedRecallRow() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { typedRecall } = usePreferences();
   const [saving, setSaving] = useState(false);
 
@@ -484,7 +491,7 @@ function TypedRecallRow() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not save that setting.");
+      toast.error(t.preferences.typedRecallFailed);
     }
     setSaving(false);
   }
@@ -494,13 +501,10 @@ function TypedRecallRow() {
       <div className="min-w-0">
         <Label htmlFor="typed-recall" className="flex items-center gap-2">
           <Keyboard className="text-muted-foreground size-4" />
-          Type the answer first
+          {t.settings.typedRecall}
         </Label>
         <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-          Reading the back and thinking &ldquo;yeah, I knew that&rdquo; is not
-          the same as remembering it. Typing settles the question before you
-          see it. Only on answers short enough to type, and spelling, word
-          order and accents are all forgiven.
+          {t.preferences.typedRecallHint}
         </p>
       </div>
       <Switch
@@ -515,6 +519,7 @@ function TypedRecallRow() {
 
 function DailyGoalRow() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { dailyCardGoal } = usePreferences();
   const [value, setValue] = useState(String(dailyCardGoal));
   const [saving, setSaving] = useState(false);
@@ -531,9 +536,9 @@ function DailyGoalRow() {
         updatedAt: serverTimestamp(),
       });
       setValue(String(parsed));
-      toast.success("Daily goal updated.");
+      toast.success(t.preferences.dailyGoalSaved);
     } catch {
-      toast.error("Could not save your daily goal.");
+      toast.error(t.preferences.dailyGoalFailed);
     }
     setSaving(false);
   }
@@ -541,11 +546,10 @@ function DailyGoalRow() {
   return (
     <div>
       <Label htmlFor="daily-goal" className="text-sm font-medium">
-        Daily card goal
+        {t.settings.dailyGoal}
       </Label>
       <p className="text-muted-foreground mt-0.5 text-sm">
-        Turns &ldquo;review everything&rdquo; into a session you can actually
-        finish. Cards past this still wait for you — nothing is skipped.
+        {t.preferences.dailyGoalHint}
       </p>
 
       <div className="mt-3 flex max-w-xs items-center gap-2">
@@ -560,10 +564,10 @@ function DailyGoalRow() {
           onBlur={() => setValue(String(clampGoal(Number(value))))}
           className="w-28 tabular-nums"
         />
-        <span className="text-muted-foreground text-sm">cards</span>
+        <span className="text-muted-foreground text-sm">{t.preferences.cardsUnit}</span>
         <Button size="sm" onClick={save} disabled={!dirty || saving}>
           {saving ? <Loader2 className="animate-spin" /> : <Check />}
-          Save
+          {t.common.save}
         </Button>
       </div>
     </div>

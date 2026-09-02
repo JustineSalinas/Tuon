@@ -43,10 +43,18 @@ export const MAX_SEMESTER_NAME = 60;
  * spans two calendar years. Numbering avoids inventing a date the student
  * never gave.
  */
-export function defaultSemesterName(index: number): string {
-  const ordinals = ["1st", "2nd", "3rd"];
-  const ordinal = ordinals[index] ?? `${index + 1}th`;
-  return `${ordinal} Semester`;
+/**
+ * A name for a term the student has not named yet.
+ *
+ * Takes the wording as an argument rather than owning it: an ordinal is one
+ * of the things every language does differently, and this module is pure.
+ * Callers pass `t.semesters.ordinal`.
+ */
+export function defaultSemesterName(
+  index: number,
+  ordinal: (index: number) => string,
+): string {
+  return ordinal(index);
 }
 
 /** Ids are generated rather than derived from the name, which can change. */
@@ -138,9 +146,14 @@ export function activeSemester(
  */
 export function seedFromCourses(
   courses: string[],
+  ordinal: (index: number) => string,
   id: string = newSemesterId(),
 ): Semester {
-  return { id, name: defaultSemesterName(0), subjects: dedupeSubjects(courses) };
+  return {
+    id,
+    name: defaultSemesterName(0, ordinal),
+    subjects: dedupeSubjects(courses),
+  };
 }
 
 /**

@@ -8,6 +8,9 @@
  */
 import assert from "node:assert/strict";
 
+import { en } from "../src/lib/i18n/en.ts";
+import { renderContents } from "../src/lib/i18n/format.ts";
+
 import {
   DEADLINE_GRACE_DAYS,
   classesOn,
@@ -60,7 +63,7 @@ import {
 import {
   MAX_BATCH_WRITES,
   chunk,
-  describeContents,
+  contentParts,
   planRetag,
   summariseSubject,
   tagMatches,
@@ -770,26 +773,40 @@ check("chunking an empty list produces no batches", () => {
 });
 
 check("the confirmation says what exists, in words", () => {
+  // The parts are data; `renderContents` in lib/i18n/format turns them into a
+  // sentence, because the commas and the "and" are part of the translation.
   const summary = summariseSubject(CONTENTS, "General Biology 1");
-  const text = describeContents(summary);
+  const text = renderContents(contentParts(summary), en);
   assert.match(text, /1 note/);
   assert.match(text, /2 study sets \(20 cards\)/);
   assert.match(text, / and /);
 });
 
 check("singulars and plurals both read correctly", () => {
-  const one = describeContents(
-    summariseSubject(
-      { notes: [{ id: "a", courseTag: "X" }], sets: [], planItems: [], sessions: [] },
-      "X",
+  const one = renderContents(
+    contentParts(
+      summariseSubject(
+        { notes: [{ id: "a", courseTag: "X" }], sets: [], planItems: [], sessions: [] },
+        "X",
+      ),
     ),
+    en,
   );
   assert.equal(one, "1 note");
 });
 
 check("an empty subject says so rather than listing nothing", () => {
-  const text = describeContents(summariseSubject(CONTENTS, "Physics"));
+  const text = renderContents(
+    contentParts(summariseSubject(CONTENTS, "Physics")),
+    en,
+  );
   assert.match(text, /Nothing/);
+});
+
+check("a subject holding only one kind of thing gets no joiner", () => {
+  // "1 note and" is the classic off-by-one in a hand-rolled list.
+  const text = renderContents([{ kind: "notes", count: 3 }], en);
+  assert.equal(text, "3 notes");
 });
 
 console.log(`\n${passed} checks passed.\n`);
