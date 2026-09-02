@@ -35,6 +35,7 @@ import { useI18n } from "@/components/providers/i18n-provider";
 import { useStudySessions } from "@/lib/hooks/use-firestore";
 import {
   MAX_SESSION_MINUTES,
+  UNTAGGED,
   clampMinutes,
   formatMinutes,
   minutesByDay,
@@ -149,7 +150,8 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
         <div className="flex flex-wrap gap-2">
           {bySubject.map((row) => (
             <Badge key={row.subject} variant="secondary" className="tabular-nums">
-              {row.subject} · {formatMinutes(row.minutes)}
+              {row.subject === UNTAGGED ? t.organiser.noSubject : row.subject} ·{" "}
+              {formatMinutes(row.minutes)}
             </Badge>
           ))}
         </div>

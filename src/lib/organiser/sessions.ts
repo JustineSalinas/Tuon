@@ -56,8 +56,30 @@ export function minutesBySubject(
     .sort((a, b) => b.minutes - a.minutes);
 }
 
-/** Shown rather than hidden: unattributed time is still time studied. */
-export const UNTAGGED = "No subject";
+/**
+ * A subject key for time that carries no tag.
+ *
+ * Shown rather than hidden: unattributed time is still time studied, and a
+ * breakdown that quietly drops it stops adding up to the total beside it,
+ * which is the fastest way to make a student stop believing either number.
+ *
+ * A sentinel, not a label. It is compared against, never printed — the words
+ * come from the message catalogue.
+ */
+export const UNTAGGED = "\u0000untagged";
+
+/**
+ * Sessions on or after a day, for a breakdown over a window rather than a week.
+ *
+ * Day keys are `YYYY-MM-DD`, which sort correctly as plain strings, so this is
+ * a string comparison and not a date one.
+ */
+export function sessionsSince(
+  sessions: StudySession[],
+  fromDay: string,
+): StudySession[] {
+  return sessions.filter((session) => (session.day ?? "") >= fromDay);
+}
 
 /**
  * The seven `YYYY-MM-DD` keys of the week containing `today`, Sunday first.

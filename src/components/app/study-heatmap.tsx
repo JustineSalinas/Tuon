@@ -20,11 +20,19 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { useStudySessions } from "@/lib/hooks/use-firestore";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { dayKey } from "@/lib/hooks/use-review-cards";
-import { minutesByDay } from "@/lib/organiser/sessions";
+import { useI18n } from "@/components/providers/i18n-provider";
+import {
+  UNTAGGED,
+  formatMinutes,
+  minutesByDay,
+  minutesBySubject,
+  sessionsSince,
+} from "@/lib/organiser/sessions";
 import {
   buildHeatmap,
   buildStreaks,
   formatHours,
+  shiftDays,
   type HeatLevel,
 } from "@/lib/stats/heatmap";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,6 +57,14 @@ const LEVEL_CLASS: Record<HeatLevel, string> = {
 
 /** What each step is worth, said in the legend rather than "less / more". */
 const LEVEL_LABEL = ["none", "under 15m", "15m", "30m", "1h+"];
+
+/**
+ * How many subjects the breakdown names before folding the rest together.
+ *
+ * A student with eight subjects gets a bar chart nobody reads. Five plus an
+ * "everything else" row keeps it a summary.
+ */
+const TOP_SUBJECTS = 5;
 
 const WEEKDAY_LABEL = ["", "Mon", "", "Wed", "", "Fri", ""];
 
@@ -76,6 +92,7 @@ const RADIUS = 4;
 
 export function StudyHeatmap() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { sessions, loading } = useStudySessions(user?.uid);
   const { timeZone } = usePreferences();
 
@@ -83,6 +100,18 @@ export function StudyHeatmap() {
   const byDay = useMemo(() => minutesByDay(sessions), [sessions]);
   const map = useMemo(() => buildHeatmap(byDay, today, WEEKS), [byDay, today]);
   const streaks = useMemo(() => buildStreaks(byDay, today), [byDay, today]);
+
+  /**
+   * Where the year's hours went, over the same window the grid draws.
+   *
+   * The grid answers "have I been doing this"; this answers "on what", which
+   * is the question a student asks immediately afterwards and previously had
+   * to work out from the week view one week at a time.
+   */
+  const bySubject = useMemo(() => {
+    const from = shiftDays(today, -(WEEKS * 7 - 1));
+    return minutesBySubject(sessionsSince(sessions, from));
+  }, [sessions, today]);
 
   // Touch devices have no hover, so a tapped cell shows its figure instead.
   const [picked, setPicked] = useState<string | null>(null);
@@ -218,6 +247,15 @@ export function StudyHeatmap() {
         </div>
       </div>
 
+      {bySubject.length > 0 ? (
+        <SubjectBreakdown
+          rows={bySubject}
+          untaggedLabel={t.timer.noSubject}
+          otherLabel={t.heatmap.otherSubjects}
+          heading={t.heatmap.whereItWent}
+        />
+      ) : null}
+
       {/* Named amounts rather than "less / more". A student wants to know
           what a dark square is worth, and the borrowed version answers that
           with a shrug. */}
@@ -233,6 +271,65 @@ export function StudyHeatmap() {
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * The year's hours, per subject.
+ *
+ * Bars rather than a pie or a donut: these are magnitudes read against each
+ * other, and a row of bars sharing one baseline is the only shape that lets
+ * you compare two of them at a glance. Scaled to the largest subject rather
+ * than to the total, so a student with one dominant subject still sees the
+ * shape of the smaller ones.
+ */
+function SubjectBreakdown({
+  rows,
+  untaggedLabel,
+  otherLabel,
+  heading,
+}: {
+  rows: { subject: string; minutes: number }[];
+  untaggedLabel: string;
+  otherLabel: string;
+  heading: string;
+}) {
+  const top = rows.slice(0, TOP_SUBJECTS);
+  const rest = rows.slice(TOP_SUBJECTS);
+  const restMinutes = rest.reduce((sum, row) => sum + row.minutes, 0);
+  const shown = restMinutes > 0 ? [...top, { subject: otherLabel, minutes: restMinutes }] : top;
+
+  // Against the busiest subject, not the total: see above.
+  const peak = Math.max(1, ...shown.map((row) => row.minutes));
+
+  return (
+    <div className="mt-5 border-t pt-4">
+      <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+        {heading}
+      </p>
+      <ul className="mt-2.5 space-y-1.5">
+        {shown.map((row) => {
+          const label = row.subject === UNTAGGED ? untaggedLabel : row.subject;
+          return (
+            <li key={label} className="flex items-center gap-3">
+              <span className="min-w-0 flex-1 truncate text-[13px]">{label}</span>
+              <span
+                aria-hidden="true"
+                className="bg-muted hidden h-1.5 w-32 shrink-0 overflow-hidden rounded-full sm:block"
+              >
+                <span
+                  className="bg-primary/70 block h-full rounded-full"
+                  style={{ width: `${Math.round((row.minutes / peak) * 100)}%` }}
+                />
+              </span>
+              <span className="text-muted-foreground w-14 shrink-0 text-right text-xs tabular-nums">
+                {formatMinutes(row.minutes)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

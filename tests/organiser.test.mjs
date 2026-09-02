@@ -32,6 +32,7 @@ import {
   isComplete,
   loggableMinutes,
   nextPhase,
+  setSubject,
   pause,
   phaseDurationMs,
   readStoredState,
@@ -46,10 +47,12 @@ import {
 } from "../src/lib/organiser/pomodoro.ts";
 import {
   MAX_SESSION_MINUTES,
+  UNTAGGED,
   clampMinutes,
   formatMinutes,
   minutesByDay,
   minutesBySubject,
+  sessionsSince,
   sessionsInWeek,
   totalMinutes,
   weekDayKeys,
@@ -492,8 +495,52 @@ check("the countdown is always mm:ss", () => {
 console.log("\nResuming a stored timer");
 
 check("a stored timer is restored", () => {
-  const stored = { phase: "focus", startedAt: 1000, elapsedMs: 500, completedFocus: 2 };
+  const stored = {
+    phase: "focus",
+    startedAt: 1000,
+    elapsedMs: 500,
+    completedFocus: 2,
+    subject: "General Biology 1",
+  };
   assert.deepEqual(readStoredState(stored), stored);
+});
+
+check("a reload mid-block does not lose what was being studied", () => {
+  // The failure this closes: the subject used to live in the dock's own
+  // state, so a refresh left a running timer that no longer knew what it was
+  // counting — and the whole block landed in the log untagged.
+  const restored = readStoredState({
+    phase: "focus",
+    startedAt: 1000,
+    elapsedMs: 0,
+    completedFocus: 0,
+    subject: "  Statistics  ",
+  });
+  assert.equal(restored.subject, "Statistics");
+});
+
+check("a stored subject that is not usable reads as untagged", () => {
+  // Not as a reason to throw the whole timer away.
+  assert.equal(readStoredState({ phase: "focus", subject: 42 }).subject, null);
+  assert.equal(readStoredState({ phase: "focus", subject: "   " }).subject, null);
+  assert.equal(readStoredState({ phase: "focus" }).subject, null);
+});
+
+check("the subject survives a break and the block after it", () => {
+  // A break does not change what you came back to. Clearing it here would
+  // silently untag every block after the first.
+  const focused = setSubject(initialPomodoro(), "Chemistry");
+  const onBreak = nextPhase(focused);
+  assert.equal(onBreak.phase, "shortBreak");
+  assert.equal(onBreak.subject, "Chemistry");
+  assert.equal(nextPhase(onBreak).subject, "Chemistry");
+});
+
+check("a blank subject is stored as untagged, not as an empty string", () => {
+  // Untagged is a real answer; "" would sort as its own subject in every
+  // breakdown built on this.
+  assert.equal(setSubject(initialPomodoro(), "   ").subject, null);
+  assert.equal(setSubject(initialPomodoro(), null).subject, null);
 });
 
 check("junk in storage does not take the screen down", () => {
@@ -561,6 +608,31 @@ check("subjects are ordered by time spent", () => {
     { day: "d", minutes: 40, courseTag: "Biology" },
   ]);
   assert.equal(rows[0].subject, "Biology");
+});
+
+check("untagged time is keyed by a sentinel, never by a printable word", () => {
+  // The breakdown says "No subject" in whichever language the student reads,
+  // so the key it groups on must not be an English label — otherwise a real
+  // subject actually called "No subject" would merge into it.
+  const rows = minutesBySubject([{ day: "d", minutes: 20, courseTag: null }]);
+  assert.equal(rows[0].subject, UNTAGGED);
+  assert.notEqual(UNTAGGED, "No subject");
+});
+
+check("a window keeps the days on its boundary", () => {
+  // Day keys sort as strings, so this is an inclusive string comparison —
+  // dropping the first day would quietly shorten every breakdown by one.
+  const sessions = [
+    { day: "2026-08-29", minutes: 10 },
+    { day: "2026-08-30", minutes: 20 },
+    { day: "2026-09-05", minutes: 30 },
+  ];
+  const kept = sessionsSince(sessions, "2026-08-30");
+  assert.deepEqual(kept.map((s) => s.day), ["2026-08-30", "2026-09-05"]);
+});
+
+check("a session with no day is excluded rather than counted as ancient", () => {
+  assert.deepEqual(sessionsSince([{ minutes: 10 }], "2026-08-30"), []);
 });
 
 check("a week is seven days starting on Sunday", () => {

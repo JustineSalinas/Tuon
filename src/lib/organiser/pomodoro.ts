@@ -81,10 +81,35 @@ export interface PomodoroState {
   elapsedMs: number;
   /** Completed focus blocks, deciding when the long break falls due. */
   completedFocus: number;
+  /**
+   * What is being studied, written onto every block this timer logs.
+   *
+   * Part of the timer's state rather than the dock's, for the same reason
+   * everything else here is: a student who reloads mid-block would otherwise
+   * come back to a running timer that had quietly forgotten what it was for,
+   * and log the whole session untagged. Null means untagged, which is a real
+   * answer and not a missing one.
+   */
+  subject: string | null;
 }
 
 export function initialPomodoro(phase: PomodoroPhase = "focus"): PomodoroState {
-  return { phase, startedAt: null, elapsedMs: 0, completedFocus: 0 };
+  return { phase, startedAt: null, elapsedMs: 0, completedFocus: 0, subject: null };
+}
+
+/**
+ * Points the timer at a subject.
+ *
+ * Allowed mid-block. Someone who starts a block and then remembers to tag it
+ * should get the tag, not a lecture about having started already — the write
+ * happens when the block ends, so the last answer is the one that lands.
+ */
+export function setSubject(
+  state: PomodoroState,
+  subject: string | null,
+): PomodoroState {
+  const trimmed = subject?.trim();
+  return { ...state, subject: trimmed ? trimmed : null };
 }
 
 export function phaseDurationMs(
@@ -144,14 +169,22 @@ export function reset(state: PomodoroState): PomodoroState {
  * break sooner.
  */
 export function nextPhase(state: PomodoroState): PomodoroState {
+  // The subject survives every transition: a break does not change what you
+  // came back to, and clearing it would silently untag the next block.
   if (state.phase !== "focus") {
-    return { phase: "focus", startedAt: null, elapsedMs: 0, completedFocus: state.completedFocus };
+    return {
+      phase: "focus",
+      startedAt: null,
+      elapsedMs: 0,
+      completedFocus: state.completedFocus,
+      subject: state.subject,
+    };
   }
 
   const completedFocus = state.completedFocus + 1;
   const phase: PomodoroPhase =
     completedFocus % FOCUS_BLOCKS_BEFORE_LONG_BREAK === 0 ? "longBreak" : "shortBreak";
-  return { phase, startedAt: null, elapsedMs: 0, completedFocus };
+  return { phase, startedAt: null, elapsedMs: 0, completedFocus, subject: state.subject };
 }
 
 /**
@@ -175,12 +208,6 @@ export function formatRemaining(ms: number): string {
   const seconds = totalSeconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
-
-export const PHASE_LABELS: Record<PomodoroPhase, string> = {
-  focus: "Focus",
-  shortBreak: "Short break",
-  longBreak: "Long break",
-};
 
 /**
  * Narrows an unknown value — typically JSON out of localStorage, written by an
@@ -213,5 +240,12 @@ export function readStoredState(value: unknown): PomodoroState | null {
       ? Math.max(0, Math.floor(raw.completedFocus))
       : 0;
 
-  return { phase, startedAt, elapsedMs: elapsed, completedFocus };
+  // Anything that is not a usable subject reads as untagged rather than as a
+  // reason to throw the whole stored timer away.
+  const subject =
+    typeof raw.subject === "string" && raw.subject.trim()
+      ? raw.subject.trim().slice(0, 80)
+      : null;
+
+  return { phase, startedAt, elapsedMs: elapsed, completedFocus, subject };
 }

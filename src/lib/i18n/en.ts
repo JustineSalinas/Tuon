@@ -123,7 +123,14 @@ export const en = {
     backgroundNote:
       "Keeps running in the background. Only focus blocks are logged.",
     logged: (time: string, next: string) => `${time} logged. ${next} next.`,
+    nextUp: (next: string) => `${next} next.`,
     breakOver: "Break over. Back to it.",
+    notLogged: "That block was not saved to your log.",
+  },
+
+  heatmap: {
+    whereItWent: "Where the hours went",
+    otherSubjects: "Everything else",
   },
 
   common: {

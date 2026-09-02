@@ -128,7 +128,14 @@ export const fil: Messages = {
     backgroundNote:
       "Patuloy itong tumatakbo kahit nasa background. Focus blocks lang ang nilo-log.",
     logged: (time: string, next: string) => `${time} ang na-log. ${next} na susunod.`,
+    nextUp: (next: string) => `${next} na ang susunod.`,
+    notLogged: "Hindi na-save sa log mo ang block na iyon.",
     breakOver: "Tapos na ang break. Balik na tayo.",
+  },
+
+  heatmap: {
+    whereItWent: "Saan napunta ang oras",
+    otherSubjects: "Lahat ng iba pa",
   },
 
   common: {
