@@ -102,8 +102,5 @@ function startSeconds(session: StudySession): number {
   return typeof value?.seconds === "number" ? value.seconds : 0;
 }
 
-export const SOURCE_LABELS: Record<StudySession["source"], string> = {
-  pomodoro: "Timer",
-  review: "Review",
-  manual: "Added by you",
-};
+// Where a session came from is shown as a word, so the words live in the
+// message catalogue keyed by `StudySession["source"]`.

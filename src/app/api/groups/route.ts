@@ -50,7 +50,10 @@ export async function POST(request: Request) {
 
   if (!(await verifyAppCheck(request))) {
     return NextResponse.json(
-      { error: "This request could not be verified. Please reload and try again." },
+      {
+        error: "This request could not be verified. Please reload and try again.",
+        code: "UNVERIFIED",
+      },
       { status: 403 },
     );
   }
@@ -59,13 +62,21 @@ export async function POST(request: Request) {
   if (!limit.allowed) return rateLimitedResponse(limit, "study group changes");
 
   const caller = await verifyRequest(request);
-  if (!caller) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+  if (!caller) {
+    return NextResponse.json(
+      { error: "Not signed in.", code: "NOT_SIGNED_IN" },
+      { status: 401 },
+    );
+  }
 
   let body: { action?: Action; name?: string; courseTag?: string | null; code?: string; groupId?: string };
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Malformed request." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Malformed request.", code: "MALFORMED" },
+      { status: 400 },
+    );
   }
 
   switch (body.action) {
@@ -76,7 +87,10 @@ export async function POST(request: Request) {
     case "leave":
       return leaveGroup(caller.uid, body.groupId ?? "");
     default:
-      return NextResponse.json({ error: "Unknown action." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Unknown action.", code: "UNKNOWN_ACTION" },
+        { status: 400 },
+      );
   }
 }
 
@@ -90,20 +104,29 @@ async function displayNameOf(uid: string): Promise<string> {
 async function createGroup(uid: string, rawName: string, rawTag: string | null) {
   const name = rawName.trim();
   if (!isUsableGroupName(name)) {
-    return NextResponse.json({ error: "Give the group a name." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Give the group a name.", code: "NAME_REQUIRED" },
+      { status: 400 },
+    );
   }
 
   const db = adminDb();
   const profileRef = db.collection("users").doc(uid);
   const profile = await profileRef.get();
   if (!profile.exists) {
-    return NextResponse.json({ error: "Finish setting up your account first." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Finish setting up your account first.", code: "NO_PROFILE" },
+      { status: 400 },
+    );
   }
 
   const existing = (profile.get("groupIds") as string[] | undefined) ?? [];
   if (existing.length >= MAX_GROUPS_PER_USER) {
     return NextResponse.json(
-      { error: `You can be in ${MAX_GROUPS_PER_USER} groups at a time.` },
+      {
+        error: `You can be in ${MAX_GROUPS_PER_USER} groups at a time.`,
+        code: "TOO_MANY_GROUPS",
+      },
       { status: 400 },
     );
   }
@@ -151,7 +174,10 @@ async function joinGroup(uid: string, rawCode: string) {
   // Checked before touching the database so a malformed guess costs a read of
   // nothing, which is most of what an attacker would send.
   if (!isWellFormedCode(code)) {
-    return NextResponse.json({ error: "That invite code is not valid." }, { status: 400 });
+    return NextResponse.json(
+      { error: "That invite code is not valid.", code: "BAD_CODE" },
+      { status: 400 },
+    );
   }
 
   const db = adminDb();
@@ -161,7 +187,10 @@ async function joinGroup(uid: string, rawCode: string) {
   // stranger which one it was turns this into an oracle for probing codes.
   const refuse = () =>
     NextResponse.json(
-      { error: "That invite is not valid any more. Ask for a fresh one." },
+      {
+        error: "That invite is not valid any more. Ask for a fresh one.",
+        code: "EXPIRED_CODE",
+      },
       { status: 404 },
     );
 
@@ -209,17 +238,26 @@ async function joinGroup(uid: string, rawCode: string) {
   } catch (error) {
     const reason = error instanceof Error ? error.message : "";
     if (reason === "FULL") {
-      return NextResponse.json({ error: "That group is full." }, { status: 409 });
+      return NextResponse.json(
+        { error: "That group is full.", code: "GROUP_FULL" },
+        { status: 409 },
+      );
     }
     if (reason === "TOO_MANY") {
       return NextResponse.json(
-        { error: `You can be in ${MAX_GROUPS_PER_USER} groups at a time.` },
+        {
+          error: `You can be in ${MAX_GROUPS_PER_USER} groups at a time.`,
+          code: "TOO_MANY_GROUPS",
+        },
         { status: 409 },
       );
     }
     if (reason === "GONE") return refuse();
     log.error({ scope: "groups", event: "join_failed", uid, detail: reason });
-    return NextResponse.json({ error: "Could not join that group." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not join that group.", code: "JOIN_FAILED" },
+      { status: 500 },
+    );
   }
 
   log.info({ scope: "groups", event: "joined", uid });
@@ -228,7 +266,10 @@ async function joinGroup(uid: string, rawCode: string) {
 
 async function leaveGroup(uid: string, groupId: string) {
   if (!groupId || groupId.length > 64) {
-    return NextResponse.json({ error: "Unknown group." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Unknown group.", code: "UNKNOWN_GROUP" },
+      { status: 400 },
+    );
   }
 
   const db = adminDb();

@@ -19,13 +19,22 @@ type Action =
 export interface GroupResult {
   ok: boolean;
   groupId?: string;
+  /** The invite code, on a successful create. */
   code?: string;
+  /**
+   * Why it failed, as a key the caller looks up in the message catalogue.
+   *
+   * The server cannot know what language the student reads, so it names the
+   * failure and the browser says it. `error` is the server's English, kept as
+   * the fallback for a code the catalogue has not learned yet.
+   */
+  errorCode?: string;
   error?: string;
 }
 
 export async function callGroups(body: Action): Promise<GroupResult> {
   const user = auth.currentUser;
-  if (!user) return { ok: false, error: "You need to be signed in." };
+  if (!user) return { ok: false, errorCode: "NOT_SIGNED_IN" };
 
   const [token, appCheckToken] = await Promise.all([
     user.getIdToken(),
@@ -43,17 +52,19 @@ export async function callGroups(body: Action): Promise<GroupResult> {
       body: JSON.stringify(body),
     });
 
-    const payload = (await response.json().catch(() => ({}))) as GroupResult & {
+    const payload = (await response.json().catch(() => ({}))) as {
+      groupId?: string;
+      code?: string;
       error?: string;
     };
 
     if (!response.ok) {
-      return { ok: false, error: payload.error ?? "That did not work. Try again." };
+      return { ok: false, errorCode: payload.code, error: payload.error };
     }
-    return { ...payload, ok: true };
+    return { ok: true, groupId: payload.groupId, code: payload.code };
   } catch {
     // A failed group action is almost always a dead connection, and saying so
     // is more useful than a generic apology.
-    return { ok: false, error: "Could not reach Tuón. Check your connection." };
+    return { ok: false, errorCode: "OFFLINE" };
   }
 }

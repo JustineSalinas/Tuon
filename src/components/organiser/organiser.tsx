@@ -38,12 +38,12 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { usePlanItems } from "@/lib/hooks/use-firestore";
+import { renderDueDate } from "@/lib/i18n/format";
 import {
   MAX_LOCATION_CHARS,
   MAX_TITLE_CHARS,
-  WEEKDAY_NAMES,
-  WEEKDAY_SHORT,
   classesOn,
   daysBetween,
   describeDueDate,
@@ -67,6 +67,7 @@ import { cn } from "@/lib/utils";
 
 export function Organiser({ todayKey }: { todayKey: string }) {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { items, loading } = usePlanItems(user?.uid);
 
   const subjects = useMemo(() => profile?.courses ?? [], [profile?.courses]);
@@ -80,10 +81,11 @@ export function Organiser({ todayKey }: { todayKey: string }) {
     <section className="mt-12">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Your week</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">
+            {t.organiser.yourWeek}
+          </h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Deadlines, what you owe, and when you are in class. Only you see any
-            of this.
+            {t.organiser.yourWeekHint}
           </p>
         </div>
       </div>
@@ -92,21 +94,21 @@ export function Organiser({ todayKey }: { todayKey: string }) {
         <TabsList>
           <TabsTrigger value="deadlines">
             <CalendarClock className="size-3.5" />
-            Deadlines
+            {t.organiser.deadlines}
             {deadlines.length > 0 ? <Count value={deadlines.length} /> : null}
           </TabsTrigger>
           <TabsTrigger value="todos">
             <ListTodo className="size-3.5" />
-            To do
+            {t.organiser.todos}
             {openTodos > 0 ? <Count value={openTodos} /> : null}
           </TabsTrigger>
           <TabsTrigger value="timetable">
             <Table2 className="size-3.5" />
-            Timetable
+            {t.organiser.timetable}
           </TabsTrigger>
           <TabsTrigger value="time">
             <Clock className="size-3.5" />
-            Time
+            {t.organiser.time}
           </TabsTrigger>
         </TabsList>
 
@@ -147,6 +149,7 @@ function Count({ value }: { value: number }) {
 
 function useItemWriter() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
   async function add(fields: Partial<PlanItem> & { kind: PlanItemKind; title: string }) {
@@ -161,7 +164,7 @@ function useItemWriter() {
       });
       return true;
     } catch {
-      toast.error("Could not save that. Check your connection.");
+      toast.error(t.organiser.saveFailed);
       return false;
     } finally {
       setBusy(false);
@@ -176,7 +179,7 @@ function useItemWriter() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not save that change.");
+      toast.error(t.organiser.changeFailed);
     }
   }
 
@@ -185,7 +188,7 @@ function useItemWriter() {
     try {
       await deleteDoc(doc(db, "users", user.uid, "planItems", id));
     } catch {
-      toast.error("Could not delete that.");
+      toast.error(t.organiser.deleteFailed);
     }
   }
 
@@ -206,11 +209,12 @@ function DeadlineList({
   subjects: string[];
 }) {
   const { add, remove, busy } = useItemWriter();
+  const { t } = useI18n();
 
   return (
     <div className="space-y-3">
       <AddRow
-        placeholder="Thesis draft, problem set, presentation…"
+        placeholder={t.organiser.deadlinePlaceholder}
         subjects={subjects}
         withDate
         dateRequired
@@ -221,10 +225,7 @@ function DeadlineList({
       />
 
       {items.length === 0 ? (
-        <Empty>
-          Nothing due. When you add a deadline here, it also becomes what your
-          readiness on the dashboard is measured against.
-        </Empty>
+        <Empty>{t.organiser.deadlinesEmpty}</Empty>
       ) : (
         <ul className="divide-y rounded-xl border">
           {items.map((item) => {
@@ -244,7 +245,7 @@ function DeadlineList({
                         : "text-muted-foreground",
                   )}
                 >
-                  {describeDueDate(item.dueDate!, todayKey)}
+                  {renderDueDate(describeDueDate(item.dueDate!, todayKey), t)}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
                 {item.courseTag ? (
@@ -252,7 +253,10 @@ function DeadlineList({
                     {item.courseTag}
                   </Badge>
                 ) : null}
-                <DeleteButton label={`Delete ${item.title}`} onDelete={() => remove(item.id)} />
+                <DeleteButton
+                  label={t.organiser.deleteItem(item.title)}
+                  onDelete={() => remove(item.id)}
+                />
               </li>
             );
           })}
@@ -276,11 +280,12 @@ function TodoList({
   subjects: string[];
 }) {
   const { add, patch, remove, busy } = useItemWriter();
+  const { t } = useI18n();
 
   return (
     <div className="space-y-3">
       <AddRow
-        placeholder="Read chapter 4, email Ms. Reyes…"
+        placeholder={t.organiser.todoPlaceholder}
         subjects={subjects}
         withDate
         busy={busy}
@@ -290,10 +295,7 @@ function TodoList({
       />
 
       {items.length === 0 ? (
-        <Empty>
-          Small things that are not flashcards. They stay on the list once
-          ticked, so you can see what the week actually cost you.
-        </Empty>
+        <Empty>{t.organiser.todosEmpty}</Empty>
       ) : (
         <ul className="divide-y rounded-xl border">
           {items.map((item) => {
@@ -302,7 +304,11 @@ function TodoList({
               <li key={item.id} className="flex items-center gap-3 p-3.5">
                 <Checkbox
                   checked={done}
-                  aria-label={done ? `Mark ${item.title} as not done` : `Mark ${item.title} as done`}
+                  aria-label={
+                    done
+                      ? t.organiser.markNotDone(item.title)
+                      : t.organiser.markDone(item.title)
+                  }
                   onCheckedChange={(next) => void patch(item.id, { done: next === true })}
                 />
                 <span
@@ -315,7 +321,7 @@ function TodoList({
                 </span>
                 {item.dueDate ? (
                   <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-                    {describeDueDate(item.dueDate, todayKey)}
+                    {renderDueDate(describeDueDate(item.dueDate, todayKey), t)}
                   </span>
                 ) : null}
                 {item.courseTag ? (
@@ -323,7 +329,10 @@ function TodoList({
                     {item.courseTag}
                   </Badge>
                 ) : null}
-                <DeleteButton label={`Delete ${item.title}`} onDelete={() => remove(item.id)} />
+                <DeleteButton
+                  label={t.organiser.deleteItem(item.title)}
+                  onDelete={() => remove(item.id)}
+                />
               </li>
             );
           })}
@@ -339,6 +348,7 @@ function TodoList({
 
 function Timetable({ items, subjects }: { items: PlanItem[]; subjects: string[] }) {
   const { add, remove, busy } = useItemWriter();
+  const { t } = useI18n();
   const clashing = useMemo(() => overlappingClassIds(items), [items]);
 
   // Weekdays first: a timetable that opens on Sunday wastes the top of the
@@ -352,23 +362,18 @@ function Timetable({ items, subjects }: { items: PlanItem[]; subjects: string[] 
 
       {clashing.size > 0 ? (
         <p className="border-warning/40 bg-warning/10 rounded-xl border px-3 py-2 text-sm">
-          Two classes overlap. Left as you entered it — a real clash is
-          something to sort out with your school, not something this should
-          quietly refuse to save.
+          {t.organiser.classesOverlap}
         </p>
       ) : null}
 
       {populated.length === 0 ? (
-        <Empty>
-          Add your class times and the week has a shape. It is also how you spot
-          the free afternoon you keep forgetting about.
-        </Empty>
+        <Empty>{t.organiser.timetableEmpty}</Empty>
       ) : (
         <div className="space-y-4">
           {populated.map((weekday) => (
             <div key={weekday}>
               <h3 className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
-                {WEEKDAY_NAMES[weekday]}
+                {t.common.weekdays[weekday]}
               </h3>
               <ul className="mt-2 divide-y rounded-xl border">
                 {classesOn(items, weekday).map((item) => (
@@ -390,7 +395,7 @@ function Timetable({ items, subjects }: { items: PlanItem[]; subjects: string[] 
                       </span>
                     ) : null}
                     <DeleteButton
-                      label={`Delete ${item.title}`}
+                      label={t.organiser.deleteItem(item.title)}
                       onDelete={() => remove(item.id)}
                     />
                   </li>
@@ -458,6 +463,7 @@ function AddRow({
   busy: boolean;
   onAdd: (payload: AddPayload) => Promise<boolean>;
 }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [courseTag, setCourseTag] = useState("");
@@ -500,14 +506,14 @@ function AddRow({
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          aria-label={dateRequired ? "Due date" : "Due date (optional)"}
+          aria-label={dateRequired ? t.organiser.dueDate : t.organiser.dueDateOptional}
           className="w-40"
         />
       ) : null}
       <SubjectPicker subjects={subjects} value={courseTag} onChange={setCourseTag} />
       <Button onClick={submit} disabled={!ready || busy}>
         {busy ? <Loader2 className="animate-spin" /> : <Plus />}
-        Add
+        {t.common.add}
       </Button>
     </div>
   );
@@ -522,6 +528,7 @@ function AddClassRow({
   busy: boolean;
   onAdd: (fields: Partial<PlanItem> & { kind: PlanItemKind; title: string }) => Promise<boolean>;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [weekday, setWeekday] = useState(1);
@@ -542,7 +549,7 @@ function AddClassRow({
     return (
       <Button variant="outline" onClick={() => setOpen(true)}>
         <Plus />
-        Add a class
+        {t.organiser.addAClass}
       </Button>
     );
   }
@@ -567,10 +574,10 @@ function AddClassRow({
   return (
     <div className="bg-card space-y-3 rounded-xl border p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium">New class</p>
+        <p className="text-sm font-medium">{t.organiser.newClass}</p>
         <button
           type="button"
-          aria-label="Close"
+          aria-label={t.common.close}
           onClick={() => setOpen(false)}
           className="text-muted-foreground hover:text-foreground focus-visible:ring-ring grid size-7 place-items-center rounded-md focus-visible:ring-[3px] focus-visible:outline-none"
         >
@@ -581,13 +588,13 @@ function AddClassRow({
       <Input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="General Biology lecture"
+        placeholder={t.organiser.classNamePlaceholder}
         maxLength={MAX_TITLE_CHARS}
-        aria-label="Class name"
+        aria-label={t.organiser.className}
       />
 
       <div className="flex flex-wrap gap-1.5">
-        {WEEKDAY_SHORT.map((label, index) => (
+        {t.common.weekdaysShort.map((label, index) => (
           <button
             key={label}
             type="button"
@@ -608,7 +615,7 @@ function AddClassRow({
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <Label htmlFor="class-start" className="text-xs">
-            Starts
+            {t.organiser.starts}
           </Label>
           <Input
             id="class-start"
@@ -620,7 +627,7 @@ function AddClassRow({
         </div>
         <div>
           <Label htmlFor="class-end" className="text-xs">
-            Ends
+            {t.organiser.ends}
           </Label>
           <Input
             id="class-end"
@@ -633,9 +640,9 @@ function AddClassRow({
         <Input
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          placeholder="Room 204 (optional)"
+          placeholder={t.organiser.locationPlaceholder}
           maxLength={MAX_LOCATION_CHARS}
-          aria-label="Location"
+          aria-label={t.organiser.location}
           className="min-w-40 flex-1"
         />
       </div>
@@ -644,10 +651,10 @@ function AddClassRow({
         <SubjectPicker subjects={subjects} value={courseTag} onChange={setCourseTag} />
         <Button onClick={submit} disabled={!ready || busy}>
           {busy ? <Loader2 className="animate-spin" /> : <Check />}
-          Save class
+          {t.organiser.saveClass}
         </Button>
         {startMinute !== null && endMinute !== null && endMinute <= startMinute ? (
-          <span className="text-destructive text-xs">Ends before it starts.</span>
+          <span className="text-destructive text-xs">{t.organiser.endsBeforeStarts}</span>
         ) : null}
       </div>
     </div>
@@ -670,16 +677,18 @@ function SubjectPicker({
   value: string;
   onChange: (next: string) => void;
 }) {
+  const { t } = useI18n();
+
   if (subjects.length === 0) return null;
 
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      aria-label="Subject"
+      aria-label={t.organiser.subject}
       className="border-input bg-background focus-visible:ring-ring h-9 max-w-44 rounded-md border px-3 text-sm focus-visible:ring-[3px] focus-visible:outline-none"
     >
-      <option value="">No subject</option>
+      <option value="">{t.organiser.noSubject}</option>
       {subjects.map((subject) => (
         <option key={subject} value={subject}>
           {subject}

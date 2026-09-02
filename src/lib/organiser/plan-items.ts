@@ -18,18 +18,11 @@ export const MAX_TITLE_CHARS = 140;
 export const MAX_LOCATION_CHARS = 80;
 export const MINUTES_IN_DAY = 24 * 60;
 
-/** Sunday-first, matching Date.getDay() and the calendar grid above it. */
-export const WEEKDAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-] as const;
-
-export const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+/**
+ * Weekday names are Sunday-first, matching Date.getDay() and the calendar
+ * grid, and they live in the message catalogue rather than here — every one
+ * of them is a word on a screen, and this module is pure.
+ */
 
 /**
  * A `YYYY-MM-DD` day key, which sorts correctly as a plain string.
@@ -57,20 +50,38 @@ export function daysBetween(from: string, to: string): number {
  * that actually needs to shout. Past about a week the exact date is more
  * useful than a countdown, because "in 23 days" means nothing to anyone.
  */
-export function describeDueDate(dueDate: string, today: string): string {
+/**
+ * How far off a deadline is, as a shape rather than a sentence.
+ *
+ * Beyond a week the answer is just the date, which `Intl` already localises;
+ * everything nearer is a phrase, and phrases belong to the catalogue. The
+ * view turns this into words — see `renderDueDate` in lib/i18n/format.
+ */
+export type DueLabel =
+  | { kind: "today" | "tomorrow" | "yesterday" }
+  | { kind: "daysAgo" | "inDays"; days: number }
+  | { kind: "date"; dayKey: string };
+
+export function describeDueDate(dueDate: string, today: string): DueLabel {
   const days = daysBetween(today, dueDate);
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  if (days === -1) return "Yesterday";
-  if (days < 0) return `${Math.abs(days)} days ago`;
-  if (days <= 7) return `In ${days} days`;
-  return formatDayKey(dueDate);
+  if (days === 0) return { kind: "today" };
+  if (days === 1) return { kind: "tomorrow" };
+  if (days === -1) return { kind: "yesterday" };
+  if (days < 0) return { kind: "daysAgo", days: Math.abs(days) };
+  if (days <= 7) return { kind: "inDays", days };
+  return { kind: "date", dayKey: dueDate };
 }
 
-export function formatDayKey(dayKey: string): string {
+/**
+ * "30 Sep", in whatever language is asked for.
+ *
+ * The locale is a parameter rather than a constant because this is the one
+ * piece of date wording `Intl` can do better than a catalogue could.
+ */
+export function formatDayKey(dayKey: string, locale = "en-PH"): string {
   const [year, month, day] = dayKey.split("-").map(Number);
   if (!year || !month || !day) return dayKey;
-  return new Intl.DateTimeFormat("en-PH", {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
   }).format(new Date(year, month - 1, day));

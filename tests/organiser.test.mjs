@@ -13,6 +13,7 @@ import {
   classesOn,
   daysBetween,
   describeDueDate,
+  formatDayKey,
   formatMinute,
   isDayKey,
   isUsableTitle,
@@ -106,22 +107,28 @@ check("a month boundary does not confuse the count", () => {
 });
 
 check("a deadline is described by distance, not by date, when it is near", () => {
+  // A shape rather than a sentence: the words are the view's, because this
+  // module cannot know what language the student reads.
   const today = "2026-08-30";
-  assert.equal(describeDueDate("2026-08-30", today), "Today");
-  assert.equal(describeDueDate("2026-08-31", today), "Tomorrow");
-  assert.equal(describeDueDate("2026-09-02", today), "In 3 days");
+  assert.deepEqual(describeDueDate("2026-08-30", today), { kind: "today" });
+  assert.deepEqual(describeDueDate("2026-08-31", today), { kind: "tomorrow" });
+  assert.deepEqual(describeDueDate("2026-09-02", today), { kind: "inDays", days: 3 });
 });
 
 check("an overdue deadline says how late it is", () => {
-  // The one that has to shout. "Aug 28" does not read as a problem.
+  // The one that has to shout. A bare date does not read as a problem.
   const today = "2026-08-30";
-  assert.equal(describeDueDate("2026-08-29", today), "Yesterday");
-  assert.equal(describeDueDate("2026-08-28", today), "2 days ago");
+  assert.deepEqual(describeDueDate("2026-08-29", today), { kind: "yesterday" });
+  assert.deepEqual(describeDueDate("2026-08-28", today), { kind: "daysAgo", days: 2 });
 });
 
 check("a distant deadline shows its date instead", () => {
   // "In 23 days" means nothing to anyone.
-  assert.match(describeDueDate("2026-09-30", "2026-08-30"), /Sep/);
+  assert.deepEqual(describeDueDate("2026-09-30", "2026-08-30"), {
+    kind: "date",
+    dayKey: "2026-09-30",
+  });
+  assert.match(formatDayKey("2026-09-30"), /Sep/);
 });
 
 console.log("\nTimetable times");

@@ -23,6 +23,7 @@ import { deleteDoc, doc, serverTimestamp, setDoc, Timestamp } from "firebase/fir
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { isRunning } from "@/lib/organiser/pomodoro";
 import {
   getTimerServerSnapshot,
@@ -38,6 +39,7 @@ const REFRESH_MS = 120_000;
 
 export function GroupPresence() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const timer = useSyncExternalStore(
     subscribeToTimer,
     getTimerSnapshot,
@@ -47,7 +49,7 @@ export function GroupPresence() {
   const focusing = isRunning(timer) && timer.phase === "focus";
   const uid = user?.uid;
   const groupKey = (profile?.groupIds ?? []).join(",");
-  const name = profile?.displayName?.trim() || "A classmate";
+  const name = profile?.displayName?.trim() || t.groups.aClassmate;
 
   useEffect(() => {
     if (!uid || !focusing || !groupKey) return;

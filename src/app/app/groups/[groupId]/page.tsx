@@ -42,12 +42,14 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { useStudySets } from "@/lib/hooks/use-firestore";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { useNow } from "@/lib/hooks/use-now";
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import { callGroups } from "@/lib/groups/client";
 import { GroupStandings } from "@/components/groups/group-standings";
+import { renderDueDate, renderGroupError } from "@/lib/i18n/format";
 import { describeDueDate, isUsableTitle } from "@/lib/organiser/plan-items";
 import type {
   GroupDeadline,
@@ -75,6 +77,7 @@ export default function GroupPage() {
   const params = useParams<{ groupId: string }>();
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { timeZone } = usePreferences();
   const groupId = params.groupId;
 
@@ -121,14 +124,13 @@ export default function GroupPage() {
       <main className="mx-auto grid min-h-[60vh] max-w-md place-items-center px-6 text-center">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">
-            You are not in this group
+            {t.groups.notAMember}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-            Groups are invite-only, so a link on its own is not enough. Ask
-            someone inside for a code.
+            {t.groups.notAMemberHint}
           </p>
           <Button className="mt-6" render={<Link href="/app/groups" />}>
-            Your groups
+            {t.groups.yourGroups}
           </Button>
         </div>
       </main>
@@ -139,7 +141,7 @@ export default function GroupPage() {
     <main className="mx-auto w-full max-w-3xl px-4 py-6 md:px-8 md:py-10">
       <Button variant="ghost" size="sm" render={<Link href="/app/groups" />}>
         <ArrowLeft />
-        Study groups
+        {t.groups.title}
       </Button>
 
       <header className="mt-3 flex flex-wrap items-start justify-between gap-4">
@@ -148,9 +150,8 @@ export default function GroupPage() {
             {group.data.name}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm">
-            {group.data.memberCount}{" "}
-            {group.data.memberCount === 1 ? "member" : "members"}
-            {here.length > 0 ? ` · ${here.length} studying now` : ""}
+            {t.common.members(group.data.memberCount)}
+            {here.length > 0 ? ` · ${t.groups.studyingNow(here.length)}` : ""}
           </p>
         </div>
         <LeaveButton
@@ -166,7 +167,7 @@ export default function GroupPage() {
       <section className="mt-8">
         <h2 className="font-display flex items-center gap-2 text-lg font-semibold tracking-tight">
           <Users className="text-muted-foreground size-4" />
-          Who is in
+          {t.groups.whoIsIn}
         </h2>
         <ul className="mt-3 flex flex-wrap gap-2">
           {members.data.map((member) => {
@@ -184,9 +185,11 @@ export default function GroupPage() {
                 ) : null}
                 <span>{member.displayName}</span>
                 {member.role === "owner" ? (
-                  <span className="text-muted-foreground text-xs">owner</span>
+                  <span className="text-muted-foreground text-xs">{t.groups.owner}</span>
                 ) : null}
-                {studying ? <span className="text-success text-xs">studying</span> : null}
+                {studying ? (
+                  <span className="text-success text-xs">{t.groups.studying}</span>
+                ) : null}
               </li>
             );
           })}
@@ -197,7 +200,7 @@ export default function GroupPage() {
         groupId={groupId}
         deadlines={upcoming}
         todayKey={todayKey}
-        displayName={profile?.displayName ?? "A classmate"}
+        displayName={profile?.displayName ?? t.groups.aClassmate}
         uid={user?.uid ?? ""}
       />
 
@@ -208,7 +211,7 @@ export default function GroupPage() {
         shared={sharedSets.data}
         uid={user?.uid ?? ""}
         isOwner={isOwner}
-        displayName={profile?.displayName ?? "A classmate"}
+        displayName={profile?.displayName ?? t.groups.aClassmate}
       />
     </main>
   );
@@ -228,14 +231,13 @@ export default function GroupPage() {
  * collection that leaks nothing even if every other rule were wrong.
  */
 function InviteCard({ groupId }: { groupId: string }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
   return (
     <div className="bg-accent/30 mt-6 rounded-2xl border p-4">
       <p className="text-sm leading-relaxed">
-        <strong>Invite someone.</strong> Send them the code you were given when
-        this group was made — codes expire after two weeks, so ask the owner for
-        a fresh one if it stops working.
+        <strong>{t.groups.inviteSomeone}</strong> {t.groups.inviteBody}
       </p>
       <Button
         variant="outline"
@@ -249,12 +251,12 @@ function InviteCard({ groupId }: { groupId: string }) {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
           } catch {
-            toast.error("Could not copy that.");
+            toast.error(t.groups.couldNotCopy);
           }
         }}
       >
         {copied ? <Check /> : <Copy />}
-        {copied ? "Copied" : "Copy group link"}
+        {copied ? t.groups.copied : t.groups.copyGroupLink}
       </Button>
     </div>
   );
@@ -276,6 +278,7 @@ function LeaveButton({
   memberCount: number;
   onLeft: () => void;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const last = memberCount <= 1;
@@ -285,10 +288,10 @@ function LeaveButton({
     const result = await callGroups({ action: "leave", groupId });
     setBusy(false);
     if (!result.ok) {
-      toast.error(result.error ?? "Could not leave that group.");
+      toast.error(renderGroupError(result, t));
       return;
     }
-    toast.success(last ? "Group deleted." : "You left the group.");
+    toast.success(last ? t.groups.deleted : t.groups.left);
     onLeft();
   }
 
@@ -302,25 +305,22 @@ function LeaveButton({
         disabled={busy}
       >
         {busy ? <Loader2 className="animate-spin" /> : <LogOut />}
-        {last ? "Delete group" : "Leave"}
+        {last ? t.groups.deleteGroup : t.groups.leave}
       </Button>
 
       <Dialog open={confirming} onOpenChange={(open) => (open ? null : setConfirming(false))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete this group?</DialogTitle>
+            <DialogTitle>{t.groups.deleteTitle}</DialogTitle>
             <DialogDescription>
-              You are the last member, so leaving removes the group along with
-              its deadlines and its list of shared sets. Nobody&rsquo;s notes or
-              cards are touched &mdash; those stay in the library of whoever made
-              them.
+              {t.groups.deleteBody}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+            <DialogClose render={<Button variant="ghost" />}>{t.common.cancel}</DialogClose>
             <Button variant="destructive" onClick={leave} disabled={busy}>
               {busy ? <Loader2 className="animate-spin" /> : <LogOut />}
-              Delete group
+              {t.groups.deleteGroup}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -346,6 +346,7 @@ function GroupDeadlines({
   displayName: string;
   uid: string;
 }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [busy, setBusy] = useState(false);
@@ -364,7 +365,7 @@ function GroupDeadlines({
       setTitle("");
       setDueDate("");
     } catch {
-      toast.error("Could not add that deadline.");
+      toast.error(t.groups.addDeadlineFailed);
     }
     setBusy(false);
   }
@@ -373,15 +374,15 @@ function GroupDeadlines({
     <section className="mt-8">
       <h2 className="font-display flex items-center gap-2 text-lg font-semibold tracking-tight">
         <CalendarClock className="text-muted-foreground size-4" />
-        What the group is working towards
+        {t.groups.workingTowards}
       </h2>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Practical exam, group report…"
-          aria-label="Deadline"
+          placeholder={t.groups.deadlinePlaceholder}
+          aria-label={t.groups.deadline}
           maxLength={140}
           className="min-w-48 flex-1"
         />
@@ -389,26 +390,25 @@ function GroupDeadlines({
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          aria-label="Due date"
+          aria-label={t.organiser.dueDate}
           className="w-40"
         />
         <Button onClick={add} disabled={!isUsableTitle(title) || !dueDate || busy}>
           {busy ? <Loader2 className="animate-spin" /> : <Plus />}
-          Add
+          {t.common.add}
         </Button>
       </div>
 
       {deadlines.length === 0 ? (
         <p className="text-muted-foreground mt-3 rounded-xl border border-dashed px-4 py-5 text-center text-sm">
-          Nothing yet. A shared date is the thing that makes a group a group
-          rather than a chat.
+          {t.groups.noDeadlines}
         </p>
       ) : (
         <ul className="mt-3 divide-y rounded-xl border">
           {deadlines.map((deadline) => (
             <li key={deadline.id} className="flex items-center gap-3 p-3.5">
               <span className="text-muted-foreground w-24 shrink-0 text-xs font-medium tabular-nums">
-                {describeDueDate(deadline.dueDate, todayKey)}
+                {renderDueDate(describeDueDate(deadline.dueDate, todayKey), t)}
               </span>
               <span className="min-w-0 flex-1 truncate text-sm">{deadline.title}</span>
               <span className="text-muted-foreground hidden shrink-0 text-xs sm:inline">
@@ -416,7 +416,7 @@ function GroupDeadlines({
               </span>
               <button
                 type="button"
-                aria-label={`Delete ${deadline.title}`}
+                aria-label={t.organiser.deleteItem(deadline.title)}
                 onClick={() =>
                   void deleteDoc(doc(db, "studyGroups", groupId, "deadlines", deadline.id))
                 }
@@ -449,6 +449,7 @@ function SharedSets({
   isOwner: boolean;
   displayName: string;
 }) {
+  const { t } = useI18n();
   const { data: mySets } = useStudySets(uid || undefined);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -480,7 +481,7 @@ function SharedSets({
       });
       setPicking(false);
     } catch {
-      toast.error("Could not share that set.");
+      toast.error(t.groups.shareFailed);
     }
     setBusy(false);
   }
@@ -501,25 +502,24 @@ function SharedSets({
         );
       }
     } catch {
-      toast.error("Could not remove that.");
+      toast.error(t.groups.removeFailed);
     }
   }
 
   return (
     <section className="mt-8">
       <h2 className="font-display text-lg font-semibold tracking-tight">
-        What the group is studying
+        {t.groups.studyingWhat}
       </h2>
       <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-        Sets stay in the library of whoever made them, so a fix reaches everyone
-        rather than leaving copies to go stale. Only this group can open them.
+        {t.groups.studyingWhatHint}
       </p>
 
       {picking ? (
         <div className="bg-card mt-3 rounded-xl border p-4">
           {shareable.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              Everything you have is already here.
+              {t.groups.everythingShared}
             </p>
           ) : (
             <ul className="max-h-56 divide-y overflow-y-auto">
@@ -527,20 +527,20 @@ function SharedSets({
                 <li key={set.id} className="flex items-center gap-3 py-2">
                   <span className="min-w-0 flex-1 truncate text-sm">{set.title}</span>
                   <Button size="sm" variant="outline" onClick={() => share(set.id)} disabled={busy}>
-                    Share
+                    {t.share.action}
                   </Button>
                 </li>
               ))}
             </ul>
           )}
           <Button variant="ghost" size="sm" className="mt-2" onClick={() => setPicking(false)}>
-            Cancel
+            {t.common.cancel}
           </Button>
         </div>
       ) : (
         <Button variant="outline" size="sm" className="mt-3" onClick={() => setPicking(true)}>
           <Plus />
-          Share one of your sets
+          {t.groups.shareOneOfYours}
         </Button>
       )}
 
@@ -558,8 +558,7 @@ function SharedSets({
               >
                 <p className="truncate text-sm font-medium">{entry.title}</p>
                 <p className="text-muted-foreground mt-0.5 text-xs">
-                  {entry.cardCount} {entry.cardCount === 1 ? "card" : "cards"} ·{" "}
-                  {entry.sharedByName}
+                  {t.common.cards(entry.cardCount)} · {entry.sharedByName}
                 </p>
               </Link>
               {entry.courseTag ? (
@@ -570,7 +569,7 @@ function SharedSets({
               {entry.ownerId === uid || isOwner ? (
                 <button
                   type="button"
-                  aria-label={`Remove ${entry.title}`}
+                  aria-label={t.groups.remove(entry.title)}
                   onClick={() => void unshare(entry)}
                   className="text-muted-foreground hover:text-destructive grid size-7 shrink-0 place-items-center rounded-md"
                 >
