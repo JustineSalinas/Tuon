@@ -5,6 +5,8 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, FileText, RotateCcw, Sparkles, X } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { AnimatedMark } from "@/components/brand/animated-mark";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import {
@@ -32,6 +34,7 @@ type Phase = "note" | "generating" | "cards" | "quiz";
  * (about twelve seconds in the app) is the useful part.
  */
 export function TryIt() {
+  const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("note");
   const reduceMotion = useReducedMotion();
 
@@ -59,30 +62,29 @@ export function TryIt() {
               </pre>
               <Button className="mt-5 w-full" size="lg" onClick={generate}>
                 <Sparkles />
-                Generate a study set
+                {t.demo.generate}
               </Button>
               <p className="text-muted-foreground mt-2.5 text-center text-xs">
-                Real notes, real output, no account needed.
+                {t.demo.noAccount}
               </p>
             </Step>
           ) : phase === "generating" ? (
             <Step key="generating">
               <div className="grid place-items-center py-14">
                 <AnimatedMark motion="focusing" className="text-primary size-10" />
-                <p className="mt-5 text-sm font-medium">Reading your note…</p>
+                <p className="mt-5 text-sm font-medium">{t.demo.reading}</p>
                 <p className="text-muted-foreground mt-1.5 max-w-xs text-center text-xs leading-relaxed">
-                  In the app this takes about twelve seconds. Here it&rsquo;s
-                  staged — the cards below were generated ahead of time.
+                  {t.demo.staged}
                 </p>
               </div>
             </Step>
           ) : phase === "cards" ? (
             <Step key="cards">
-              <CardDeck onFinish={() => setPhase("quiz")} />
+              <CardDeck onFinish={() => setPhase("quiz")} t={t} />
             </Step>
           ) : (
             <Step key="quiz">
-              <QuizPreview onRestart={() => setPhase("note")} />
+              <QuizPreview onRestart={() => setPhase("note")} t={t} />
             </Step>
           )}
         </AnimatePresence>
@@ -105,7 +107,7 @@ function Step({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CardDeck({ onFinish }: { onFinish: () => void }) {
+function CardDeck({ onFinish, t }: { onFinish: () => void; t: Messages }) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -127,10 +129,10 @@ function CardDeck({ onFinish }: { onFinish: () => void }) {
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span className="flex items-center gap-1.5">
           <Check className="text-primary size-3.5" strokeWidth={3} />
-          {SAMPLE_FLASHCARDS.length} flashcards and a quiz
+          {t.demo.cardsAndQuiz(SAMPLE_FLASHCARDS.length)}
         </span>
         <span className="tabular-nums">
-          {index + 1} / {SAMPLE_FLASHCARDS.length}
+          {t.demo.progress(index + 1, SAMPLE_FLASHCARDS.length)}
         </span>
       </div>
 
@@ -142,43 +144,43 @@ function CardDeck({ onFinish }: { onFinish: () => void }) {
           style={{ transformStyle: "preserve-3d" }}
           animate={{ rotateY: flipped && !reduceMotion ? 180 : 0 }}
           transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-          aria-label={flipped ? "Show question" : "Show answer"}
+          aria-label={flipped ? t.demo.showQuestion : t.demo.showAnswer}
         >
           <Face>
-            <Label>Question</Label>
+            <Label>{t.demo.question}</Label>
             <p className="font-display mt-3 text-lg leading-snug font-medium text-balance">
               {card.front}
             </p>
-            <p className="text-muted-foreground mt-5 text-xs">Tap to reveal</p>
+            <p className="text-muted-foreground mt-5 text-xs">{t.demo.tapToReveal}</p>
           </Face>
           <Face
             className="absolute inset-0"
             style={{ transform: reduceMotion ? undefined : "rotateY(180deg)" }}
           >
-            <Label>Answer</Label>
+            <Label>{t.demo.answer}</Label>
             <p className="mt-3 leading-relaxed">{card.back}</p>
             {reduceMotion ? null : (
-              <p className="text-muted-foreground mt-5 text-xs">Tap to flip back</p>
+              <p className="text-muted-foreground mt-5 text-xs">{t.demo.tapToFlipBack}</p>
             )}
           </Face>
         </motion.button>
       </div>
 
       <Button variant="outline" className="mt-4 w-full" onClick={next}>
-        {last ? "See the quiz" : "Next card"}
+        {last ? t.demo.seeTheQuiz : t.demo.nextCard}
         <ArrowRight />
       </Button>
     </div>
   );
 }
 
-function QuizPreview({ onRestart }: { onRestart: () => void }) {
+function QuizPreview({ onRestart, t }: { onRestart: () => void; t: Messages }) {
   const [picked, setPicked] = useState<number | null>(null);
   const correct = picked === SAMPLE_QUESTION.correctIndex;
 
   return (
     <div>
-      <Label>Practice quiz</Label>
+      <Label>{t.demo.practiceQuiz}</Label>
       <p className="font-display mt-3 text-lg leading-snug font-medium text-balance">
         {SAMPLE_QUESTION.question}
       </p>
@@ -240,11 +242,11 @@ function QuizPreview({ onRestart }: { onRestart: () => void }) {
 
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Button className="flex-1" size="lg" render={<Link href="/signup" />}>
-                Try it with your own notes
+                {t.demo.tryYourOwn}
               </Button>
               <Button variant="ghost" onClick={onRestart}>
                 <RotateCcw />
-                Start over
+                {t.demo.startOver}
               </Button>
             </div>
           </motion.div>

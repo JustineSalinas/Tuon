@@ -64,9 +64,9 @@ export async function POST(request: Request) {
   const limit = await checkRateLimit(RATE_LIMITS.chat, clientIp(request));
   if (!limit.allowed) return rateLimitedResponse(limit, "messages");
 
-  let body: { messages?: unknown };
+  let body: { messages?: unknown; locale?: unknown };
   try {
-    body = (await request.json()) as { messages?: unknown };
+    body = (await request.json()) as { messages?: unknown; locale?: unknown };
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
@@ -87,7 +87,9 @@ export async function POST(request: Request) {
       system: [
         {
           type: "text",
-          text: systemPrompt(),
+          // The visitor's reading language, so Tala opens in it
+          // rather than waiting to be written to in Filipino first.
+          text: systemPrompt(body.locale === "fil" ? "fil" : "en"),
           // Identical on every request, so it is cached rather than re-read.
           // This is most of the per-call cost on a corpus this size.
           cache_control: { type: "ephemeral" },

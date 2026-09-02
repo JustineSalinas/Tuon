@@ -6,15 +6,11 @@ import { AnimatePresence, motion, useScroll, useSpring } from "motion/react";
 import { Menu, X } from "lucide-react";
 
 import { Wordmark } from "@/components/brand/logo";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 
-const LINKS = [
-  { href: "#how", label: "How it works" },
-  { href: "#try", label: "See it work" },
-  { href: "#local", label: "Built for here" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#faq", label: "FAQ" },
-];
+/** Anchors, with their names looked up per render. */
+const LINKS = ["how", "try", "local", "pricing", "faq"] as const;
 
 /**
  * Landing header.
@@ -25,6 +21,7 @@ const LINKS = [
  * otherwise takes away.
  */
 export function SiteHeader() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   // Springing the raw progress keeps the bar from twitching on a trackpad.
@@ -42,13 +39,13 @@ export function SiteHeader() {
         </Link>
 
         <nav className="ml-6 hidden items-center gap-1 lg:flex">
-          {LINKS.map((link) => (
+          {LINKS.map((key) => (
             <a
-              key={link.href}
-              href={link.href}
+              key={key}
+              href={`#${key}`}
               className="text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg px-3 py-1.5 text-sm transition-colors"
             >
-              {link.label}
+              {t.marketing.nav[key]}
             </a>
           ))}
         </nav>
@@ -60,10 +57,10 @@ export function SiteHeader() {
             className="hidden sm:inline-flex"
             render={<Link href="/login" />}
           >
-            Sign in
+            {t.marketing.nav.signIn}
           </Button>
           <Button size="sm" render={<Link href="/signup" />}>
-            Get started
+            {t.marketing.nav.getStarted}
           </Button>
           <Button
             variant="ghost"
@@ -71,7 +68,7 @@ export function SiteHeader() {
             className="lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t.marketing.nav.closeMenu : t.marketing.nav.openMenu}
           >
             {open ? <X /> : <Menu />}
           </Button>
@@ -90,14 +87,14 @@ export function SiteHeader() {
             className="bg-background overflow-hidden border-t lg:hidden"
           >
             <div className="mx-auto max-w-6xl px-4 py-2 md:px-8">
-              {LINKS.map((link) => (
+              {LINKS.map((key) => (
                 <a
-                  key={link.href}
-                  href={link.href}
+                  key={key}
+                  href={`#${key}`}
                   onClick={() => setOpen(false)}
                   className="hover:bg-accent/50 block rounded-lg px-3 py-2.5 text-sm"
                 >
-                  {link.label}
+                  {t.marketing.nav[key]}
                 </a>
               ))}
               <Link
@@ -105,7 +102,7 @@ export function SiteHeader() {
                 onClick={() => setOpen(false)}
                 className="hover:bg-accent/50 block rounded-lg px-3 py-2.5 text-sm sm:hidden"
               >
-                Sign in
+                {t.marketing.nav.signIn}
               </Link>
             </div>
           </motion.nav>

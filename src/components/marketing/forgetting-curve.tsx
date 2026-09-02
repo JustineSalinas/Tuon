@@ -3,6 +3,8 @@
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
+
 /**
  * Why studying once does not work.
  *
@@ -54,6 +56,7 @@ const REVIEW_POINTS = [
 ] as const;
 
 export function ForgettingCurve() {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const reduceMotion = useReducedMotion();
@@ -72,19 +75,27 @@ export function ForgettingCurve() {
       {/* The answer first. Everything below is evidence for it. */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="border-border bg-card rounded-2xl border p-5">
-          <p className="text-muted-foreground text-sm">Studied once, the night before</p>
+          <p className="text-muted-foreground text-sm">{t.marketing.curve.onceLabel}</p>
           <p className="font-display mt-2 text-3xl font-semibold tracking-tight">
-            You remember <span className="text-muted-foreground">1 card in 10</span>
+            {t.marketing.curve.onceValueBefore}{" "}
+            <span className="text-muted-foreground">{t.marketing.curve.onceValue}</span>
           </p>
-          <p className="text-muted-foreground mt-1 text-sm">a month later</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {t.marketing.curve.aMonthLater}
+          </p>
         </div>
 
         <div className="border-primary/40 bg-accent/30 rounded-2xl border p-5">
-          <p className="text-muted-foreground text-sm">Reviewed when Tuón says</p>
-          <p className="font-display mt-2 text-3xl font-semibold tracking-tight">
-            You remember <span className="text-primary">9 in 10</span>
+          <p className="text-muted-foreground text-sm">
+            {t.marketing.curve.reviewedLabel}
           </p>
-          <p className="text-muted-foreground mt-1 text-sm">a month later</p>
+          <p className="font-display mt-2 text-3xl font-semibold tracking-tight">
+            {t.marketing.curve.onceValueBefore}{" "}
+            <span className="text-primary">{t.marketing.curve.reviewedValue}</span>
+          </p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {t.marketing.curve.aMonthLater}
+          </p>
         </div>
       </div>
 
@@ -95,7 +106,7 @@ export function ForgettingCurve() {
           viewBox={`0 0 ${W} ${H}`}
           className="h-auto w-full min-w-[460px]"
           role="img"
-          aria-label="Two lines over one month. Studied once, memory falls away within the first week and stays near nothing. Reviewed on Tuón's schedule, it dips slightly between reviews and recovers each time, staying high all month."
+          aria-label={t.marketing.curve.chartAlt}
         >
           <motion.path
             d={FORGOTTEN}
@@ -140,7 +151,7 @@ export function ForgettingCurve() {
             textAnchor="end"
             className="fill-primary text-[13px] font-medium"
           >
-            Reviewed — you keep it
+            {t.marketing.curve.keepIt}
           </text>
           <text
             x={RIGHT}
@@ -148,11 +159,11 @@ export function ForgettingCurve() {
             textAnchor="end"
             className="fill-muted-foreground text-[13px]"
           >
-            Studied once — it fades
+            {t.marketing.curve.fades}
           </text>
 
           <text x={LEFT} y={H - 8} className="fill-muted-foreground text-[11px]">
-            Today
+            {t.marketing.curve.today}
           </text>
           <text
             x={x(7)}
@@ -160,7 +171,7 @@ export function ForgettingCurve() {
             textAnchor="middle"
             className="fill-muted-foreground text-[11px]"
           >
-            One week
+            {t.marketing.curve.oneWeek}
           </text>
           <text
             x={RIGHT}
@@ -168,23 +179,21 @@ export function ForgettingCurve() {
             textAnchor="end"
             className="fill-muted-foreground text-[11px]"
           >
-            One month
+            {t.marketing.curve.oneMonth}
           </text>
         </svg>
 
         <p className="mt-4 flex flex-wrap items-center gap-x-2 text-sm">
           <span className="bg-primary size-2 rounded-full" aria-hidden="true" />
-          <span className="font-medium">Four reviews. About six minutes in total.</span>
+          <span className="font-medium">{t.marketing.curve.fourReviews}</span>
           <span className="text-muted-foreground">
-            That is the whole difference between the two lines.
+            {t.marketing.curve.wholeDifference}
           </span>
         </p>
       </div>
 
       <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-        Based on the forgetting curve first measured by Hermann Ebbinghaus in
-        1885 and reproduced many times since. Drawn to show the mechanism —
-        these are not measurements of Tuón users.
+        {t.marketing.curve.source}
       </p>
     </div>
   );

@@ -1336,6 +1336,349 @@ export const fil: Messages = {
     action: "Paano gumagana ang Tuón",
   },
 
+  marketing: {
+    nav: {
+      how: "Paano ito gumagana",
+      try: "Tingnan sa aksyon",
+      local: "Gawa para dito",
+      pricing: "Presyo",
+      faq: "FAQ",
+      signIn: "Mag-sign in",
+      getStarted: "Magsimula",
+      openMenu: "Buksan ang menu",
+      closeMenu: "Isara ang menu",
+    },
+
+    hero: {
+      badge: "Gawa para sa mga estudyanteng Pilipino",
+      headline: "Epektibo ang cramming.",
+      headlineAccent: " Sa loob ng mga tatlong araw.",
+      body: "I-paste ang notes mo. Isusulat ng Tuón ang flashcards at practice quiz, tapos ibabalik ang bawat kard bago mo pa ito makalimutan — para ang reviewer na ginawa mo ngayong gabi ay gumagana pa rin sa susunod na semester.",
+      startFree: "Magsimula nang libre",
+      haveAccount: "May account na ako",
+      freeForever: (count: number) =>
+        `Habambuhay na libre ang mga nota at flashcard · ${count} AI study set kada buwan`,
+      languages: "· Cebuano at Tagalog",
+      meaning: "Mag-aral. Ibigay ang buong atensyon mo sa isang bagay.",
+      haveAQuestion: "May tanong?",
+      askTala: (creature: string) => `Tanungin si ${creature}`,
+    },
+
+    preview: {
+      noteTitle: "Photosynthesis — Gen Bio 1",
+      noteBody:
+        "Nagaganap ang light-dependent reactions sa thylakoid membrane. Hinahati ang tubig, naglalabas ng O₂, at naiimbak ang enerhiya bilang ATP at NADPH…",
+      output: "12 flashcard · 5 tanong sa quiz · 11 segundo",
+      cardIndex: "Kard 3 sa 12",
+      front: "Saan nagaganap ang light-dependent reactions?",
+      back: "Sa thylakoid membrane ng chloroplast.",
+      nextReview: "Susunod na review sa loob ng 6 na araw",
+    },
+
+    why: {
+      eyebrow: "Bakit ka nakakalimot",
+      title: "Ang pag-aaral nang minsan ang problema, hindi ikaw",
+      body: "Halos pareho ang kurba ng paglimot ng lahat. Ang solusyon ay hindi mas maraming oras kagabi bago ang exam — ito ay ang muling pagharap sa parehong kard habang nagsisimula pa lang itong madulas. Iyan ang buong ideya ng spaced repetition, at ang manu-manong pag-iiskedyul ang bahaging walang nakakasunod.",
+      aside:
+        "Ang kard na tatlong linggo mo nang hindi nakikita ay tulog. Ginigising ito ng Tuón isang araw bago mo ito mawala.",
+    },
+
+    curve: {
+      onceLabel: "Nag-aral minsan, gabi bago ang exam",
+      onceValueBefore: "Naaalala mo ang",
+      onceValue: "1 kard sa 10",
+      reviewedLabel: "Nire-review kapag sinabi ng Tuón",
+      reviewedValue: "9 sa 10",
+      aMonthLater: "makalipas ang isang buwan",
+      chartAlt:
+        "Dalawang linya sa loob ng isang buwan. Kapag minsan lang nag-aral, bumabagsak ang memorya sa loob ng unang linggo at nananatiling halos wala. Kapag nire-review sa iskedyul ng Tuón, bahagya itong bumababa sa pagitan ng mga review at bumabalik sa tuwing nire-review, na nananatiling mataas buong buwan.",
+      keepIt: "Nire-review — nananatili sa iyo",
+      fades: "Minsan lang inaral — kumukupas",
+      today: "Ngayon",
+      oneWeek: "Isang linggo",
+      oneMonth: "Isang buwan",
+      fourReviews: "Apat na review. Mga anim na minuto lahat-lahat.",
+      wholeDifference: "Iyan ang buong pagkakaiba ng dalawang linya.",
+      source:
+        "Batay sa forgetting curve na unang sinukat ni Hermann Ebbinghaus noong 1885 at paulit-ulit nang naipakita mula noon. Iginuhit para ipakita ang mekanismo — hindi ito sukat ng mga gumagamit ng Tuón.",
+    },
+
+    how: {
+      eyebrow: "Paano ito gumagana",
+      title: "Mula sa nota hanggang sa alam mo na, sa tatlong hakbang",
+      step: (n: number) => `Hakbang ${n}`,
+      steps: [
+        {
+          title: "I-paste ang notes mo",
+          body: "Lecture notes, sipi mula sa libro, o ang sulat-kamay mong reviewer na na-type na. I-tag ito sa isang subject para maayos ang lahat.",
+        },
+        {
+          title: "Gumawa ng study set",
+          body: "Isang pindot lang at makakakuha ka ng 8 hanggang 15 flashcard at 5-tanong na practice quiz, isinulat mula sa materyal mo at wala nang iba.",
+        },
+        {
+          title: "Mag-review sa iskedyul",
+          body: "I-rate ang bawat kard ng Ulit, Mahirap, Maayos o Madali. Ang SM-2 algorithm ang magdedesisyon kung kailan mo ito susunod na makikita, kaya mas kaunti ang pag-aaral at mas marami ang natatandaan.",
+        },
+      ],
+    },
+
+    tryIt: {
+      eyebrow: "Tingnan sa aksyon",
+      title: "Subukan bago mag-sign up",
+      body: "Isang tunay na nota, at ang study set na talagang ginawa rito ng Tuón. I-flip ang mga kard, sagutan ang quiz. Walang account, walang i-install.",
+    },
+
+    versus: {
+      eyebrow: "Kumpara sa manu-mano",
+      title: "Marunong ka nang gumawa ng reviewer",
+      body: "Long bond paper, apat na kulay ng panulat, isang gabing nawala. Gumagana ito — tapos matatapos ang exam at mapupunta ito sa basurahan. Narito ang parehong trabaho, ginawa sa ibang paraan.",
+      byHand: "Manu-mano",
+      withTuon: "Gamit ang Tuón",
+      rows: [
+        {
+          label: "Paggawa ng reviewer mula sa isang kabanata",
+          byHand: "Isang gabi, at lalong pumapangit ang sulat mo",
+          tuon: "Mga labing-isang segundo",
+        },
+        {
+          label: "Pag-alam kung ano ang aaralin ngayong gabi",
+          byHand: "Kung ano man ang pinaka-hindi mo sigurado",
+          tuon: "Ang eksaktong mga kard na due",
+        },
+        {
+          label: "Ang linggo pagkatapos ng exam",
+          byHand: "Bond paper sa basurahan, at wala na",
+          tuon: "Naka-iskedyul pa rin, sa iyo pa rin",
+        },
+        {
+          label: "Paghahanap ulit sa isang paksa",
+          byHand: "Nagbubuklat sa notebook",
+          tuon: "Search, tags, at mga naka-link na nota",
+        },
+        {
+          label: "Ang gastos",
+          byHand: "Panulat, papel, photocopy",
+          tuon: "Libre para sa limang study set kada buwan",
+        },
+      ],
+    },
+
+    devices: {
+      eyebrow: "Bawat device na meron ka",
+      title: "Buksan ito kahit ano ang nasa harap mo",
+      body: "Tumatakbo ang Tuón sa browser, kaya walang i-i-install at walang isa-sideload. Mag-review sa telepono mo habang nasa jeep, magsulat ng nota sa desktop ng library — pareho ang iskedyul mo sa dalawa, dahil nasa account mo ito at hindi sa device.",
+      desktopCaption: "Stats sa desktop ng library",
+      inTheWorks: "GINAGAWA PA",
+      nativeTitle: "Paparating na ang native apps sa iPhone at Android",
+      nativeBody:
+        "Offline na review at icon sa home screen, nang hindi isinusuko ang web version. Hindi mo kailangang maghintay — gumagana na sa browser mo ngayon ang lahat ng nasa itaas.",
+      soonOn: "Malapit nang nasa",
+    },
+
+    local: {
+      eyebrow: "Gawa para dito",
+      title: "Alam na nito ang kurikulum mo",
+      body: "Karamihan sa study app ay gawa para sa mga klase sa Amerika tapos isinalin. Nagsisimula ang Tuón sa Philippine K-12 system, kaya tatlong pindot lang ang pag-set up sa halip na i-type ang bawat subject nang mag-isa.",
+      points: [
+        "Nakapaloob ang Senior High strands — STEM, ABM, HUMSS at GAS, kasama ang tamang subject sa bawat isa",
+        "Handa nang piliin ang core subjects tulad ng General Mathematics, Earth and Life Science at Oral Communication",
+        "Mga kursong pangkolehiyo mula BS Nursing hanggang AB Communication, na may puwang para sa sarili mong idagdag",
+        "Itinuturing na pangunahing subject ang paghahanda sa UPCAT, ACET at DCAT",
+        "Nananatili kung paano mo isinulat ang mga notang naghahalo ng Ingles at Tagalog o Cebuano",
+      ],
+      setupTitle: "Tatlong tanong at nag-aaral ka na.",
+      yourSchool: "Ang eskwelahan mo",
+      schoolHint: "I-type ang kahit ano — hindi kailangang nasa listahan ang eskwelahan mo.",
+      yourStrand: "Ang strand mo",
+      strandHint: "Kolehiyo ba? Dito ka pipili ng degree program.",
+      yourSubjects: "Ang mga subject mo",
+      addYourOwn: "+ Idagdag ang sarili mo",
+      subjectsHint:
+        "Bawat nota at set ay naka-tag sa isa, kaya walang mapagpapalit.",
+    },
+
+    pricing: {
+      eyebrow: "Presyo",
+      title: "Nakapreso sa piso, at tapat ang limitasyon",
+      bodyBefore: "Ang isang",
+      studySet: "study set",
+      bodyAfter: (explainer: string) =>
+        `ay ${explainer}. Walang limitasyon sa lahat ng plan — pati sa Free — ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule.`,
+      billingPeriod: "Panahon ng pagbabayad",
+      monthly: "Buwanan",
+      yearly: (freeMonths: number) => `Taunan · ${freeMonths} buwang libre`,
+      mostPopular: "Pinakasikat",
+      perMonth: "/buwan",
+      billedAnnually: (total: string) => `₱${total} na sisingilin minsan sa isang taon.`,
+      soon: "(malapit na)",
+      startFree: "Magsimula nang libre",
+      comingSoon: "Malapit na",
+      footnote:
+        "Bakit bilang sa halip na “walang limitasyon”: totoong pera ang gastos namin sa paggawa ng bawat study set. Mas mabuti ang limitasyong kaya naming tuparin kaysa sa pangakong walang limitasyon na tahimik naming babagalan. Bilang gabay, ang estudyanteng may anim na subject na gumagawa ng reviewer sa bawat isa dalawang beses sa isang linggo ay gumagamit ng mga 48 kada buwan.",
+    },
+
+    faq: {
+      eyebrow: "Mga tanong",
+      title: "Ang unang itinatanong ng mga tao",
+      items: [
+        {
+          q: "Libre ba talaga?",
+          a: "Oo, at hindi trial ang libreng plan. Makakakuha ka ng {count} AI study set kada buwan, habambuhay. Walang limitasyon sa lahat ng plan ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule — ang tanging may bayad ay ang AI na gumagawa ng kard mula sa nota, dahil iyon lang ang may gastos sa amin.",
+        },
+        {
+          q: "Ano ang mangyayari kapag naabot ko ang buwanang limitasyon?",
+          a: "Hihinto ang paggawa hanggang sa ika-1. Walang ibang magbabago: patuloy na gumagana ang bawat nota, kard at review na meron ka na, at tumutuloy ang iskedyul. Pwede ka pa ring gumawa ng sariling flashcard nang walang limitasyon.",
+        },
+        {
+          q: "Sino ang nakakakita ng mga nota ko?",
+          a: "Ikaw lang. Naka-off ang pag-share bilang default at kada study set — buksan ito at makikita ng kahit sinong may link ang mga kard na iyon; patayin ito at agad na hihinto ang access. Hindi kailanman ibinabahagi ang mga nota at review history mo. Detalyado sa {link} kung ano ang hawak namin at sino ang nagpoproseso nito.",
+          linkHref: "/privacy",
+          linkLabel: "paunawa sa privacy",
+        },
+        {
+          q: "Ipinapadala ba ang nota ko sa isang kompanya ng AI?",
+          a: "Ipinapadala ang teksto ng nota sa Anthropic kapag — at kapag lang — pinindot mo ang Generate. Hindi ipinapadala ang pangalan, email, at review history mo. Walang ipinapadala habang nagsusulat o nagre-review ka lang, at binabasa ang mga PDF sa browser mo at hindi kailanman ina-upload.",
+        },
+        {
+          q: "Nagkakamali ba ang mga flashcard?",
+          a: "Minsan, oo. Ang AI ay gumagawa lamang mula sa nota mo, kaya kung may mali ang nota, uulitin ito ng mga kard — at tulad ng anumang AI, minsan ay tiwala itong nagkakamali nang mag-isa. Suriin sa textbook mo ang anumang mahalaga. Pantulong ito sa pag-aaral, hindi pinagmumulan ng katotohanan.",
+        },
+        {
+          q: "Pwede ko ba itong gamitin sa UPCAT o board review?",
+          a: "Iyan ang pinakamagaling na gawin ng spaced repetition. Nakapaloob na sa setup ang mga subject sa entrance exam kasama ng strand mo, at ang iskedyul ay ginawa para sa materyal na kailangan mong tandaan nang ilang buwan sa halip na hanggang Biyernes.",
+        },
+        {
+          q: "Gumagana ba ito offline?",
+          a: "Ang pag-review, oo. Hindi libre ang data at hindi maaasahan ang wifi sa campus, kaya patuloy na gumagana nang walang koneksyon ang mga kard na meron ka na at nagsi-sync ang mga rating mo pagbalik nito. Kailangan ng network sa paggawa ng bagong study set, dahil sa server nangyayari ang bahaging iyon.",
+        },
+        {
+          q: "Ano ba talaga ang isang study set?",
+          a: "Ang isang study set ay {explainer}.",
+        },
+        {
+          q: "Ano ang pinagkaiba nito sa Quizlet o Anki?",
+          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”. Nababasa rin nito ang mga notang naghahalo ng Ingles at Tagalog o Cebuano, na siyang totoong paraan ng pagsulat ng karamihan sa mga estudyante rito.",
+        },
+        {
+          q: "Kailangan ko bang i-type ang bawat sagot?",
+          a: "Sa mga kard lang na sapat ang ikli para i-type, at pwede mo itong patayin sa settings o laktawan sa kahit anong kard. Naka-on ito bilang default dahil ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Pinapatawad ang spelling, ayos ng salita, accent at ang mga panandang Tagalog na baka isulat mo — hindi kailanman itinuturing na mali ang typo.",
+        },
+        {
+          q: "Pwede ba akong mag-aral kasama ang mga kaklase ko?",
+          a: "Oo, sa mga grupong imbitasyon lang: mag-share ng set, maglagay ng pinagsasaluhang deadline, at makita kung sino ang nag-aaral ngayon. Sadyang walang pampublikong silid at walang direktoryo — marami sa mga estudyante rito ay menor de edad, at ang espasyong mapapasok ng estranghero ay nangangailangan ng moderasyong hindi namin kayang ipangako. Sumasali ka sa grupo dahil may nagpadala sa iyo ng code.",
+        },
+        {
+          q: "Makukuha ko bang muli ang mga nota ko?",
+          a: "Anumang oras, bilang Markdown, na buo ang [[links]] mo — isang download para sa buong library. Pwede ka ring magdala ng folder ng Markdown sa parehong paraan. Ang pagsasara ng labasan ang paraan ng mga app para pigilan ang gustong umalis, at hindi iyon plano namin.",
+        },
+        {
+          q: "Paano kung makalimutan ko ng isang linggo?",
+          a: "Walang masisira at walang mawawala. Ang mga kard na nalaktawan mo ay due pa rin, at may hangganan ang isang session batay sa pang-araw-araw na target na itinakda mo, kaya hindi dumarating ang backlog bilang pader ng 300 kard. May study grid sa dashboard mo na nagbibilang ng mga araw na nag-aral ka, pero talaan ito at hindi banta — walang nangungulit sa iyo na ipagpatuloy ito, at nananatili sa screen ang pinakamahaba mong takbo kahit may puwang.",
+        },
+        {
+          q: "Pwede ko ba itong gamitin sa telepono ko?",
+          a: "Oo — website ito, kaya walang i-i-install, at pwede mo itong idagdag sa home screen mo kung gusto mong bumukas ito na parang app. Ginawa ang pag-review para sa hinlalaki, dahil doon nangyayari ang karamihan nito — sa telepono, sa pagitan ng mga klase.",
+        },
+      ],
+    },
+
+    finalCta: {
+      title: "Tigilan na ang paggawa ng flashcard. Simulan ang pag-alala.",
+      body: "Magsimula sa isang nota ngayong gabi. Magkakaroon ka ng set ng flashcard bago mo maubos ang kape mo, at bukas darating ang unang review.",
+      action: "Gumawa ng libreng account",
+      note: "Habambuhay na libre ang mga nota at flashcard · walang kailangang card",
+    },
+
+    footer: {
+      blurb:
+        "Gawing flashcards at quiz ang notes mo sa klase, tapos i-review ang mga ito sa iskedyul na talagang nagpapatatag ng memorya.",
+      questions: "May tanong?",
+      product: "Produkto",
+      account: "Account",
+      legal: "Legal",
+      createAccount: "Gumawa ng account",
+      openTuon: "Buksan ang Tuón",
+      privacy: "Paunawa sa privacy",
+      terms: "Mga tuntunin ng paggamit",
+      contact: "Kontakin kami",
+      madeIn: "Gawa sa Pilipinas, para sa mga estudyanteng Pilipino.",
+      rights: (year: number) =>
+        `© ${year} Tuón · Adrian Salinas. Nakalaan ang lahat ng karapatan.`,
+    },
+  },
+
+  demo: {
+    generate: "Gumawa ng study set",
+    noAccount: "Tunay na nota, tunay na resulta, walang kailangang account.",
+    reading: "Binabasa ang nota mo…",
+    staged:
+      "Sa app, mga labindalawang segundo ito. Dito ay itinanghal lang — nauna nang ginawa ang mga kard sa ibaba.",
+    cardsAndQuiz: (count: number) => `${count} flashcard at isang quiz`,
+    progress: (index: number, total: number) => `${index} / ${total}`,
+    showQuestion: "Ipakita ang tanong",
+    showAnswer: "Ipakita ang sagot",
+    question: "Tanong",
+    answer: "Sagot",
+    tapToReveal: "Pindutin para ipakita",
+    tapToFlipBack: "Pindutin para bumalik",
+    seeTheQuiz: "Tingnan ang quiz",
+    nextCard: "Susunod na kard",
+    practiceQuiz: "Practice quiz",
+    tryYourOwn: "Subukan ito sa sarili mong notes",
+    startOver: "Magsimula ulit",
+  },
+
+  ask: {
+    title: "May tanong ka pa?",
+    body: (creature: string) =>
+      `Tanungin si ${creature} kung sakop ba ng Tuón ang subject o board exam mo, kung magkano ito, o kung sino ang nakakakita ng mga nota mo.`,
+    suggestions: [
+      "Sakop ba nito ang strand ko?",
+      "Pwede ko ba itong gamitin sa CPALE?",
+      "Libre ba talaga?",
+      "Sino ang nakakakita ng mga nota ko?",
+    ],
+    thinking: "Nag-iisip",
+    askAgain: "Itanong ulit iyon",
+    startOver: "Magsimula ulit",
+    followUp: "Magtanong pa…",
+    placeholder: "Magtanong tungkol sa Tuón…",
+    yourQuestion: "Ang tanong mo",
+    stop: "Itigil",
+    send: "Ipadala",
+    disclaimer: (creature: string) =>
+      `Mga tanong lang tungkol sa Tuón ang sinasagot ni ${creature}, at pwede itong magkamali. Walang naise-save sa account ang anumang i-type mo rito.`,
+    failed: "Hindi masagot iyon. Nasa FAQ sa itaas ang mga karaniwang tanong.",
+    offline:
+      "Hindi maabot ang server. Tingnan ang koneksyon mo, o basahin ang FAQ sa itaas.",
+  },
+
+  shared: {
+    mySets: "Mga set ko",
+    getTuon: "Kunin ang Tuón nang libre",
+    badge: "Ibinahaging study set",
+    flashcards: (count: number) => `${count} flashcard`,
+    quizQuestions: (count: number) => `${count} tanong sa quiz`,
+    saveToMySets: "I-save sa mga set ko",
+    signUpToSave: "Mag-sign up nang libre para ma-save ito",
+    ownCopy: "Magkakaroon ka ng sariling kopya — sa iyo pa rin ang mga review mo.",
+    flashcardsHeading: "Flashcards",
+    saved: "Na-save sa mga study set mo.",
+    saveFailed: "Hindi ma-save ang kopya. Subukan ulit.",
+    unavailable: "Hindi available ang link na ito",
+    unavailableHint:
+      "Maaaring inalis na ito sa pagbabahagi ng may-ari, o mali ang pagkakasulat ng address.",
+    goToTuon: "Pumunta sa Tuón",
+  },
+
+  offlinePage: {
+    title: "Kailangan ng koneksyon ang pahinang ito",
+    body: "Nakaimbak sa device na ito ang mga kard mo at ang iskedyul nila, kaya gumagana pa rin ang pag-review. Nase-save ang anumang i-rate mo ngayon at magsi-sync pagbalik ng koneksyon mo.",
+    goToReview: "Pumunta sa review",
+    backToLibrary: "Balik sa library ko",
+  },
+
   settings: {
     title: "Settings",
     studying: "Pag-aaral",

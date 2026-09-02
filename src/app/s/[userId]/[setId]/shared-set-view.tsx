@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Wordmark } from "@/components/brand/logo";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { ReportButton } from "@/components/study/report-button";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,7 @@ export function SharedSetView({
 }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const [saving, setSaving] = useState(false);
 
@@ -85,10 +88,10 @@ export function SharedSetView({
       });
 
       await batch.commit();
-      toast.success("Saved to your study sets.");
+      toast.success(t.shared.saved);
       router.push(`/app/sets/${copyRef.id}`);
     } catch {
-      toast.error("Could not save a copy. Please try again.");
+      toast.error(t.shared.saveFailed);
       setSaving(false);
     }
   }
@@ -101,18 +104,18 @@ export function SharedSetView({
         </Link>
         {user ? (
           <Button variant="ghost" size="sm" render={<Link href="/app" />}>
-            My sets
+            {t.shared.mySets}
           </Button>
         ) : (
           <Button size="sm" render={<Link href="/signup" />}>
-            Get Tuón free
+            {t.shared.getTuon}
           </Button>
         )}
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 md:px-8 md:py-12">
         {!data ? (
-          <Unavailable />
+          <Unavailable t={t} />
         ) : (
           <>
             <motion.header
@@ -122,7 +125,7 @@ export function SharedSetView({
             >
               <Badge variant="secondary" className="gap-1.5">
                 <BookOpen className="size-3" />
-                Shared study set
+                {t.shared.badge}
               </Badge>
               <h1 className="font-display mt-4 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
                 {data.studySet.title}
@@ -130,9 +133,9 @@ export function SharedSetView({
               <p className="text-muted-foreground mt-2.5 text-sm">
                 {[
                   data.studySet.courseTag,
-                  `${data.flashcards.length} flashcards`,
+                  t.shared.flashcards(data.flashcards.length),
                   data.quizQuestions.length
-                    ? `${data.quizQuestions.length} quiz questions`
+                    ? t.shared.quizQuestions(data.quizQuestions.length)
                     : null,
                 ]
                   .filter(Boolean)
@@ -143,16 +146,16 @@ export function SharedSetView({
                 {user ? (
                   <Button size="lg" onClick={saveCopy} disabled={saving}>
                     {saving ? <Loader2 className="animate-spin" /> : <Plus />}
-                    Save to my sets
+                    {t.shared.saveToMySets}
                   </Button>
                 ) : (
                   <Button size="lg" render={<Link href="/signup" />}>
                     <Plus />
-                    Sign up free to save this
+                    {t.shared.signUpToSave}
                   </Button>
                 )}
                 <p className="text-muted-foreground mt-2 text-xs">
-                  You get your own copy — your reviews stay yours.
+                  {t.shared.ownCopy}
                 </p>
               </div>
             </motion.header>
@@ -160,7 +163,7 @@ export function SharedSetView({
             <section className="mt-10">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="font-display text-lg font-semibold tracking-tight">
-                  Flashcards
+                  {t.shared.flashcardsHeading}
                 </h2>
                 <ReportButton userId={userId} setId={setId} />
               </div>
@@ -188,20 +191,19 @@ export function SharedSetView({
   );
 }
 
-function Unavailable() {
+function Unavailable({ t }: { t: Messages }) {
   return (
     <div className="py-16 text-center">
       <PaperCreature state="asleep" className="mx-auto size-28" />
       <h1 className="font-display mt-2 text-2xl font-semibold tracking-tight">
-        This link is not available
+        {t.shared.unavailable}
       </h1>
       <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm leading-relaxed">
-        It may have been unshared by its owner, or the address might be
-        mistyped.
+        {t.shared.unavailableHint}
       </p>
       <Button className="mt-7" render={<Link href="/" />}>
         <Lock />
-        Go to Tuón
+        {t.shared.goToTuon}
       </Button>
     </div>
   );

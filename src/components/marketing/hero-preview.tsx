@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowDown, FileText } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
+
 /**
  * The product, above the fold.
  *
@@ -16,6 +18,7 @@ import { ArrowDown, FileText } from "lucide-react";
  * down the page; this one has to paint instantly and never block the hero.
  */
 export function HeroPreview() {
+  const { t } = useI18n();
   const reduceMotion = useReducedMotion();
 
   const rise = (delay: number) =>
@@ -37,22 +40,21 @@ export function HeroPreview() {
         <div className="mb-2.5 flex items-center gap-2">
           <FileText className="text-muted-foreground size-3.5" />
           <span className="text-muted-foreground text-xs font-medium">
-            Photosynthesis — Gen Bio 1
+            {t.marketing.preview.noteTitle}
           </span>
           <span className="bg-secondary text-secondary-foreground ml-auto flex h-5 items-center rounded-full px-2 text-[11px] font-medium">
             STEM
           </span>
         </div>
         <p className="text-muted-foreground text-xs leading-relaxed">
-          Light-dependent reactions occur in the thylakoid membrane. Water is
-          split, releasing O₂, and the energy is stored as ATP and NADPH…
+          {t.marketing.preview.noteBody}
         </p>
       </motion.div>
 
       <motion.div {...rise(0.3)} className="flex items-center gap-2.5 pl-1">
         <ArrowDown className="text-primary size-4" />
         <span className="text-primary text-xs font-medium">
-          12 flashcards · 5 quiz questions · 11 seconds
+          {t.marketing.preview.output}
         </span>
       </motion.div>
 
@@ -63,7 +65,7 @@ export function HeroPreview() {
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="text-muted-foreground text-[11px] font-medium tracking-widest uppercase">
-            Card 3 of 12
+            {t.marketing.preview.cardIndex}
           </span>
           <div className="flex gap-[3px]" aria-hidden="true">
             {[0, 1, 2, 3, 4].map((i) => (
@@ -79,21 +81,21 @@ export function HeroPreview() {
         </div>
 
         <p className="font-display text-lg leading-snug font-semibold tracking-tight">
-          Where do the light-dependent reactions take place?
+          {t.marketing.preview.front}
         </p>
 
         <div className="mt-4 border-t border-dashed pt-4">
           <p className="text-muted-foreground text-sm leading-relaxed">
-            In the thylakoid membrane of the chloroplast.
+            {t.marketing.preview.back}
           </p>
         </div>
 
         <div className="mt-5 grid grid-cols-4 gap-1.5">
           {[
-            { label: "Again", good: false },
-            { label: "Hard", good: false },
-            { label: "Good", good: true },
-            { label: "Easy", good: false },
+            { label: t.review.again, good: false },
+            { label: t.review.hard, good: false },
+            { label: t.review.good, good: true },
+            { label: t.review.easy, good: false },
           ].map((b) => (
             <div
               key={b.label}
@@ -109,7 +111,9 @@ export function HeroPreview() {
           ))}
         </div>
 
-        <p className="text-muted-foreground mt-3 text-xs">Next review in 6 days</p>
+        <p className="text-muted-foreground mt-3 text-xs">
+          {t.marketing.preview.nextReview}
+        </p>
       </motion.div>
     </div>
   );

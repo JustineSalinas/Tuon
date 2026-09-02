@@ -1336,6 +1336,353 @@ export const en = {
     action: "How Tuón works",
   },
 
+  marketing: {
+    nav: {
+      how: "How it works",
+      try: "See it work",
+      local: "Built for here",
+      pricing: "Pricing",
+      faq: "FAQ",
+      signIn: "Sign in",
+      getStarted: "Get started",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
+    },
+
+    hero: {
+      badge: "Built for Filipino students",
+      headline: "Cramming works.",
+      headlineAccent: " For about three days.",
+      body: "Paste your notes. Tuón writes the flashcards and a practice quiz, then brings each card back right before you would have forgotten it — so the reviewer you make tonight still works next semester.",
+      startFree: "Start free",
+      haveAccount: "I already have an account",
+      freeForever: (count: number) =>
+        `Free forever for notes and flashcards · ${count} AI study sets a month`,
+      languages: "· Cebuano and Tagalog",
+      meaning: "To study. To give something your full attention.",
+      haveAQuestion: "Have a question?",
+      askTala: (creature: string) => `Ask ${creature}`,
+    },
+
+    preview: {
+      noteTitle: "Photosynthesis — Gen Bio 1",
+      noteBody:
+        "Light-dependent reactions occur in the thylakoid membrane. Water is split, releasing O₂, and the energy is stored as ATP and NADPH…",
+      output: "12 flashcards · 5 quiz questions · 11 seconds",
+      cardIndex: "Card 3 of 12",
+      front: "Where do the light-dependent reactions take place?",
+      back: "In the thylakoid membrane of the chloroplast.",
+      nextReview: "Next review in 6 days",
+    },
+
+    why: {
+      eyebrow: "Why you forget",
+      title: "Studying once is the problem, not you",
+      body: "Everyone forgets on roughly the same curve. The fix is not more hours the night before — it is meeting the same card again just as it starts to slip. That is the whole idea behind spaced repetition, and doing the scheduling by hand is the part nobody keeps up.",
+      aside:
+        "A card you have not seen in three weeks is asleep. Tuón wakes it up the day before you would have lost it.",
+    },
+
+    curve: {
+      onceLabel: "Studied once, the night before",
+      onceValueBefore: "You remember",
+      onceValue: "1 card in 10",
+      reviewedLabel: "Reviewed when Tuón says",
+      reviewedValue: "9 in 10",
+      aMonthLater: "a month later",
+      chartAlt:
+        "Two lines over one month. Studied once, memory falls away within the first week and stays near nothing. Reviewed on Tuón's schedule, it dips slightly between reviews and recovers each time, staying high all month.",
+      keepIt: "Reviewed — you keep it",
+      fades: "Studied once — it fades",
+      today: "Today",
+      oneWeek: "One week",
+      oneMonth: "One month",
+      fourReviews: "Four reviews. About six minutes in total.",
+      wholeDifference: "That is the whole difference between the two lines.",
+      source:
+        "Based on the forgetting curve first measured by Hermann Ebbinghaus in 1885 and reproduced many times since. Drawn to show the mechanism — these are not measurements of Tuón users.",
+    },
+
+    how: {
+      eyebrow: "How it works",
+      title: "From notes to knowing it, in three steps",
+      step: (n: number) => `Step ${n}`,
+      steps: [
+        {
+          title: "Paste your notes",
+          body: "Lecture notes, a textbook excerpt, your handwritten reviewer typed up. Tag it with a subject so everything stays organised.",
+        },
+        {
+          title: "Generate a study set",
+          body: "One tap gives you 8 to 15 flashcards and a 5-question practice quiz, written from your material and nothing else.",
+        },
+        {
+          title: "Review on schedule",
+          body: "Rate each card Again, Hard, Good or Easy. The SM-2 algorithm decides when you see it next, so you study less and remember more.",
+        },
+      ],
+    },
+
+    tryIt: {
+      eyebrow: "See it work",
+      title: "Try it before you sign up",
+      body: "A real note, and the study set Tuón actually produced from it. Flip the cards, sit the quiz. No account, nothing to install.",
+    },
+
+    versus: {
+      eyebrow: "Versus doing it yourself",
+      title: "You already know how to make a reviewer",
+      body: "Long bond paper, four colours of pen, an evening gone. It works — and then the exam ends and it goes in the bin. Here is the same job, done the other way.",
+      byHand: "By hand",
+      withTuon: "With Tuón",
+      rows: [
+        {
+          label: "Turning a chapter into a reviewer",
+          byHand: "An evening, and your handwriting gets worse",
+          tuon: "About eleven seconds",
+        },
+        {
+          label: "Knowing what to study tonight",
+          byHand: "Whatever you feel least sure about",
+          tuon: "The exact cards that are due",
+        },
+        {
+          label: "The week after the exam",
+          byHand: "Bond paper in the bin, and it is gone",
+          tuon: "Still scheduled, still yours",
+        },
+        {
+          label: "Finding that one topic again",
+          byHand: "Flipping through a notebook",
+          tuon: "Search, tags, and linked notes",
+        },
+        {
+          label: "What it costs",
+          byHand: "Pens, paper, photocopies",
+          tuon: "Free for five study sets a month",
+        },
+      ],
+    },
+
+    devices: {
+      eyebrow: "Every device you own",
+      title: "Open it on whatever is in front of you",
+      body: "Tuón runs in the browser, so there is nothing to install and nothing to sideload. Review on your phone on the jeep, write notes on the library desktop — your schedule is the same in both, because it lives with your account and not the device.",
+      desktopCaption: "Stats on the library desktop",
+      inTheWorks: "IN THE WORKS",
+      nativeTitle: "Native apps are coming to iPhone and Android",
+      nativeBody:
+        "Offline review and a home-screen icon, without giving up the web version. You do not have to wait for them — everything above works in your browser today.",
+      soonOn: "Soon on",
+    },
+
+    local: {
+      eyebrow: "Built for here",
+      title: "It already knows your curriculum",
+      body: "Most study apps are built for American classrooms and then translated. Tuón starts from the Philippine K-12 system, so setting up takes three taps instead of typing out every subject yourself.",
+      points: [
+        "Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
+        "Core subjects like General Mathematics, Earth and Life Science and Oral Communication ready to pick",
+        "College programs from BS Nursing to AB Communication, with room to add your own",
+        "UPCAT, ACET and DCAT prep treated as first-class subjects",
+        "Notes that mix English and Tagalog or Cebuano stay exactly as you wrote them",
+      ],
+      setupTitle: "Three questions and you are studying.",
+      yourSchool: "Your school",
+      schoolHint: "Type anything — your school does not have to be on a list.",
+      yourStrand: "Your strand",
+      strandHint: "College instead? You pick a degree program here.",
+      yourSubjects: "Your subjects",
+      addYourOwn: "+ Add your own",
+      subjectsHint: "Every note and set is tagged with one, so nothing gets mixed up.",
+    },
+
+    pricing: {
+      eyebrow: "Pricing",
+      title: "Priced in pesos, capped honestly",
+      bodyBefore: "One",
+      studySet: "study set",
+      bodyAfter: (explainer: string) =>
+        `is ${explainer}. Writing notes, importing PDFs, making your own flashcards, and the entire review schedule are unlimited on every plan — including Free.`,
+      billingPeriod: "Billing period",
+      monthly: "Monthly",
+      yearly: (freeMonths: number) => `Yearly · ${freeMonths} months free`,
+      mostPopular: "Most popular",
+      perMonth: "/month",
+      billedAnnually: (total: string) => `₱${total} billed once a year.`,
+      soon: "(soon)",
+      startFree: "Start free",
+      comingSoon: "Coming soon",
+      footnote:
+        "Why numbers instead of “unlimited”: every study set costs us real money to generate. A cap we can honour beats an unlimited promise we’d have to quietly throttle. For scale, a student carrying six subjects and making a reviewer for each twice a week uses about 48 a month.",
+    },
+
+    faq: {
+      eyebrow: "Questions",
+      title: "The things people ask first",
+      /**
+       * Answers may carry a `{link}` placeholder, which the view replaces with
+       * the entry's link. A placeholder rather than split fragments because
+       * word order moves between languages, and the link has to be able to
+       * move with it.
+       */
+      items: [
+        {
+          q: "Is it really free?",
+          a: "Yes, and the free plan is not a trial. You get {count} AI study sets a month, forever. Writing notes, importing PDFs, making your own flashcards, and the whole review schedule are unlimited on every plan — the only thing that costs money is the AI turning a note into cards, because that is the only thing that costs us money.",
+        },
+        {
+          q: "What happens when I hit the monthly cap?",
+          a: "Generation pauses until the 1st. Nothing else changes: every note, card, and review you already have keeps working, and the schedule carries on. You can still write your own flashcards without limit.",
+        },
+        {
+          q: "Who can see my notes?",
+          a: "Only you. Sharing is off by default and per study set — turn it on and anyone with that link can see those cards; turn it off and access stops immediately. Your notes and review history are never shared. {link} spells out exactly what we hold and who processes it.",
+          linkHref: "/privacy",
+          linkLabel: "The privacy notice",
+        },
+        {
+          q: "Does my note get sent to an AI company?",
+          a: "The text of a note is sent to Anthropic when — and only when — you press Generate. Your name, email, and review history are not. Nothing is sent while you are just writing or reviewing, and PDFs are read in your browser and never uploaded.",
+        },
+        {
+          q: "Are the flashcards ever wrong?",
+          a: "Sometimes, yes. The AI works only from your note, so if the note has an error the cards will repeat it — and like any AI it can occasionally be confidently wrong on its own. Check anything that matters against your textbook. It is a study aid, not a source of truth.",
+        },
+        {
+          q: "Can I use it for UPCAT or board review?",
+          a: "That is what spaced repetition is best at. Entrance-exam subjects are built into setup alongside your strand, and the schedule is designed for material you need to hold for months rather than until Friday.",
+        },
+        {
+          q: "Does it work offline?",
+          a: "Reviewing does. Data is not free and campus wifi is not reliable, so cards you already have keep working with no connection and your ratings sync when one comes back. Generating a new study set needs the network, because that part happens on a server.",
+        },
+        {
+          q: "What exactly is one study set?",
+          a: "One study set is {explainer}.",
+        },
+        {
+          q: "How is this different from Quizlet or Anki?",
+          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”. It also reads notes that mix English with Tagalog or Cebuano, which is how most students here actually write them.",
+        },
+        {
+          q: "Do I have to type every answer?",
+          a: "Only on cards short enough to type, and you can turn it off in settings or skip it on any single card. It is on by default because reading the back and thinking “yeah, I knew that” is not the same as remembering it. Spelling, word order, accents and the Tagalog markers you might write are all forgiven — a typo never counts as wrong.",
+        },
+        {
+          q: "Can I study with my classmates?",
+          a: "Yes, in invite-only groups: share a set, put a shared deadline in, and see who is studying right now. There is deliberately no public room and no directory — a lot of students here are minors, and a space strangers can walk into needs moderation we are not able to promise. You join a group because someone in it sent you a code.",
+        },
+        {
+          q: "Can I get my notes back out?",
+          a: "Any time, as Markdown, with your [[links]] intact — one download for the whole library. You can bring a folder of Markdown in the same way. Locking the exit is how apps keep people who want to leave, and it is not a plan.",
+        },
+        {
+          q: "What if I miss a week?",
+          a: "Nothing breaks and nothing is lost. Cards you missed are simply still due, and a session is capped at a daily goal you set, so a backlog never arrives as a wall of 300 cards. There is a study grid on your dashboard that counts the days you studied, but it is a record rather than a threat — nothing nags you about keeping it going, and your best run stays on screen even after a gap.",
+        },
+        {
+          q: "Can I use it on my phone?",
+          a: "Yes — it is a website, so there is nothing to install, and you can add it to your home screen if you want it to open like an app. Reviewing is built thumb-first, because most of it happens on a phone between classes.",
+        },
+      ],
+    },
+
+    finalCta: {
+      title: "Stop making flashcards. Start remembering.",
+      body: "Start with one note tonight. You will have a set of flashcards before you finish your coffee, and the first review lands tomorrow.",
+      action: "Create your free account",
+      note: "Free forever for notes and flashcards · no card needed",
+    },
+
+    footer: {
+      blurb:
+        "Turn your class notes into flashcards and quizzes, then review them on a schedule that actually makes things stick.",
+      questions: "Questions?",
+      product: "Product",
+      account: "Account",
+      legal: "Legal",
+      createAccount: "Create an account",
+      openTuon: "Open Tuón",
+      privacy: "Privacy notice",
+      terms: "Terms of use",
+      contact: "Contact us",
+      madeIn: "Made in the Philippines, for Filipino students.",
+      rights: (year: number) =>
+        `© ${year} Tuón · Adrian Salinas. All rights reserved.`,
+    },
+  },
+
+  demo: {
+    generate: "Generate a study set",
+    noAccount: "Real notes, real output, no account needed.",
+    reading: "Reading your note…",
+    staged:
+      "In the app this takes about twelve seconds. Here it’s staged — the cards below were generated ahead of time.",
+    cardsAndQuiz: (count: number) => `${count} flashcards and a quiz`,
+    progress: (index: number, total: number) => `${index} / ${total}`,
+    showQuestion: "Show question",
+    showAnswer: "Show answer",
+    question: "Question",
+    answer: "Answer",
+    tapToReveal: "Tap to reveal",
+    tapToFlipBack: "Tap to flip back",
+    seeTheQuiz: "See the quiz",
+    nextCard: "Next card",
+    practiceQuiz: "Practice quiz",
+    tryYourOwn: "Try it with your own notes",
+    startOver: "Start over",
+  },
+
+  ask: {
+    title: "Still have a question?",
+    body: (creature: string) =>
+      `Ask ${creature} whether Tuón covers your subject or your board exam, what it costs, or who can see your notes.`,
+    suggestions: [
+      "Does it cover my strand?",
+      "Can I use it for the CPALE?",
+      "Is it really free?",
+      "Who can see my notes?",
+    ],
+    thinking: "Thinking",
+    askAgain: "Ask that again",
+    startOver: "Start over",
+    followUp: "Ask a follow-up…",
+    placeholder: "Ask about Tuón…",
+    yourQuestion: "Your question",
+    stop: "Stop",
+    send: "Send",
+    disclaimer: (creature: string) =>
+      `${creature} only answers questions about Tuón, and can be wrong. Nothing you type here is saved to an account.`,
+    failed: "Could not answer that one. The FAQ above covers the usual questions.",
+    offline: "Could not reach the server. Check your connection, or read the FAQ above.",
+  },
+
+  shared: {
+    mySets: "My sets",
+    getTuon: "Get Tuón free",
+    badge: "Shared study set",
+    flashcards: (count: number) => `${count} flashcards`,
+    quizQuestions: (count: number) => `${count} quiz questions`,
+    saveToMySets: "Save to my sets",
+    signUpToSave: "Sign up free to save this",
+    ownCopy: "You get your own copy — your reviews stay yours.",
+    flashcardsHeading: "Flashcards",
+    saved: "Saved to your study sets.",
+    saveFailed: "Could not save a copy. Please try again.",
+    unavailable: "This link is not available",
+    unavailableHint:
+      "It may have been unshared by its owner, or the address might be mistyped.",
+    goToTuon: "Go to Tuón",
+  },
+
+  offlinePage: {
+    title: "This page needs a connection",
+    body: "Your cards and their schedule are stored on this device, so reviewing still works. Anything you rate now is saved and syncs when you are back online.",
+    goToReview: "Go to review",
+    backToLibrary: "Back to my library",
+  },
+
   settings: {
     title: "Settings",
     studying: "Studying",

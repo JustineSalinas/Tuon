@@ -13,6 +13,8 @@
  * against the real thing.
  */
 
+import { useI18n } from "@/components/providers/i18n-provider";
+
 /**
  * Platform marks for the "soon on" pills.
  *
@@ -46,7 +48,7 @@ function PlayStoreLogo({ className = "size-5" }: { className?: string }) {
   );
 }
 
-function MacBookMini() {
+function MacBookMini({ caption }: { caption: string }) {
   return (
     <div className="flex shrink-0 flex-col items-center">
       <div className="w-[420px] rounded-t-[9px] rounded-b-[2px] bg-gradient-to-br from-neutral-600 via-neutral-800 to-neutral-700 p-1.5 pb-2.5">
@@ -81,9 +83,7 @@ function MacBookMini() {
         </div>
       </div>
       <div className="h-[7px] w-[452px] rounded-b-md bg-gradient-to-b from-neutral-600 to-neutral-700" />
-      <span className="text-muted-foreground mt-4 text-xs">
-        Stats on the library desktop
-      </span>
+      <span className="text-muted-foreground mt-4 text-xs">{caption}</span>
     </div>
   );
 }
@@ -154,12 +154,14 @@ function IPhoneMini() {
  * transform would otherwise leave behind, since `scale` does not affect layout.
  */
 export function DeviceLineup() {
+  const { t } = useI18n();
+
   return (
     <div className="mt-12 md:mt-14">
       {/* 918px wide all in — the MacBook's base bar is 452, wider than its lid. */}
       <div className="h-[162px] overflow-hidden sm:h-[262px] lg:h-auto lg:overflow-visible">
         <div className="flex origin-top-left scale-[0.38] items-end gap-6 sm:scale-[0.62] lg:scale-100 lg:justify-center">
-          <MacBookMini />
+          <MacBookMini caption={t.marketing.devices.desktopCaption} />
           <IPadMini />
           <IPhoneMini />
         </div>
@@ -178,19 +180,19 @@ export function DeviceLineup() {
  * before a listing exists invites exactly the complaint you do not want.
  */
 export function NativeAppsNotice() {
+  const { t } = useI18n();
+
   return (
     <div className="border-border bg-card mt-12 flex flex-col gap-6 rounded-2xl border p-6 md:mt-14 md:flex-row md:items-center md:gap-8 md:p-7">
       <div className="min-w-0 flex-1">
         <span className="bg-accent text-accent-foreground inline-flex h-[22px] items-center rounded-full px-2.5 text-[11px] font-medium tracking-wider">
-          IN THE WORKS
+          {t.marketing.devices.inTheWorks}
         </span>
         <h3 className="font-display mt-3 text-xl font-semibold tracking-tight">
-          Native apps are coming to iPhone and Android
+          {t.marketing.devices.nativeTitle}
         </h3>
         <p className="text-muted-foreground mt-2 max-w-lg text-sm leading-relaxed">
-          Offline review and a home-screen icon, without giving up the web
-          version. You do not have to wait for them — everything above works in
-          your browser today.
+          {t.marketing.devices.nativeBody}
         </p>
       </div>
 

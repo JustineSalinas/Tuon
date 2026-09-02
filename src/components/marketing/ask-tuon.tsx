@@ -10,6 +10,7 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowUp, RotateCcw, Square, Trash2 } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { getAppCheckToken } from "@/lib/firebase/client";
 import { MAX_MESSAGE_CHARS } from "@/lib/chat/prompt";
@@ -46,14 +47,9 @@ import { cn } from "@/lib/utils";
  * fallback-rather-than-break rule already governs verification email.
  */
 
-const SUGGESTIONS = [
-  "Does it cover my strand?",
-  "Can I use it for the CPALE?",
-  "Is it really free?",
-  "Who can see my notes?",
-];
-
 export function AskTuon() {
+  const { t, locale } = useI18n();
+
   // sessionStorage is the store, read the way OfflineIndicator reads
   // `navigator` — no effect, no hydration mismatch, no empty flash.
   const turns = useSyncExternalStore(
@@ -119,7 +115,7 @@ export function AskTuon() {
           "Content-Type": "application/json",
           ...(appCheckToken ? { "X-Firebase-AppCheck": appCheckToken } : {}),
         },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, locale }),
       });
 
       const body = (await response.json().catch(() => ({}))) as {
@@ -140,20 +136,20 @@ export function AskTuon() {
         // means it is never replayed to the model and never persisted.
         setError(
           body.error ??
-            "Could not answer that one. The FAQ above covers the usual questions.",
+            t.ask.failed,
         );
       }
     } catch (err) {
       // A stop is not a failure; leave the conversation exactly as it was.
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(
-        "Could not reach the server. Check your connection, or read the FAQ above.",
+        t.ask.offline,
       );
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
       setPending(false);
     }
-  }, []);
+  }, [locale, t.ask.failed, t.ask.offline]);
 
   function send(text: string) {
     const question = text.trim().slice(0, MAX_MESSAGE_CHARS);
@@ -198,11 +194,10 @@ export function AskTuon() {
             className="mx-auto size-24 sm:size-28"
           />
           <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Still have a question?
+            {t.ask.title}
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-lg text-lg leading-relaxed text-balance">
-            Ask {CREATURE_NAME} whether Tuón covers your subject or your board
-            exam, what it costs, or who can see your notes.
+            {t.ask.body(CREATURE_NAME)}
           </p>
         </div>
 
@@ -252,7 +247,7 @@ export function AskTuon() {
                       }}
                     />
                   ))}
-                  <span className="sr-only">Thinking</span>
+                  <span className="sr-only">{t.ask.thinking}</span>
                 </div>
               ) : null}
 
@@ -270,7 +265,7 @@ export function AskTuon() {
                     className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-xs transition-colors"
                   >
                     <RotateCcw className="size-3" />
-                    Ask that again
+                    {t.ask.askAgain}
                   </button>
                   <button
                     type="button"
@@ -278,7 +273,7 @@ export function AskTuon() {
                     className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-xs transition-colors"
                   >
                     <Trash2 className="size-3" />
-                    Start over
+                    {t.ask.startOver}
                   </button>
                 </div>
               ) : null}
@@ -287,7 +282,7 @@ export function AskTuon() {
             </div>
           ) : (
             <div className="flex min-h-40 flex-wrap content-center justify-center gap-2.5 p-5 sm:p-6">
-              {SUGGESTIONS.map((s) => (
+              {t.ask.suggestions.map((s: string) => (
                 <button
                   key={s}
                   type="button"
@@ -326,8 +321,8 @@ export function AskTuon() {
                 }
               }}
               rows={1}
-              placeholder={started ? "Ask a follow-up…" : "Ask about Tuón…"}
-              aria-label="Your question"
+              placeholder={started ? t.ask.followUp : t.ask.placeholder}
+              aria-label={t.ask.yourQuestion}
               className="placeholder:text-muted-foreground max-h-40 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-base outline-none"
             />
             {pending ? (
@@ -339,7 +334,7 @@ export function AskTuon() {
                   abortRef.current?.abort();
                   setPending(false);
                 }}
-                aria-label="Stop"
+                aria-label={t.ask.stop}
                 className="size-11 shrink-0"
               >
                 <Square className="size-3.5" />
@@ -349,7 +344,7 @@ export function AskTuon() {
                 type="submit"
                 size="icon"
                 disabled={!draft.trim()}
-                aria-label="Send"
+                aria-label={t.ask.send}
                 className="size-11 shrink-0"
               >
                 <ArrowUp className="size-4" />
@@ -359,8 +354,7 @@ export function AskTuon() {
         </div>
 
         <p className="text-muted-foreground mt-3 text-center text-xs">
-          {CREATURE_NAME} only answers questions about Tuón, and can be wrong.
-          Nothing you type here is saved to an account.
+          {t.ask.disclaimer(CREATURE_NAME)}
         </p>
       </div>
     </section>

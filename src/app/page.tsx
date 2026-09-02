@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, Clock, FileText, Layers, Sparkles } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
@@ -19,6 +20,8 @@ import { PaperCreature } from "@/components/brand/paper-creature";
 import { AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaAside, TalaPerch } from "@/components/marketing/tala";
 import { TuonMark } from "@/components/brand/logo";
+import { CREATURE_NAME } from "@/lib/brand";
+import type { Messages } from "@/lib/i18n/en";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -56,6 +59,7 @@ export default function LandingPage() {
 }
 
 function Hero() {
+  const { t } = useI18n();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -69,31 +73,30 @@ function Hero() {
         >
           <Badge variant="secondary" className="gap-1.5">
             <Sparkles className="size-3" />
-            Built for Filipino students
+            {t.marketing.hero.badge}
           </Badge>
 
           <h1 className="font-display mt-6 text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem]">
-            Cramming works.
-            <span className="text-primary"> For about three days.</span>
+            {t.marketing.hero.headline}
+            <span className="text-primary">{t.marketing.hero.headlineAccent}</span>
           </h1>
 
           <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-relaxed">
-            Paste your notes. Tuón writes the flashcards and a practice quiz, then
-            brings each card back right before you would have forgotten it — so the
-            reviewer you make tonight still works next semester.
+            {t.marketing.hero.body}
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Button size="lg" className="text-base" render={<Link href="/signup" />}>
-                Start free
+                {t.marketing.hero.startFree}
                 <ArrowRight />
               </Button>
-            <Button size="lg" variant="outline" className="text-base" render={<Link href="/login" />}>I already have an account</Button>
+            <Button size="lg" variant="outline" className="text-base" render={<Link href="/login" />}>
+              {t.marketing.hero.haveAccount}
+            </Button>
           </div>
 
           <p className="text-muted-foreground mt-4 text-sm">
-            Free forever for notes and flashcards ·{" "}
-            {PLANS.free.monthlyGenerations} AI study sets a month
+            {t.marketing.hero.freeForever(PLANS.free.monthlyGenerations)}
           </p>
         </motion.div>
 
@@ -118,9 +121,9 @@ function Hero() {
               <span className="text-foreground font-display text-lg font-semibold">
                 tuón
               </span>{" "}
-              <span className="text-sm">· Cebuano and Tagalog</span>
+              <span className="text-sm">{t.marketing.hero.languages}</span>
               <br />
-              To study. To give something your full attention.
+              {t.marketing.hero.meaning}
             </p>
           </div>
 
@@ -134,9 +137,9 @@ function Hero() {
           >
             <PaperCreature state="idle" className="size-9 shrink-0" />
             <span className="text-sm font-medium">
-              Have a question?
+              {t.marketing.hero.haveAQuestion}
               <span className="text-muted-foreground block text-xs font-normal">
-                Ask Tala
+                {t.marketing.hero.askTala(CREATURE_NAME)}
               </span>
             </span>
             <ArrowRight className="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-colors" />
@@ -155,25 +158,23 @@ function Hero() {
 }
 
 function WhyItSticks() {
+  const { t } = useI18n();
+
   return (
     <Section
       id="why"
-      eyebrow="Why you forget"
-      title="Studying once is the problem, not you"
+      eyebrow={t.marketing.why.eyebrow}
+      title={t.marketing.why.title}
       muted
     >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-          Everyone forgets on roughly the same curve. The fix is not more hours
-          the night before — it is meeting the same card again just as it starts
-          to slip. That is the whole idea behind spaced repetition, and doing the
-          scheduling by hand is the part nobody keeps up.
+          {t.marketing.why.body}
         </p>
       </Reveal>
       <Reveal delay={0.05}>
         <TalaAside state="asleep" className="mt-8">
-          A card you have not seen in three weeks is asleep. Tuón wakes it up
-          the day before you would have lost it.
+          {t.marketing.why.aside}
         </TalaAside>
       </Reveal>
       <Reveal delay={0.1}>
@@ -184,17 +185,17 @@ function WhyItSticks() {
 }
 
 function VersusByHand() {
+  const { t } = useI18n();
+
   return (
     <Section
       id="versus"
-      eyebrow="Versus doing it yourself"
-      title="You already know how to make a reviewer"
+      eyebrow={t.marketing.versus.eyebrow}
+      title={t.marketing.versus.title}
     >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-          Long bond paper, four colours of pen, an evening gone. It works — and
-          then the exam ends and it goes in the bin. Here is the same job, done
-          the other way.
+          {t.marketing.versus.body}
         </p>
       </Reveal>
       <Reveal delay={0.05}>
@@ -204,63 +205,54 @@ function VersusByHand() {
   );
 }
 
+/** Only the icons are structural; the words come from the catalogue. */
+const STEP_ICONS = [FileText, Sparkles, Layers];
+
 function HowItWorks() {
-  const steps = [
-    {
-      icon: FileText,
-      title: "Paste your notes",
-      body: "Lecture notes, a textbook excerpt, your handwritten reviewer typed up. Tag it with a subject so everything stays organised.",
-    },
-    {
-      icon: Sparkles,
-      title: "Generate a study set",
-      body: "One tap gives you 8 to 15 flashcards and a 5-question practice quiz, written from your material and nothing else.",
-    },
-    {
-      icon: Layers,
-      title: "Review on schedule",
-      body: "Rate each card Again, Hard, Good or Easy. The SM-2 algorithm decides when you see it next, so you study less and remember more.",
-    },
-  ];
+  const { t } = useI18n();
 
   return (
     <Section
       id="how"
-      eyebrow="How it works"
-      title="From notes to knowing it, in three steps"
+      eyebrow={t.marketing.how.eyebrow}
+      title={t.marketing.how.title}
     >
       <div className="mt-14 grid gap-8 md:grid-cols-3 md:gap-10">
-        {steps.map((step, index) => (
+        {t.marketing.how.steps.map((step, index) => {
+          const Icon = STEP_ICONS[index];
+          return (
           <Reveal key={step.title} delay={index * 0.1}>
             <div className="bg-primary/10 text-primary grid size-11 place-items-center rounded-xl">
-              <step.icon className="size-5" />
+              <Icon className="size-5" />
             </div>
             <div className="text-muted-foreground mt-5 text-xs font-medium tracking-widest uppercase">
-              Step {index + 1}
+              {t.marketing.how.step(index + 1)}
             </div>
             <h3 className="font-display mt-2 text-xl font-semibold tracking-tight">
               {step.title}
             </h3>
             <p className="text-muted-foreground mt-2.5 leading-relaxed">{step.body}</p>
           </Reveal>
-        ))}
+          );
+        })}
       </div>
     </Section>
   );
 }
 
 function SeeItWork() {
+  const { t } = useI18n();
+
   return (
     <Section
       id="try"
-      eyebrow="See it work"
-      title="Try it before you sign up"
+      eyebrow={t.marketing.tryIt.eyebrow}
+      title={t.marketing.tryIt.title}
       muted
     >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
-          A real note, and the study set Tuón actually produced from it. Flip
-          the cards, sit the quiz. No account, nothing to install.
+          {t.marketing.tryIt.body}
         </p>
       </Reveal>
       <Reveal delay={0.05}>
@@ -271,8 +263,14 @@ function SeeItWork() {
 }
 
 function FaqSection() {
+  const { t } = useI18n();
+
   return (
-    <Section id="faq" eyebrow="Questions" title="The things people ask first">
+    <Section
+      id="faq"
+      eyebrow={t.marketing.faq.eyebrow}
+      title={t.marketing.faq.title}
+    >
       <Reveal>
         <Faq />
       </Reveal>
@@ -281,18 +279,17 @@ function FaqSection() {
 }
 
 function EveryDevice() {
+  const { t } = useI18n();
+
   return (
     <Section
       id="devices"
-      eyebrow="Every device you own"
-      title="Open it on whatever is in front of you"
+      eyebrow={t.marketing.devices.eyebrow}
+      title={t.marketing.devices.title}
     >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-          Tuón runs in the browser, so there is nothing to install and nothing
-          to sideload. Review on your phone on the jeep, write notes on the
-          library desktop — your schedule is the same in both, because it lives
-          with your account and not the device.
+          {t.marketing.devices.body}
         </p>
       </Reveal>
       <Reveal delay={0.05}>
@@ -306,19 +303,14 @@ function EveryDevice() {
 }
 
 function BuiltForPH() {
-  const points = [
-    "Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
-    "Core subjects like General Mathematics, Earth and Life Science and Oral Communication ready to pick",
-    "College programs from BS Nursing to AB Communication, with room to add your own",
-    "UPCAT, ACET and DCAT prep treated as first-class subjects",
-    "Notes that mix English and Tagalog or Cebuano stay exactly as you wrote them",
-  ];
+  const { t } = useI18n();
+  const points = t.marketing.local.points;
 
   return (
     <Section
       id="local"
-      eyebrow="Built for here"
-      title="It already knows your curriculum"
+      eyebrow={t.marketing.local.eyebrow}
+      title={t.marketing.local.title}
       muted
       perch={
         // Inside the section, not straddling its top border: the header is
@@ -334,9 +326,7 @@ function BuiltForPH() {
       <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-16">
         <Reveal>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Most study apps are built for American classrooms and then translated.
-            Tuón starts from the Philippine K-12 system, so setting up takes three
-            taps instead of typing out every subject yourself.
+            {t.marketing.local.body}
           </p>
         </Reveal>
 
@@ -360,17 +350,23 @@ function BuiltForPH() {
 }
 
 function Pricing() {
+  const { t } = useI18n();
   const [annual, setAnnual] = useState(false);
   const freeMonths = annualFreeMonths("plus");
 
   return (
-    <Section id="pricing" eyebrow="Pricing" title="Priced in pesos, capped honestly">
+    <Section
+      id="pricing"
+      eyebrow={t.marketing.pricing.eyebrow}
+      title={t.marketing.pricing.title}
+    >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
-          One <span className="text-foreground font-medium">study set</span> is{" "}
-          {GENERATION_EXPLAINER}. Writing notes, importing PDFs, making your own
-          flashcards, and the entire review schedule are unlimited on every plan
-          — including Free.
+          {t.marketing.pricing.bodyBefore}{" "}
+          <span className="text-foreground font-medium">
+            {t.marketing.pricing.studySet}
+          </span>{" "}
+          {t.marketing.pricing.bodyAfter(GENERATION_EXPLAINER)}
         </p>
       </Reveal>
 
@@ -378,12 +374,12 @@ function Pricing() {
       <Reveal delay={0.05}>
         <div
           role="group"
-          aria-label="Billing period"
+          aria-label={t.marketing.pricing.billingPeriod}
           className="bg-secondary mt-8 inline-flex rounded-full p-1"
         >
           {[
-            { label: "Monthly", value: false },
-            { label: `Yearly · ${freeMonths} months free`, value: true },
+            { label: t.marketing.pricing.monthly, value: false },
+            { label: t.marketing.pricing.yearly(freeMonths), value: true },
           ].map((option) => (
             <button
               key={option.label}
@@ -406,25 +402,29 @@ function Pricing() {
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {PLAN_ORDER.map((planId, index) => (
           <Reveal key={planId} delay={index * 0.08}>
-            <PlanCard planId={planId} annual={annual} />
+            <PlanCard planId={planId} annual={annual} t={t} />
           </Reveal>
         ))}
       </div>
 
       <Reveal delay={0.2}>
         <p className="text-muted-foreground mt-6 text-xs leading-relaxed">
-          Why numbers instead of &ldquo;unlimited&rdquo;: every study set costs us
-          real money to generate. A cap we can honour beats an unlimited promise
-          we&rsquo;d have to quietly throttle. For scale, a student carrying six
-          subjects and making a reviewer for each twice a week uses about 48 a
-          month.
+          {t.marketing.pricing.footnote}
         </p>
       </Reveal>
     </Section>
   );
 }
 
-function PlanCard({ planId, annual }: { planId: Plan; annual: boolean }) {
+function PlanCard({
+  planId,
+  annual,
+  t,
+}: {
+  planId: Plan;
+  annual: boolean;
+  t: Messages;
+}) {
   const plan = PLANS[planId];
   const isFree = plan.phpMonthly === 0;
   const perMonth = annual ? annualMonthlyEquivalent(planId) : plan.phpMonthly;
@@ -440,28 +440,32 @@ function PlanCard({ planId, annual }: { planId: Plan; annual: boolean }) {
         <h3 className="font-display text-xl font-semibold tracking-tight">
           {plan.name}
         </h3>
-        {plan.highlighted ? <Badge>Most popular</Badge> : null}
+        {plan.highlighted ? <Badge>{t.marketing.pricing.mostPopular}</Badge> : null}
       </div>
 
       <div className="font-display mt-3 text-4xl font-semibold">
         ₱{perMonth}
         {isFree ? null : (
-          <span className="text-muted-foreground text-lg font-normal">/month</span>
+          <span className="text-muted-foreground text-lg font-normal">
+            {t.marketing.pricing.perMonth}
+          </span>
         )}
       </div>
 
       <p className="text-muted-foreground mt-2 min-h-10 text-sm leading-relaxed">
         {annual && plan.phpAnnual
-          ? `₱${plan.phpAnnual.toLocaleString("en-PH")} billed once a year.`
-          : plan.tagline}
+          ? t.marketing.pricing.billedAnnually(
+              plan.phpAnnual.toLocaleString(t.common.dateLocale),
+            )
+          : t.plans[planId].tagline}
       </p>
 
       <ul className="mt-6 space-y-3 text-sm">
-        {plan.features.map((feature) => (
+        {t.plans[planId].features.map((feature) => (
           <PricingRow key={feature}>{feature}</PricingRow>
         ))}
         {plan.plannedFeatures.map((feature) => (
-          <PricingRow key={feature} planned>
+          <PricingRow key={feature} planned soonLabel={t.marketing.pricing.soon}>
             {feature}
           </PricingRow>
         ))}
@@ -470,11 +474,11 @@ function PlanCard({ planId, annual }: { planId: Plan; annual: boolean }) {
       <div className="mt-8 pt-2 [&>*]:w-full">
         {isFree ? (
           <Button variant="outline" size="lg" render={<Link href="/signup" />}>
-            Start free
+            {t.marketing.pricing.startFree}
           </Button>
         ) : (
           <Button size="lg" variant={plan.highlighted ? "default" : "outline"} disabled>
-            Coming soon
+            {t.marketing.pricing.comingSoon}
           </Button>
         )}
       </div>
@@ -485,9 +489,11 @@ function PlanCard({ planId, annual }: { planId: Plan; annual: boolean }) {
 function PricingRow({
   children,
   planned,
+  soonLabel,
 }: {
   children: React.ReactNode;
   planned?: boolean;
+  soonLabel?: string;
 }) {
   return (
     <li className={cn("flex gap-2.5", planned && "text-muted-foreground")}>
@@ -498,13 +504,15 @@ function PricingRow({
       )}
       <span>
         {children}
-        {planned ? <span className="ml-1 text-xs">(soon)</span> : null}
+        {planned ? <span className="ml-1 text-xs">{soonLabel}</span> : null}
       </span>
     </li>
   );
 }
 
 function FinalCta() {
+  const { t } = useI18n();
+
   return (
     <section className="border-t">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
@@ -514,18 +522,17 @@ function FinalCta() {
               line is stronger arriving on its own than under a logo the reader
               has already seen twice on the way down. */}
           <h2 className="font-display mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
-            Stop making flashcards. Start remembering.
+            {t.marketing.finalCta.title}
           </h2>
           <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">
-            Start with one note tonight. You will have a set of flashcards before
-            you finish your coffee, and the first review lands tomorrow.
+            {t.marketing.finalCta.body}
           </p>
           <Button size="lg" className="mt-9 text-base" render={<Link href="/signup" />}>
-              Create your free account
+              {t.marketing.finalCta.action}
               <ArrowRight />
             </Button>
           <p className="text-muted-foreground mt-4 text-sm">
-            Free forever for notes and flashcards · no card needed
+            {t.marketing.finalCta.note}
           </p>
         </Reveal>
       </div>
