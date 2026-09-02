@@ -3,13 +3,13 @@
 import { useEffect } from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { bucketByDue, useReviewCards } from "@/lib/hooks/use-review-cards";
 import {
   lastReminderShown,
   markReminderShown,
   reminderEnabled,
   reminderIsDue,
-  reminderMessage,
   reminderTime,
 } from "@/lib/reminders";
 
@@ -28,6 +28,7 @@ const CHECK_INTERVAL_MS = 60_000;
  */
 export function ReminderRunner() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { cards } = useReviewCards(user?.uid);
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export function ReminderRunner() {
 
       try {
         new Notification("Tuón", {
-          body: reminderMessage(dueCount),
+          body: t.reminder.cardsReady(dueCount),
           icon: "/icon",
           tag: "tuon-daily-review",
         });
@@ -68,7 +69,7 @@ export function ReminderRunner() {
     check();
     const interval = setInterval(check, CHECK_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [user, cards]);
+  }, [user, cards, t.reminder.cardsReady]);
 
   return null;
 }

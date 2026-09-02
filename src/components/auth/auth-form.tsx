@@ -15,6 +15,8 @@ import { Loader2 } from "lucide-react";
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { requestVerificationEmail } from "@/lib/email/request-verification";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +27,10 @@ import { Separator } from "@/components/ui/separator";
 
 type Mode = "login" | "signup";
 
-/** Firebase error codes are not fit for humans. */
-function friendlyAuthError(error: unknown): string | null {
+/** Firebase error codes are not fit for humans, in any language. */
+function friendlyAuthError(error: unknown, t: Messages): string | null {
   if (!(error instanceof FirebaseError)) {
-    return "Something went wrong. Please try again.";
+    return t.auth.error.unknown;
   }
   // The friendly text deliberately hides the code, which makes a production
   // report of "something went wrong" undiagnosable. Keep the real one in the
@@ -38,21 +40,21 @@ function friendlyAuthError(error: unknown): string | null {
     case "auth/invalid-credential":
     case "auth/wrong-password":
     case "auth/user-not-found":
-      return "That email and password do not match an account.";
+      return t.auth.error.noMatch;
     case "auth/email-already-in-use":
-      return "An account already exists with that email. Try logging in instead.";
+      return t.auth.error.emailInUse;
     case "auth/weak-password":
-      return "Please use a password of at least 6 characters.";
+      return t.auth.error.weakPassword;
     case "auth/invalid-email":
-      return "That does not look like a valid email address.";
+      return t.auth.error.invalidEmail;
     case "auth/too-many-requests":
-      return "Too many attempts. Please wait a moment and try again.";
+      return t.auth.error.tooManyRequests;
     case "auth/network-request-failed":
-      return "Cannot reach the network. Check your connection and try again.";
+      return t.auth.error.network;
     case "auth/popup-blocked":
-      return "Your browser blocked the Google sign-in window. Allow pop-ups and try again.";
+      return t.auth.error.popupBlocked;
     case "auth/account-exists-with-different-credential":
-      return "You already have an account with this email using a different sign-in method.";
+      return t.auth.error.differentMethod;
     case "auth/popup-closed-by-user":
     case "auth/cancelled-popup-request":
       return null; // User changed their mind; not an error worth showing.
@@ -63,28 +65,26 @@ function friendlyAuthError(error: unknown): string | null {
     // unique hostname, and only the stable alias is ever authorised, so this
     // fires whenever someone opens a per-deployment link.
     case "auth/unauthorized-domain":
-      return (
-        "This address is not authorised for sign-in. If you opened a preview " +
-        "or deployment link, use the main site address instead."
-      );
+      return t.auth.error.unauthorizedDomain;
     case "auth/operation-not-allowed":
-      return "That sign-in method is not enabled for this app.";
+      return t.auth.error.notAllowed;
 
     // A token for an account that no longer exists, or was signed out
     // server-side. Clearing it is the fix, and the user cannot guess that.
     case "auth/user-token-expired":
     case "auth/invalid-user-token":
     case "auth/user-disabled":
-      return "That session is no longer valid. Please sign in again.";
+      return t.auth.error.sessionExpired;
 
     default:
-      return "Something went wrong. Please try again.";
+      return t.auth.error.unknown;
   }
 }
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const { user, authLoading } = useAuth();
+  const { t } = useI18n();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -105,7 +105,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setError(null);
 
     if (isSignup && password.length < 6) {
-      setError("Please use a password of at least 6 characters.");
+      setError(t.auth.error.weakPassword);
       return;
     }
 
@@ -127,7 +127,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       }
       router.replace("/app");
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(friendlyAuthError(err, t));
       setPending(null);
     }
   }
@@ -139,7 +139,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       await signInWithPopup(auth, googleProvider);
       router.replace("/app");
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(friendlyAuthError(err, t));
       setPending(null);
     }
   }
@@ -156,12 +156,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </Link>
 
         <h1 className="font-display mt-8 text-3xl font-semibold tracking-tight">
-          {isSignup ? "Start studying smarter" : "Welcome back"}
+          {isSignup ? t.auth.signupHeading : t.auth.loginHeading}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          {isSignup
-            ? "Turn your class notes into flashcards and quizzes in seconds."
-            : "Pick up where you left off."}
+          {isSignup ? t.auth.signupSub : t.auth.loginSub}
         </p>
 
         {error ? (
@@ -172,14 +170,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
         <form onSubmit={handleEmailSubmit} className="mt-6 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t.auth.email}</Label>
             <Input
               id="email"
               type="email"
               inputMode="email"
               autoComplete="email"
               required
-              placeholder="juan@example.com"
+              placeholder={t.auth.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={pending !== null}
@@ -188,7 +186,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t.auth.password}</Label>
               {/* Sign-in only: on the signup form there is no account to
                   recover yet, and offering it there just adds doubt. */}
               {!isSignup ? (
@@ -196,7 +194,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                   href="/reset-password"
                   className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4"
                 >
-                  Forgot password?
+                  {t.auth.forgot}
                 </Link>
               ) : null}
             </div>
@@ -204,7 +202,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
               id="password"
               autoComplete={isSignup ? "new-password" : "current-password"}
               required
-              placeholder={isSignup ? "At least 6 characters" : "Your password"}
+              placeholder={
+                isSignup
+                  ? t.auth.newPasswordPlaceholder
+                  : t.auth.passwordPlaceholder
+              }
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={pending !== null}
@@ -215,19 +217,21 @@ export function AuthForm({ mode }: { mode: Mode }) {
             {pending === "email" ? (
               <>
                 <Loader2 className="animate-spin" />
-                {isSignup ? "Creating account…" : "Signing in…"}
+                {isSignup ? t.auth.creatingAccount : t.auth.signingIn}
               </>
             ) : isSignup ? (
-              "Create account"
+              t.auth.createAccount
             ) : (
-              "Sign in"
+              t.auth.signIn
             )}
           </Button>
         </form>
 
         <div className="my-6 flex items-center gap-3">
           <Separator className="flex-1" />
-          <span className="text-muted-foreground text-xs uppercase tracking-widest">or</span>
+          <span className="text-muted-foreground text-xs uppercase tracking-widest">
+            {t.auth.or}
+          </span>
           <Separator className="flex-1" />
         </div>
 
@@ -240,30 +244,30 @@ export function AuthForm({ mode }: { mode: Mode }) {
           disabled={pending !== null}
         >
           {pending === "google" ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
-          Continue with Google
+          {t.auth.continueWithGoogle}
         </Button>
 
         {isSignup ? (
           <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
-            By creating an account you agree to our{" "}
+            {t.auth.termsBefore}{" "}
             <Link href="/terms" className="hover:text-foreground underline underline-offset-4">
-              Terms of Use
+              {t.auth.terms}
             </Link>{" "}
-            and{" "}
+            {t.auth.termsAnd}{" "}
             <Link href="/privacy" className="hover:text-foreground underline underline-offset-4">
-              Privacy Notice
+              {t.auth.privacy}
             </Link>
-            . If you are under 18, please read them with a parent or guardian.
+            {t.auth.termsAfter}
           </p>
         ) : null}
 
         <p className="text-muted-foreground mt-8 text-center text-sm">
-          {isSignup ? "Already have an account? " : "New to Tuón? "}
+          {isSignup ? t.auth.haveAccount : t.auth.newHere}
           <Link
             href={isSignup ? "/login" : "/signup"}
             className="text-foreground font-medium underline underline-offset-4 hover:text-primary"
           >
-            {isSignup ? "Sign in" : "Create one"}
+            {isSignup ? t.auth.signIn : t.auth.createOne}
           </Link>
         </p>
       </motion.div>

@@ -282,6 +282,9 @@ export const fil: Messages = {
       "I-paste ang lecture notes o reviewer mo, at gagawin itong flashcards at quiz ni Tuón.",
     createFirst: "Gumawa ng unang nota mo",
     emptyNote: "Walang laman na nota",
+    notFound: "Hindi mahanap ang nota",
+    notFoundHint: "Maaaring nabura na ito.",
+    backToNotes: "Balik sa mga nota",
     characters: (count: string) => `${count} karakter`,
     charactersUnit: "karakter",
     untitled: "Notang walang pamagat",
@@ -701,6 +704,7 @@ export const fil: Messages = {
     unsupported: "Hindi makapagpakita ng paalala ang browser na ito.",
     blocked: "Hinarang ng browser mo ang mga notification. Pwede mo itong payagan sa site settings.",
     set: (time: string) => `Nakatakda ang paalala sa ${time}.`,
+    cardsReady: (count: number) => `${count} kard ang handa nang i-review.`,
   },
 
   examDate: {
@@ -1064,6 +1068,130 @@ export const fil: Messages = {
     offline: "Walang koneksyon — pwede ka pa ring mag-review.",
     offlineRest:
       "Naka-save sa device na ito ang mga rating mo at magsi-sync pagbalik ng koneksyon.",
+  },
+
+  auth: {
+    signupHeading: "Simulan ang mas matalinong pag-aaral",
+    loginHeading: "Maligayang pagbabalik",
+    signupSub:
+      "Gawing flashcards at quiz ang notes mo sa klase sa loob ng ilang segundo.",
+    loginSub: "Ituloy kung saan ka huminto.",
+    email: "Email",
+    emailPlaceholder: "juan@example.com",
+    password: "Password",
+    forgot: "Nakalimutan ang password?",
+    newPasswordPlaceholder: "Hindi bababa sa 6 na karakter",
+    passwordPlaceholder: "Password mo",
+    creatingAccount: "Ginagawa ang account…",
+    signingIn: "Nagsa-sign in…",
+    createAccount: "Gumawa ng account",
+    signIn: "Mag-sign in",
+    or: "o",
+    continueWithGoogle: "Magpatuloy gamit ang Google",
+    termsBefore: "Sa paggawa ng account, sumasang-ayon ka sa aming",
+    terms: "Mga Tuntunin ng Paggamit",
+    termsAnd: "at",
+    privacy: "Paunawa sa Privacy",
+    termsAfter:
+      ". Kung wala ka pang 18, basahin ito kasama ang magulang o tagapag-alaga mo.",
+    haveAccount: "May account ka na? ",
+    newHere: "Bago sa Tuón? ",
+    createOne: "Gumawa ng isa",
+    aside: {
+      meaning:
+        "Ang “Tuón” ay nangangahulugang mag-aral — ibigay ang buong atensyon mo sa isang bagay.",
+      body: "I-paste ang notes mo sa klase. Makakuha ng flashcards at practice quiz sa ilang segundo, tapos i-review ang mga ito sa iskedyul na naglalagay ng bawat kard sa harap mo bago mo pa ito makalimutan.",
+      cardsPerNote: "flashcard kada nota",
+      spacedRepetition: "spaced repetition",
+      strandsBuiltIn: "nakapaloob ang SHS strands",
+    },
+    reset: {
+      heading: "Nakalimutan ang password mo?",
+      body: "I-type ang email na ginamit mo sa pag-sign up at magpapadala kami ng link para makagawa ka ng bago.",
+      send: "Ipadala ang reset link",
+      sending: "Ipinapadala…",
+      backToSignIn: "Balik sa pag-sign in",
+      sentHeading: "Tingnan ang email mo",
+      sentBodyBefore: "Kung may account para sa",
+      sentBodyAfter:
+        ", papadala na ang link para makagawa ng bagong password. Mag-e-expire ito sa loob ng isang oras.",
+      sentSpam:
+        "Walang dumating pagkaraan ng ilang minuto? Tingnan ang spam, at siguraduhing tama ang address na ginamit mo sa pag-sign up.",
+      differentAddress: "Gumamit ng ibang address",
+    },
+    error: {
+      weakPassword: "Gumamit ng password na hindi bababa sa 6 na karakter.",
+      noMatch: "Walang account na tumutugma sa email at password na iyon.",
+      emailInUse:
+        "May account nang gumagamit ng email na iyon. Subukang mag-log in na lang.",
+      invalidEmail: "Mukhang hindi wastong email address iyon.",
+      tooManyRequests: "Masyadong maraming pagsubok. Maghintay sandali at subukan ulit.",
+      tooManyResets:
+        "Masyadong maraming pagsubok. Maghintay ng ilang minuto at subukan ulit.",
+      network: "Hindi maabot ang network. Tingnan ang koneksyon mo at subukan ulit.",
+      popupBlocked:
+        "Hinarang ng browser mo ang Google sign-in window. Payagan ang pop-up at subukan ulit.",
+      differentMethod:
+        "May account ka na sa email na ito gamit ang ibang paraan ng pag-sign in.",
+      unauthorizedDomain:
+        "Hindi awtorisado ang address na ito para sa pag-sign in. Kung nagbukas ka ng preview o deployment link, gamitin ang pangunahing address ng site.",
+      notAllowed: "Hindi pinagana ang paraang iyon ng pag-sign in para sa app na ito.",
+      sessionExpired: "Hindi na wasto ang session na iyon. Mag-sign in ulit.",
+      resetFailed: "Hindi maipadala ang email sa ngayon. Subukan ulit.",
+      unknown: "May naging problema. Subukan ulit.",
+    },
+  },
+
+  onboarding: {
+    step: (n: number) => `Hakbang ${n}`,
+    progress: (n: number, total: number) => `${n} / ${total}`,
+    loading: "Naglo-load",
+    back: "Balik",
+    saving: "Sine-save…",
+    finish: "Tapusin ang setup",
+    continue: "Magpatuloy",
+    saveFailed: "Hindi ma-save ang setup mo. Subukan ulit.",
+    nameTitle: "Ano ang itatawag namin sa iyo?",
+    nameSub: (creature: string) => `Ganito ka babatiin ni ${creature}.`,
+    displayName: "Pangalang ipapakita",
+    namePlaceholder: "Juan",
+    levelTitle: "Saan ka nag-aaral?",
+    levelSub:
+      "Binabago nito kung paano namin ita-tag ang mga nota mo at kung paano isusulat ang flashcards mo.",
+    schoolTitle: "Saan ka nag-aaral?",
+    schoolSub: "Para maayos ang mga set mo ayon sa taon ng pag-aaral mo.",
+    school: "Eskwelahan",
+    reviewCentrePlaceholder: "Ang review centre o eskwelahan mo",
+    schoolPlaceholder: "Simulang i-type ang pangalan ng eskwelahan mo",
+    schoolOptional:
+      "Opsyonal — pwede mo itong iwanang blangko, at palitan anumang oras sa Settings.",
+    strandTitle: "Anong track ang kinukuha mo?",
+    strandSub: "Ipapakita namin ang mga subject na kasama nito.",
+    subjectsTitle: "Anong mga subject ang kinukuha mo?",
+    subjectsSub: "Pumili ng kahit ilan. Mababago mo ito mamaya.",
+    notListed: "Wala sa listahan? Idagdag mo",
+    subjectExample: "hal. Research in Daily Life 1",
+    selected: (count: number) => `${count} ang napili`,
+    examTitle: "Anong exam ang inirereview mo?",
+    programTitle: "Anong kurso ang kinukuha mo?",
+    examSub: "Ita-tag mo ang bawat subject sa bawat nota.",
+    programSub:
+      "Ang degree program mo. Ita-tag mo ang bawat subject sa bawat nota.",
+    examExample: "hal. Geodetic Engineering",
+    programExample: "hal. BS Marine Biology",
+    consentTitle: "Bago tayo magsimula",
+    consentSub: "Dalawang mabilis na bagay, tapos ang unang study set mo.",
+    agreeBefore: "Nabasa ko at sumasang-ayon ako sa",
+    agreeAnd: "at",
+    agreeAfter: ".",
+    newTabHint: "Bubukas ito sa bagong tab — hindi mawawala ang setup mo.",
+    ageQuestion: "18 anyos ka na ba o mas matanda?",
+    adultYes: "Oo, 18 na ako o mas matanda",
+    adultNo: "Hindi, wala pa akong 18",
+    guardian:
+      "May magulang o tagapag-alaga na kasama kong dumaan dito at pumapayag na hawakan ng Tuón ang mga nota at kasaysayan ng pag-aaral ko.",
+    guardianHint: (email: string) =>
+      `Pwede silang mag-email sa ${email} anumang oras para makita o mabura ang datos mo.`,
   },
 
   settings: {

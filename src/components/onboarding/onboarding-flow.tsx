@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { AnimatedMark } from "@/components/brand/animated-mark";
 import {
   PaperCreature,
@@ -51,6 +52,7 @@ const TRANSITION = { duration: 0.28, ease: [0.22, 1, 0.36, 1] } as const;
 function OnboardingWizard({ initialName }: { initialName: string }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -170,7 +172,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
       });
       router.replace("/app");
     } catch {
-      toast.error("Could not save your setup. Please try again.");
+      toast.error(t.onboarding.saveFailed);
       setSaving(false);
     }
   }
@@ -211,7 +213,9 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
           {!totalKnown ? <span className="bg-border/60 h-1.5 w-2 rounded-full" /> : null}
         </div>
         <span className="text-muted-foreground text-xs tabular-nums">
-          {totalKnown ? `${stepIndex + 1} / ${steps.length}` : `Step ${stepIndex + 1}`}
+          {totalKnown
+            ? t.onboarding.progress(stepIndex + 1, steps.length)
+            : t.onboarding.step(stepIndex + 1)}
         </span>
       </header>
 
@@ -228,12 +232,12 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
             {currentStep === "name" ? (
               <StepShell
                 creature="idle"
-                title="What should we call you?"
-                subtitle={`This is how ${CREATURE_NAME} will greet you.`}
+                title={t.onboarding.nameTitle}
+                subtitle={t.onboarding.nameSub(CREATURE_NAME)}
               >
                 <div className="space-y-2">
                   <Label htmlFor="displayName" className="sr-only">
-                    Display name
+                    {t.onboarding.displayName}
                   </Label>
                   <Input
                     id="displayName"
@@ -243,7 +247,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") goNext();
                     }}
-                    placeholder="Juan"
+                    placeholder={t.onboarding.namePlaceholder}
                     maxLength={60}
                     className="h-14 text-lg"
                   />
@@ -253,8 +257,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
             {currentStep === "level" ? (
               <StepShell
-                title="Where are you studying?"
-                subtitle="This changes how we tag your notes and pitch your flashcards."
+                title={t.onboarding.levelTitle}
+                subtitle={t.onboarding.levelSub}
               >
                 <div className="grid gap-3">
                   {EDUCATION_LEVELS.map((level) => (
@@ -273,12 +277,12 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
             {currentStep === "school" ? (
               <StepShell
                 creature="idle"
-                title="Where do you study?"
-                subtitle="So your sets are grouped the way your school year is."
+                title={t.onboarding.schoolTitle}
+                subtitle={t.onboarding.schoolSub}
               >
                 <div className="space-y-2">
                   <Label htmlFor="school" className="sr-only">
-                    School
+                    {t.onboarding.school}
                   </Label>
                   <Input
                     id="school"
@@ -290,8 +294,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                     }}
                     placeholder={
                       isBoardReview(educationLevel)
-                        ? "Your review centre or school"
-                        : "Start typing your school's name"
+                        ? t.onboarding.reviewCentrePlaceholder
+                        : t.onboarding.schoolPlaceholder
                     }
                     maxLength={MAX_SCHOOL_LENGTH}
                     autoComplete="organization"
@@ -317,8 +321,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                   ) : null}
 
                   <p className="text-muted-foreground pt-2 text-xs">
-                    Optional — you can leave this blank, and change it any time
-                    in Settings.
+                    {t.onboarding.schoolOptional}
                   </p>
                 </div>
               </StepShell>
@@ -326,8 +329,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
             {currentStep === "strand" ? (
               <StepShell
-                title="Which track are you in?"
-                subtitle="We will show the subjects that go with it."
+                title={t.onboarding.strandTitle}
+                subtitle={t.onboarding.strandSub}
               >
                 {/* Ten options is a wall unless it is grouped the way DepEd
                     groups them, so the picker mirrors the four tracks. */}
@@ -361,8 +364,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
             {currentStep === "subjects" && strand ? (
               <StepShell
-                title="Which subjects are you taking?"
-                subtitle="Pick as many as you like. You can change these later."
+                title={t.onboarding.subjectsTitle}
+                subtitle={t.onboarding.subjectsSub}
               >
                 <div className="max-h-[46vh] space-y-6 overflow-y-auto pr-1">
                   {getSubjectGroups(strand).map((group) => (
@@ -389,8 +392,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                   ))}
 
                   <CustomCourses
-                    label="Not listed? Add it"
-                    placeholder="e.g. Research in Daily Life 1"
+                    label={t.onboarding.notListed}
+                    placeholder={t.onboarding.subjectExample}
                     value={customCourse}
                     onChange={setCustomCourse}
                     onAdd={addCustomCourse}
@@ -400,7 +403,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                 </div>
 
                 <p className="text-muted-foreground mt-4 text-xs">
-                  {courses.length} selected
+                  {t.onboarding.selected(courses.length)}
                 </p>
               </StepShell>
             ) : null}
@@ -409,13 +412,13 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
               <StepShell
                 title={
                   isBoardReview(educationLevel)
-                    ? "Which exam are you reviewing for?"
-                    : "What course are you taking?"
+                    ? t.onboarding.examTitle
+                    : t.onboarding.programTitle
                 }
                 subtitle={
                   isBoardReview(educationLevel)
-                    ? "You will tag individual subjects on each note."
-                    : "Your degree program. You will tag individual subjects on each note."
+                    ? t.onboarding.examSub
+                    : t.onboarding.programSub
                 }
               >
                 <div className="max-h-[46vh] overflow-y-auto pr-1">
@@ -434,11 +437,11 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                   </div>
 
                   <CustomCourses
-                    label="Not listed? Add it"
+                    label={t.onboarding.notListed}
                     placeholder={
                       isBoardReview(educationLevel)
-                        ? "e.g. Geodetic Engineering"
-                        : "e.g. BS Marine Biology"
+                        ? t.onboarding.examExample
+                        : t.onboarding.programExample
                     }
                     value={customCourse}
                     onChange={setCustomCourse}
@@ -473,8 +476,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
             {currentStep === "consent" ? (
               <StepShell
                 creature={canAdvance ? "celebrating" : "thinking"}
-                title="Before we start"
-                subtitle="Two quick things, and then your first study set."
+                title={t.onboarding.consentTitle}
+                subtitle={t.onboarding.consentSub}
               >
                 <div className="space-y-5">
                   <CheckRow
@@ -482,30 +485,30 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                     onChange={setAgreedToPolicies}
                     label={
                       <>
-                        I have read and agree to the{" "}
+                        {t.onboarding.agreeBefore}{" "}
                         <Link
                           href="/terms"
                           target="_blank"
                           className="text-primary underline underline-offset-4"
                         >
-                          Terms of Use
+                          {t.auth.terms}
                         </Link>{" "}
-                        and{" "}
+                        {t.onboarding.agreeAnd}{" "}
                         <Link
                           href="/privacy"
                           target="_blank"
                           className="text-primary underline underline-offset-4"
                         >
-                          Privacy Notice
+                          {t.auth.privacy}
                         </Link>
-                        .
+                        {t.onboarding.agreeAfter}
                       </>
                     }
-                    hint="They open in a new tab — you won't lose your setup."
+                    hint={t.onboarding.newTabHint}
                   />
 
                   <div>
-                    <p className="text-sm font-medium">Are you 18 or older?</p>
+                    <p className="text-sm font-medium">{t.onboarding.ageQuestion}</p>
                     <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
                       <SelectCard
                         selected={isAdult === true}
@@ -513,12 +516,12 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                           setIsAdult(true);
                           setGuardianConsent(false);
                         }}
-                        title="Yes, I'm 18 or older"
+                        title={t.onboarding.adultYes}
                       />
                       <SelectCard
                         selected={isAdult === false}
                         onClick={() => setIsAdult(false)}
-                        title="No, I'm under 18"
+                        title={t.onboarding.adultNo}
                       />
                     </div>
                   </div>
@@ -533,8 +536,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                       <CheckRow
                         checked={guardianConsent}
                         onChange={setGuardianConsent}
-                        label="A parent or guardian has gone through this with me and agrees to Tuón holding my notes and study history."
-                        hint="They can email hello@tuon.app any time to see or delete your data."
+                        label={t.onboarding.guardian}
+                        hint={t.onboarding.guardianHint("hello@tuon.app")}
                       />
                     </motion.div>
                   ) : null}
@@ -550,7 +553,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
         {stepIndex > 0 ? (
           <Button variant="ghost" size="lg" onClick={goBack} disabled={saving}>
             <ArrowLeft />
-            Back
+            {t.onboarding.back}
           </Button>
         ) : null}
         <Button
@@ -562,12 +565,12 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
           {saving ? (
             <>
               <Loader2 className="animate-spin" />
-              Saving…
+              {t.onboarding.saving}
             </>
           ) : isLastStep ? (
-            "Finish setup"
+            t.onboarding.finish
           ) : (
-            "Continue"
+            t.onboarding.continue
           )}
         </Button>
       </footer>
@@ -583,6 +586,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 export function OnboardingFlow() {
   const router = useRouter();
   const { user, profile, authLoading, profileLoading } = useAuth();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (authLoading) return;
@@ -597,7 +601,7 @@ export function OnboardingFlow() {
     return (
       <main className="grid min-h-dvh place-items-center">
         <Loader2 className="text-muted-foreground size-6 animate-spin" />
-        <span className="sr-only">Loading</span>
+        <span className="sr-only">{t.onboarding.loading}</span>
       </main>
     );
   }

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+
+import { en } from "../src/lib/i18n/en.ts";
 import {
   reminderIsDue,
-  reminderMessage,
 } from "file:///c:/Users/ASUS/tuonapp/src/lib/reminders.ts";
 
 let passed = 0;
@@ -59,8 +60,10 @@ check("a malformed time never fires rather than firing at midnight", () => {
 console.log("\nReminder wording");
 
 check("counts cards, and never mentions streaks or days", () => {
-  const one = reminderMessage(1);
-  const many = reminderMessage(12);
+  // The wording lives in the catalogue now; the rule it has to keep does not
+  // change with it, so the assertion follows it there.
+  const one = en.reminder.cardsReady(1);
+  const many = en.reminder.cardsReady(12);
   assert.equal(one, "1 card is ready for review.");
   assert.equal(many, "12 cards are ready for review.");
   for (const text of [one, many]) {

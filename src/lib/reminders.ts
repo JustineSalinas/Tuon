@@ -114,11 +114,6 @@ export function reminderIsDue({
  * break your 6-day streak!" is a threat, and the student most likely to see it
  * is the one who was busy revising for something else.
  */
-export function reminderMessage(dueCount: number): string {
-  if (dueCount === 1) return "1 card is ready for review.";
-  return `${dueCount} cards are ready for review.`;
-}
-
 export function markReminderShown(now: Date) {
   write(LAST_SHOWN_KEY, todayKey(now));
 }
