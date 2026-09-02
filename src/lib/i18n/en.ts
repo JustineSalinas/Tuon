@@ -29,6 +29,7 @@ export const en = {
     retention: "Retention",
     newNote: "New note",
     settings: "Settings",
+    help: "Help",
     signOut: "Sign out",
   },
 
@@ -1192,6 +1193,147 @@ export const en = {
       "A parent or guardian has gone through this with me and agrees to Tuón holding my notes and study history.",
     guardianHint: (email: string) =>
       `They can email ${email} any time to see or delete your data.`,
+  },
+
+  help: {
+    title: "How Tuón works",
+    subtitle:
+      "The whole app in a few minutes, and what every word on screen actually means.",
+
+    loopTitle: "The loop",
+    loopBody:
+      "Three steps, and the third is the one that does the work. Writing cards feels like studying; being asked them a week later is studying.",
+    loopSteps: [
+      {
+        title: "Write or paste a note",
+        body: "Lecture notes, a chapter you typed up, a PDF handout. One note per topic works better than one per subject.",
+        action: "New note",
+        href: "/app/notes/new",
+      },
+      {
+        title: "Generate a study set",
+        body: "Flashcards and a practice quiz, written from your note and nothing else. Check them — you can report a card that is wrong.",
+        action: "Your notes",
+        href: "/app/notes",
+      },
+      {
+        title: "Review when Tuón asks",
+        body: "Each card comes back just before you would have forgotten it. Ten minutes most days beats three hours the night before.",
+        action: "Review",
+        href: "/app/review",
+      },
+    ],
+
+    ratingsTitle: "The four buttons, and what they do",
+    ratingsBody:
+      "This is the one thing worth understanding properly. After each card you say how it went, and that answer decides when the card comes back. Answer honestly — flattering yourself moves the card further away, which is the opposite of what you want.",
+    ratings: [
+      {
+        label: "Again",
+        body: "You blanked, or got it wrong. The card resets and comes back later in the same session.",
+      },
+      {
+        label: "Hard",
+        body: "You got there, but it was a struggle. The gap grows a little, and the card gets easier to trip on next time.",
+      },
+      {
+        label: "Good",
+        body: "You knew it. This is the normal answer, and the one to use most.",
+      },
+      {
+        label: "Easy",
+        body: "Instant, with no effort. The gap jumps. Use it sparingly — overusing it is how cards get scheduled past your exam.",
+      },
+    ],
+    ratingsFootnote:
+      "Turn on “Type the answer first” in settings and Tuón grades your typing instead — spelling, word order and accents are all forgiven.",
+
+    wordsTitle: "What the words mean",
+    words: [
+      { term: "Due", body: "The card's gap has run out and it is waiting for you today." },
+      {
+        term: "Shaky",
+        body: "You have failed this card enough times that Tuón thinks it is at risk. Usually it means the card is trying to do too much at once — consider splitting it.",
+      },
+      {
+        term: "Mature",
+        body: "The card is scheduled a month or more out. It has held up several times in a row.",
+      },
+      {
+        term: "Mastery",
+        body: "How far along a whole set is. It only says “Mastered” when nothing in the set is unreviewed and nothing is shaky — a set can average high while hiding four cards you keep failing.",
+      },
+      {
+        term: "Readiness",
+        body: "An estimate of how much you will still remember on a given day, read from your own schedule. It is not a predicted score.",
+      },
+    ],
+
+    modesTitle: "Review, quiz, or test?",
+    modes: [
+      {
+        title: "Review",
+        body: "The daily habit. Only the cards that are due, one at a time, and your answers move the schedule.",
+      },
+      {
+        title: "Quiz",
+        body: "The multiple-choice questions generated with the set. Good for a quick check; a right answer counts for less than a recalled one, because one in four is a guess.",
+      },
+      {
+        title: "Test",
+        body: "Timed, mixed formats, drawn from your weakest cards. Anything you do not reach counts as wrong, which is what an exam does. Results feed the schedule.",
+      },
+    ],
+
+    organiserTitle: "Your week, and the timer",
+    organiserBody:
+      "The calendar holds deadlines, a to-do list and your class timetable, and the focus timer lives in the sidebar so it follows you between screens. Pick a subject on the timer before you start and the block is logged against it — that is what fills the per-subject breakdown under your heatmap.",
+    organiserAction: "Open the calendar",
+
+    groupsTitle: "Study groups",
+    groupsBody:
+      "Invite-only and private. There is no directory and no way to find a group you were not invited to. Standings rank on XP earned from cards you actually remembered, never on hours logged — leaving a timer running earns nothing.",
+    groupsAction: "Your groups",
+
+    subjectsTitle: "Subjects and semesters",
+    subjectsBody:
+      "Tag a note or a set with a subject and it counts towards that subject everywhere. Split your subjects into terms under Settings and Tuón shows you the ones you are taking now, while last term's work stays exactly where it is. Removing a subject never deletes anything — it asks where the material should go first.",
+    subjectsAction: "Settings",
+
+    exportTitle: "Getting your work out",
+    exportBody:
+      "Nothing here is trapped. Export your whole note library as Markdown, a study set to Anki, a spreadsheet or a printable PDF, and your entire account as one JSON file. [[Wiki links]] survive the round trip, so a vault comes back with its graph intact.",
+    exportAction: "Your notes",
+
+    troubleTitle: "If something looks wrong",
+    trouble: [
+      {
+        title: "A card is wrong or badly written",
+        body: "Tap the thumbs-down while reviewing it. That is the only signal that separates a bad card from a hard one, and the two need opposite responses.",
+      },
+      {
+        title: "Nothing is due, but you want to study",
+        body: "That is the schedule doing its job. Sit a test instead — it draws from your weakest material and still counts.",
+      },
+      {
+        title: "Your due dates look shifted",
+        body: "Check your time zone in settings. It decides when a card counts as due today, and getting it wrong moves every date without anything on screen looking wrong.",
+      },
+      {
+        title: "You studied offline or on paper",
+        body: "Add the time by hand in the study log. A week that says zero when you studied is worse than no log at all.",
+      },
+    ],
+
+    contactTitle: "Still stuck?",
+    contactBody: (email: string) => `Email ${email} and a person will read it.`,
+    contactAction: "Send an email",
+  },
+
+  dashboardHelp: {
+    title: "New here, or want the details?",
+    body: "How the schedule decides, what the four buttons do, and what every word on screen means.",
+    action: "How Tuón works",
   },
 
   settings: {

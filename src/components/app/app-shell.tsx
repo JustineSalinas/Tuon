@@ -12,6 +12,7 @@ import {
   Users,
   Plus,
   TrendingUp,
+  LifeBuoy,
   Settings,
 } from "lucide-react";
 
@@ -266,6 +267,13 @@ function UserMenu({ align }: { align: "start" | "end" }) {
             <Settings className="size-4" />
             {t.nav.settings}
           </DropdownMenuItem>
+        {/* Beside settings rather than in the sidebar rail: help is looked
+            for when something is confusing, which is the same moment
+            somebody goes hunting through their account menu. */}
+        <DropdownMenuItem render={<Link href="/app/help" />}>
+          <LifeBuoy className="size-4" />
+          {t.nav.help}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} variant="destructive">
           <LogOut className="size-4" />

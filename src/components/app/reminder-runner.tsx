@@ -69,7 +69,7 @@ export function ReminderRunner() {
     check();
     const interval = setInterval(check, CHECK_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [user, cards, t.reminder.cardsReady]);
+  }, [user, cards, t.reminder]);
 
   return null;
 }

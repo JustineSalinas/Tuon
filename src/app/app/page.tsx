@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
+  ArrowRight,
   CalendarClock,
   FileText,
+  LifeBuoy,
 } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
@@ -30,6 +32,7 @@ import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness"
 import { TodaysPlan } from "@/components/app/todays-plan";
 import { StudyHeatmap } from "@/components/app/study-heatmap";
 import { buildReadiness } from "@/lib/stats/readiness";
+import { Button } from "@/components/ui/button";
 import { buildPlan } from "@/lib/stats/plan";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { Card, CardContent } from "@/components/ui/card";
@@ -268,12 +271,44 @@ export default function DashboardPage() {
             </div>
           </section>
 
+          <HelpCard t={t} />
+
           <div className="mt-8 md:hidden">
             <QuotaIndicator />
           </div>
         </>
       )}
     </main>
+  );
+}
+
+/**
+ * The way into the help page, at the foot of the dashboard.
+ *
+ * Below everything, and deliberately quiet: a student who knows how the app
+ * works scrolls past it every day, and it has to cost them nothing. It sits
+ * here rather than in the sidebar rail because the rail is for places you go
+ * daily, and this is a place you go twice.
+ */
+function HelpCard({ t }: { t: Messages }) {
+  return (
+    <section className="mt-10">
+      <div className="bg-card flex flex-wrap items-center gap-4 rounded-2xl border border-dashed p-5">
+        <span className="bg-secondary text-muted-foreground grid size-9 shrink-0 place-items-center rounded-xl">
+          <LifeBuoy className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{t.dashboardHelp.title}</p>
+          <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+            {t.dashboardHelp.body}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" render={<Link href="/app/help" />}>
+          {t.dashboardHelp.action}
+          <ArrowRight />
+        </Button>
+      </div>
+    </section>
   );
 }
 

@@ -36,6 +36,7 @@ export const fil: Messages = {
     retention: "Retention",
     newNote: "Bagong nota",
     settings: "Settings",
+    help: "Tulong",
     signOut: "Mag-sign out",
   },
 
@@ -1192,6 +1193,147 @@ export const fil: Messages = {
       "May magulang o tagapag-alaga na kasama kong dumaan dito at pumapayag na hawakan ng Tuón ang mga nota at kasaysayan ng pag-aaral ko.",
     guardianHint: (email: string) =>
       `Pwede silang mag-email sa ${email} anumang oras para makita o mabura ang datos mo.`,
+  },
+
+  help: {
+    title: "Paano gumagana ang Tuón",
+    subtitle:
+      "Ang buong app sa loob ng ilang minuto, at kung ano talaga ang ibig sabihin ng bawat salita sa screen.",
+
+    loopTitle: "Ang siklo",
+    loopBody:
+      "Tatlong hakbang, at ang pangatlo ang tunay na gumagawa ng trabaho. Ang paggawa ng kard ay pakiramdam na pag-aaral; ang matanong nito makalipas ang isang linggo ay pag-aaral talaga.",
+    loopSteps: [
+      {
+        title: "Magsulat o mag-paste ng nota",
+        body: "Lecture notes, kabanatang ni-type mo, o PDF handout. Mas mainam ang isang nota kada paksa kaysa isa kada subject.",
+        action: "Bagong nota",
+        href: "/app/notes/new",
+      },
+      {
+        title: "Gumawa ng study set",
+        body: "Flashcards at practice quiz, isinulat mula sa nota mo at wala nang iba. Suriin ang mga ito — pwede mong isumbong ang kard na mali.",
+        action: "Mga nota mo",
+        href: "/app/notes",
+      },
+      {
+        title: "Mag-review kapag tinanong ka ng Tuón",
+        body: "Babalik ang bawat kard bago mo pa ito makalimutan. Mas mabuti ang sampung minuto kada araw kaysa tatlong oras kagabi bago ang exam.",
+        action: "Mag-review",
+        href: "/app/review",
+      },
+    ],
+
+    ratingsTitle: "Ang apat na pindutan, at ang ginagawa nila",
+    ratingsBody:
+      "Ito ang isang bagay na sulit maintindihan nang maayos. Pagkatapos ng bawat kard, sasabihin mo kung kumusta — at ang sagot na iyon ang magdedesisyon kung kailan babalik ang kard. Maging tapat — ang pagbobola sa sarili ay naglalayo sa kard, na kabaligtaran ng gusto mo.",
+    ratings: [
+      {
+        label: "Ulit",
+        body: "Nablanko ka, o namali. Magre-reset ang kard at babalik mamaya sa parehong session.",
+      },
+      {
+        label: "Mahirap",
+        body: "Nakuha mo, pero nahirapan ka. Bahagyang lalaki ang agwat, at mas madali itong madulas sa susunod.",
+      },
+      {
+        label: "Maayos",
+        body: "Alam mo. Ito ang normal na sagot, at ang dapat mong pinakamadalas gamitin.",
+      },
+      {
+        label: "Madali",
+        body: "Agad, walang hirap. Biglang lalaki ang agwat. Gamitin nang matipid — ang sobrang paggamit nito ang dahilan kung bakit naiiskedyul ang mga kard lampas sa exam mo.",
+      },
+    ],
+    ratingsFootnote:
+      "Buksan ang “I-type muna ang sagot” sa settings at ang pag-type mo na ang gagradohan ng Tuón — pinapatawad ang spelling, ayos ng salita at accent.",
+
+    wordsTitle: "Ano ang ibig sabihin ng mga salita",
+    words: [
+      { term: "Due", body: "Naubos na ang agwat ng kard at naghihintay na ito sa iyo ngayon." },
+      {
+        term: "Mahina",
+        body: "Sapat na ang dami ng pagkakamali mo sa kard na ito para isipin ng Tuón na nanganganib ito. Kadalasan ay masyadong marami ang ginagawa ng kard — isipin mong hatiin ito.",
+      },
+      {
+        term: "Matured",
+        body: "Naka-iskedyul ang kard nang isang buwan o higit pa. Ilang beses na itong nakayanan nang sunod-sunod.",
+      },
+      {
+        term: "Mastery",
+        body: "Kung gaano na kalayo ang isang buong set. Nagsasabi lang itong “Bihasa na” kapag walang hindi pa na-review at walang mahina — pwedeng mataas ang average ng set habang may itinatago itong apat na kard na paulit-ulit mong namamali.",
+      },
+      {
+        term: "Readiness",
+        body: "Tantiya kung gaano karami ang matatandaan mo pa sa isang araw, batay sa sarili mong iskedyul. Hindi ito hulang marka.",
+      },
+    ],
+
+    modesTitle: "Review, quiz, o test?",
+    modes: [
+      {
+        title: "Review",
+        body: "Ang pang-araw-araw na gawi. Ang mga due na kard lang, isa-isa, at ginagalaw ng sagot mo ang iskedyul.",
+      },
+      {
+        title: "Quiz",
+        body: "Ang multiple-choice na tanong na kasama ng set. Mabuti para sa mabilisang pagsusuri; mas mababa ang halaga ng tamang sagot kaysa sa naalalang sagot, dahil isa sa apat ay hula.",
+      },
+      {
+        title: "Test",
+        body: "May oras, halo-halong porma, kinuha mula sa pinakamahina mong kard. Ang hindi mo naabot ay bibilangin bilang mali, gaya ng ginagawa ng exam. Napupunta sa iskedyul ang resulta.",
+      },
+    ],
+
+    organiserTitle: "Ang linggo mo, at ang timer",
+    organiserBody:
+      "Nasa kalendaryo ang mga deadline, listahan ng gagawin at iskedyul ng klase mo, at nasa sidebar ang focus timer para sumunod ito sa iyo sa bawat screen. Pumili ng subject sa timer bago ka magsimula at ita-tag doon ang block — iyon ang pumupuno sa breakdown kada subject sa ilalim ng heatmap mo.",
+    organiserAction: "Buksan ang kalendaryo",
+
+    groupsTitle: "Mga study group",
+    groupsBody:
+      "Imbitasyon lang at pribado. Walang direktoryo at walang paraan para makahanap ng grupong hindi ka inimbitahan. Nakabatay ang standings sa XP mula sa mga kard na talagang naalala mo, hindi sa oras na naitala — walang kinikita ang pag-iwan ng timer.",
+    groupsAction: "Mga grupo mo",
+
+    subjectsTitle: "Mga subject at semester",
+    subjectsBody:
+      "I-tag ang nota o set sa isang subject at mabibilang ito sa subject na iyon saanman. Hatiin ang mga subject mo sa mga term sa Settings at ipapakita ng Tuón ang kinukuha mo ngayon, habang nananatili sa kinalalagyan nito ang gawa mo noong nakaraang term. Ang pag-alis ng subject ay hindi kailanman nagbubura — tinatanong muna nito kung saan dapat pumunta ang materyal.",
+    subjectsAction: "Settings",
+
+    exportTitle: "Pagkuha ng gawa mo palabas",
+    exportBody:
+      "Walang nakakulong dito. I-export ang buong note library mo bilang Markdown, ang study set sa Anki, spreadsheet o PDF na pwedeng i-print, at ang buong account mo bilang isang JSON file. Nakakaligtas ang [[wiki links]] sa buong biyahe, kaya bumabalik ang vault na buo ang graph.",
+    exportAction: "Mga nota mo",
+
+    troubleTitle: "Kung may mukhang mali",
+    trouble: [
+      {
+        title: "Mali o masamang pagkakasulat ang kard",
+        body: "Pindutin ang thumbs-down habang nire-review ito. Iyon lang ang senyas na naghihiwalay sa masamang kard at sa mahirap na kard, at magkaibang tugon ang kailangan ng dalawa.",
+      },
+      {
+        title: "Walang due pero gusto mong mag-aral",
+        body: "Ginagawa lang ng iskedyul ang trabaho nito. Sumagot na lang ng test — kinukuha nito ang pinakamahina mong materyal at binibilang pa rin.",
+      },
+      {
+        title: "Mukhang nalilipat ang mga due date mo",
+        body: "Tingnan ang time zone mo sa settings. Ito ang nagdedesisyon kung kailan itinuturing na due ang kard ngayon, at kapag mali ito, nalilipat ang bawat petsa nang walang anumang mukhang mali sa screen.",
+      },
+      {
+        title: "Nag-aral ka offline o sa papel",
+        body: "Idagdag ang oras nang manu-mano sa study log. Mas masama ang linggong nagsasabing zero kaysa sa walang log.",
+      },
+    ],
+
+    contactTitle: "Hindi pa rin malinaw?",
+    contactBody: (email: string) => `Mag-email sa ${email} at may taong babasa nito.`,
+    contactAction: "Magpadala ng email",
+  },
+
+  dashboardHelp: {
+    title: "Bago ka rito, o gusto mo ng detalye?",
+    body: "Kung paano nagdedesisyon ang iskedyul, ano ang ginagawa ng apat na pindutan, at ano ang ibig sabihin ng bawat salita sa screen.",
+    action: "Paano gumagana ang Tuón",
   },
 
   settings: {
