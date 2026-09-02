@@ -112,6 +112,17 @@ export const RATE_LIMITS = {
     windowSeconds: 3600,
   },
   /**
+   * Tala, the in-app companion. Keyed on the ACCOUNT rather than the address,
+   * unlike everything else here: a school computer lab is one IP, and one
+   * student holding a conversation must not lock out the room. There is a
+   * verified account behind every call, so the account is the honest subject.
+   */
+  companion: {
+    scope: "companion",
+    limit: envLimit("RATE_LIMIT_COMPANION", 60),
+    windowSeconds: 3600,
+  },
+  /**
    * The landing-page assistant. The tightest limit here, and the only one
    * guarding an endpoint that spends money for someone who has not signed up:
    * there is no account, no quota and no cooldown behind it, so this and App

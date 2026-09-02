@@ -47,7 +47,14 @@ export type CreatureState =
   | "wrong"
   | "asleep"
   | "overdue"
-  | "celebrating";
+  | "celebrating"
+  /**
+   * Mid-sentence. Only ever driven by a real stream of words arriving — see
+   * the note on `beakAnimation` for why that distinction is the whole point.
+   */
+  | "talking"
+  /** Waiting on the student. Head cocked, still, eyes open. */
+  | "listening";
 
 /**
  * Tala's own colours, which deliberately do NOT follow the theme.
@@ -143,6 +150,18 @@ export function PaperCreature({
     asleep: { y: 0, rotate: 0, scale: 0.94 },
     overdue: { y: [0, -2, 0, 0, 0], rotate: [0, 0, -9, 9, 0] },
     celebrating: { y: [0, -18, 0, -8, 0], rotate: [0, -8, 8, 0], scale: 1 },
+    /**
+     * Speech is in the beak; the body only carries its rhythm. Small, uneven
+     * nods — a head that swings in time with a syllable is a puppet, and the
+     * amplitude here is a third of the idle tilt on purpose.
+     */
+    talking: { y: [0, -1.5, 0, -1, 0], rotate: [0, -2.5, 1.5, -1, 0] },
+    /**
+     * The cocked hold. One move into the tilt and then nothing: an owl
+     * listening is conspicuously STILL, and animating through it would read
+     * as impatience.
+     */
+    listening: { y: 0, rotate: -9, scale: 1 },
   };
 
   const bodyTransition: Record<CreatureState, Transition> = {
@@ -166,6 +185,14 @@ export function PaperCreature({
       ease: "easeInOut",
     },
     celebrating: { duration: 1.1 },
+    talking: {
+      duration: 1.9,
+      repeat: Infinity,
+      times: [0, 0.22, 0.44, 0.7, 1],
+      ease: "easeInOut",
+    },
+    // Snap into the tilt the way an owl does, then hold.
+    listening: { duration: 0.42, ease: [0.34, 1.4, 0.64, 1] },
   };
 
   /**
@@ -230,6 +257,15 @@ export function PaperCreature({
         return { scaleY: [1, 1.15, 1] };
       case "overdue":
         return { scaleY: [1, 1, 0.15, 1] };
+      case "talking":
+        // Wide and open. Blinking mid-sentence is what a face does, but the
+        // beak is already carrying the motion and a second rhythm on top of
+        // it reads as twitching.
+        return { scaleY: 1 };
+      case "listening":
+        // Fractionally wider than resting. Attention, without a cartoon
+        // pop — anything past about 1.1 reads as alarm rather than interest.
+        return { scaleY: [1, 1.06, 1.06, 0.12, 1.06] };
       default:
         // Idle: an occasional blink, offset per eye so it looks alive.
         return { scaleY: [1, 1, 0.12, 1] };
@@ -257,10 +293,50 @@ export function PaperCreature({
         };
       case "wrong":
         return { duration: 0.5, delay };
+      case "listening":
+        return {
+          duration: 5.5,
+          repeat: Infinity,
+          times: [0, 0.06, 0.9, 0.95, 1],
+          ease: "easeInOut",
+          delay,
+        };
       default:
         return { duration: 0.4, delay };
     }
   };
+
+  /**
+   * The beak, which is the only part that actually says anything.
+   *
+   * Scaled from its TOP edge so the lower mandible drops and the upper one
+   * stays put, which is how a beak opens. Scaling from the centre pulls the
+   * whole thing off the face.
+   *
+   * The timing is deliberately uneven — 0.34s of syllables, then a gap the
+   * length of a breath, then more. An evenly spaced open-shut is a nutcracker;
+   * speech has stresses and pauses in it, and the eye reads the gaps as words
+   * even at this size.
+   *
+   * It only runs on `talking`, and `talking` is only ever set while text is
+   * genuinely streaming in. A mouth that moves while nothing is being said is
+   * the exact tell that makes a mascot feel fake, and it costs nothing to
+   * avoid: the state is driven by the stream, not by a timer.
+   */
+  const beakAnimation = (): TargetAndTransition =>
+    reduce || state !== "talking"
+      ? { scaleY: 1 }
+      : { scaleY: [1, 1.55, 1, 1.35, 1, 1.6, 1, 1, 1] };
+
+  const beakTransition = (): Transition =>
+    reduce || state !== "talking"
+      ? { duration: 0.2 }
+      : {
+          duration: 1.15,
+          repeat: Infinity,
+          times: [0, 0.08, 0.17, 0.26, 0.34, 0.43, 0.52, 0.7, 1],
+          ease: "easeInOut",
+        };
 
   /** The hop squashes the shadow; nothing else touches it. */
   const hops = state === "correct" || state === "celebrating";
@@ -449,13 +525,17 @@ export function PaperCreature({
         </motion.g>
       ))}
 
-      {/* Beak, at the point where the two halves of the facial disc meet. */}
-      <path
+      {/* Beak, at the point where the two halves of the facial disc meet.
+          Its transform origin is the top edge, so it opens downward. */}
+      <motion.path
         d="M60 50 C 63.5 50 65.5 53 65 56.5 C 64.5 60 62 63.5 60 64.5 C 58 63.5 55.5 60 55 56.5 C 54.5 53 56.5 50 60 50 Z"
         fill={AMBER}
         stroke={INK}
         strokeWidth="2.6"
         strokeLinejoin="round"
+        animate={beakAnimation()}
+        transition={beakTransition()}
+        style={{ transformOrigin: "60px 50px" }}
       />
 
       {/* Belly, with the scalloped feather markings from the reference. */}

@@ -24,6 +24,7 @@ export const en = {
     notes: "Notes",
     sets: "Study sets",
     calendar: "Calendar",
+    tala: "Ask Tala",
     groups: "Groups",
     graph: "Graph",
     retention: "Retention",
@@ -1681,6 +1682,37 @@ export const en = {
     body: "Your cards and their schedule are stored on this device, so reviewing still works. Anything you rate now is saved and syncs when you are back online.",
     goToReview: "Go to review",
     backToLibrary: "Back to my library",
+  },
+
+  tala: {
+    title: (creature: string) => `Ask ${creature}`,
+    subtitle:
+      "She can see how your studying is going — what is due, which subject is weakest, how ready you are. She cannot see your notes or your cards.",
+    companionOf: (creature: string) => `${creature}, your study companion`,
+    placeholder: "Ask about your studying…",
+    followUp: "Ask a follow-up…",
+    yourMessage: "Your message",
+    send: "Send",
+    stop: "Stop",
+    thinking: "Thinking",
+    startOver: "Start over",
+    tryAgain: "Ask that again",
+    failed: "That one did not come through. Try asking again.",
+    offline: "Could not reach Tuón. Check your connection and try again.",
+    unavailable: "Tala is resting",
+    unavailableHint:
+      "The assistant is not switched on for this deployment yet. Everything else in Tuón works as normal.",
+    disclaimer: (creature: string) =>
+      `${creature} can be wrong, and never sees your notes or flashcards. This conversation stays on this device.`,
+    askTonight: "What should I study tonight?",
+    askWeakest: (subject: string) => `Why is ${subject} my weakest?`,
+    askShaky: "What do I do about my shaky cards?",
+    askHowItWorks: "How does the schedule decide?",
+    emptySuggestions: [
+      "How do I get started?",
+      "What makes a good flashcard?",
+      "Why not just re-read my notes?",
+    ],
   },
 
   settings: {

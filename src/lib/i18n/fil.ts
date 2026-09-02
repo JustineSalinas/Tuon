@@ -31,6 +31,7 @@ export const fil: Messages = {
     notes: "Mga nota",
     sets: "Study sets",
     calendar: "Kalendaryo",
+    tala: "Tanungin si Tala",
     groups: "Mga grupo",
     graph: "Graph",
     retention: "Retention",
@@ -1677,6 +1678,37 @@ export const fil: Messages = {
     body: "Nakaimbak sa device na ito ang mga kard mo at ang iskedyul nila, kaya gumagana pa rin ang pag-review. Nase-save ang anumang i-rate mo ngayon at magsi-sync pagbalik ng koneksyon mo.",
     goToReview: "Pumunta sa review",
     backToLibrary: "Balik sa library ko",
+  },
+
+  tala: {
+    title: (creature: string) => `Tanungin si ${creature}`,
+    subtitle:
+      "Nakikita niya kung kumusta ang pag-aaral mo — ano ang due, aling subject ang pinakamahina, gaano ka kahanda. Hindi niya nakikita ang mga nota o kard mo.",
+    companionOf: (creature: string) => `${creature}, ang kasama mo sa pag-aaral`,
+    placeholder: "Magtanong tungkol sa pag-aaral mo…",
+    followUp: "Magtanong pa…",
+    yourMessage: "Mensahe mo",
+    send: "Ipadala",
+    stop: "Itigil",
+    thinking: "Nag-iisip",
+    startOver: "Magsimula ulit",
+    tryAgain: "Itanong ulit iyon",
+    failed: "Hindi natuloy iyon. Subukang itanong ulit.",
+    offline: "Hindi maabot ang Tuón. Tingnan ang koneksyon mo at subukan ulit.",
+    unavailable: "Nagpapahinga si Tala",
+    unavailableHint:
+      "Hindi pa naka-on ang assistant sa deployment na ito. Normal na gumagana ang lahat ng iba pa sa Tuón.",
+    disclaimer: (creature: string) =>
+      `Pwedeng magkamali si ${creature}, at hindi niya kailanman nakikita ang mga nota o flashcard mo. Nananatili sa device na ito ang usapang ito.`,
+    askTonight: "Ano ang dapat kong aralin ngayong gabi?",
+    askWeakest: (subject: string) => `Bakit ${subject} ang pinakamahina ko?`,
+    askShaky: "Ano ang gagawin ko sa mahihina kong kard?",
+    askHowItWorks: "Paano nagdedesisyon ang iskedyul?",
+    emptySuggestions: [
+      "Paano ako magsisimula?",
+      "Ano ang magandang flashcard?",
+      "Bakit hindi na lang basahin ulit ang notes ko?",
+    ],
   },
 
   settings: {

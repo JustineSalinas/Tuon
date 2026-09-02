@@ -13,6 +13,7 @@ import {
   Plus,
   TrendingUp,
   LifeBuoy,
+  MessageCircle,
   Settings,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ const NAV = [
   { href: "/app/notes", key: "notes", icon: FileText, exact: false },
   { href: "/app/sets", key: "sets", icon: Layers, exact: false },
   { href: "/app/calendar", key: "calendar", icon: CalendarDays, exact: false },
+  { href: "/app/tala", key: "tala", icon: MessageCircle, exact: false },
   { href: "/app/groups", key: "groups", icon: Users, exact: false },
   { href: "/app/graph", key: "graph", icon: Network, exact: false },
   { href: "/app/stats", key: "retention", icon: TrendingUp, exact: false },
