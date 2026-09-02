@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import { FileText, Plus, Search, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { usePagedNotes } from "@/lib/hooks/use-firestore";
 import { LoadMore } from "@/components/app/load-more";
 import { MarkdownTransfer } from "@/components/notes/markdown-transfer";
@@ -16,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function NotesPage() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { data: notes, loading, hasMore, loadMore } = usePagedNotes(user?.uid);
   const [search, setSearch] = useState("");
 
@@ -33,12 +36,12 @@ export default function NotesPage() {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Notes</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">{t.nav.notes}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <MarkdownTransfer />
           <Button render={<Link href="/app/notes/new" />}>
             <Plus />
-            New note
+            {t.nav.newNote}
           </Button>
         </div>
       </header>
@@ -49,7 +52,7 @@ export default function NotesPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search your notes"
+            placeholder={t.notes.search}
             className="pl-9"
           />
         </div>
@@ -62,10 +65,10 @@ export default function NotesPage() {
           ))}
         </div>
       ) : notes.length === 0 ? (
-        <EmptyNotes />
+        <EmptyNotes t={t} />
       ) : filtered.length === 0 ? (
         <p className="text-muted-foreground mt-10 text-center text-sm">
-          No notes match “{search}”.
+          {t.notes.noMatch(search)}
         </p>
       ) : (
         <div className="mt-4 grid gap-2">
@@ -84,7 +87,7 @@ export default function NotesPage() {
                   <div className="min-w-0 flex-1">
                     <h2 className="truncate font-medium">{note.title}</h2>
                     <p className="text-muted-foreground mt-1 line-clamp-2 text-sm leading-relaxed">
-                      {note.content.slice(0, 220) || "Empty note"}
+                      {note.content.slice(0, 220) || t.notes.emptyNote}
                     </p>
                   </div>
                   {note.courseTag ? (
@@ -95,7 +98,7 @@ export default function NotesPage() {
                 </div>
                 <div className="text-muted-foreground mt-2.5 flex items-center gap-3 text-xs">
                   <span className="tabular-nums">
-                    {note.content.trim().length.toLocaleString()} characters
+                    {t.notes.characters(note.content.trim().length.toLocaleString())}
                   </span>
                   <span>{formatDate(note.createdAt?.toDate?.())}</span>
                 </div>
@@ -111,29 +114,28 @@ export default function NotesPage() {
           loadMore={loadMore}
           loadedCount={notes.length}
           searching={search.trim().length > 0}
-          noun="notes"
+          noun={t.common.nounNotes}
         />
       ) : null}
     </main>
   );
 }
 
-function EmptyNotes() {
+function EmptyNotes({ t }: { t: Messages }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed py-14 text-center">
       <div className="bg-secondary mx-auto grid size-12 place-items-center rounded-full">
         <FileText className="text-muted-foreground size-5" />
       </div>
       <h2 className="font-display mt-4 text-lg font-semibold tracking-tight">
-        No notes yet
+        {t.notes.noneYet}
       </h2>
       <p className="text-muted-foreground mx-auto mt-1.5 max-w-xs text-sm leading-relaxed">
-        Paste in your lecture notes or a reviewer, and Tuón will turn them into
-        flashcards and a quiz.
+        {t.notes.noneYetHint}
       </p>
       <Button className="mt-6" render={<Link href="/app/notes/new" />}>
           <Sparkles />
-          Create your first note
+          {t.notes.createFirst}
         </Button>
     </div>
   );

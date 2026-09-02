@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CornerDownLeft, FileText, Plus } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { activeLinkQuery, completeLink, normaliseTitle } from "@/lib/notes/links";
 import type { Note } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ export function useLinkAutocomplete({
   notes: Note[];
   currentNoteId: string | null;
 }) {
+  const { t } = useI18n();
   const [state, setState] = useState<LinkAutocompleteState>({
     open: false,
     query: "",
@@ -134,7 +136,7 @@ export function useLinkAutocomplete({
           className="bg-popover absolute top-2 left-2 z-30 w-72 overflow-hidden rounded-xl border shadow-lg"
         >
           <div className="text-muted-foreground border-b px-3 py-2 text-[11px] tracking-wide uppercase">
-            Link a note
+            {t.notes.linkANote}
           </div>
           <ul className="max-h-56 overflow-y-auto py-1">
             {suggestions.map((note, index) => (
@@ -173,7 +175,7 @@ export function useLinkAutocomplete({
                 >
                   <Plus className="text-muted-foreground size-3.5 shrink-0" />
                   <span className="truncate">
-                    Link to “{state.query.trim()}”
+                    {t.notes.linkTo(state.query.trim())}
                   </span>
                 </button>
               </li>
@@ -181,7 +183,7 @@ export function useLinkAutocomplete({
           </ul>
           <div className="text-muted-foreground flex items-center gap-1.5 border-t px-3 py-1.5 text-[11px]">
             <CornerDownLeft className="size-3" />
-            to insert · Esc to dismiss
+            {t.notes.insertHint}
           </div>
         </motion.div>
       ) : null}

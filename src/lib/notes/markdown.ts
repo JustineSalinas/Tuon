@@ -31,9 +31,20 @@ export interface ParsedNote {
   linkedTitles: string[];
 }
 
+/**
+ * Why one file could not become a note.
+ *
+ * A key and, where the sentence needs one, a number — never the sentence
+ * itself. This module is pure and has no idea what language the student
+ * reads, the same way `plan.ts` and `mastery.ts` do not.
+ */
+export type ParseFailure = "noTitle" | "empty" | "tooLong" | "unreadable";
+
 export interface ParseProblem {
   filename: string;
-  reason: string;
+  reason: ParseFailure;
+  /** Only for "tooLong": the character count that overshot the limit. */
+  length?: number;
 }
 
 /**
@@ -96,7 +107,7 @@ export function parseMarkdown(
   const title = rawTitle.trim().slice(0, MAX_TITLE_CHARS);
 
   if (!title) {
-    return { problem: { filename, reason: "No title could be worked out" } };
+    return { problem: { filename, reason: "noTitle" } };
   }
 
   // If the title came from a leading heading, drop that heading from the body:
@@ -108,14 +119,11 @@ export function parseMarkdown(
   content = content.replace(/^\s+/, "").replace(/\s+$/, "");
 
   if (!content) {
-    return { problem: { filename, reason: "The file is empty" } };
+    return { problem: { filename, reason: "empty" } };
   }
   if (content.length > MAX_CONTENT_CHARS) {
     return {
-      problem: {
-        filename,
-        reason: `Too long — ${content.length.toLocaleString()} characters, limit is ${MAX_CONTENT_CHARS.toLocaleString()}`,
-      },
+      problem: { filename, reason: "tooLong", length: content.length },
     };
   }
 

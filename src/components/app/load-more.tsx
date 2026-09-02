@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { PAGE_SIZE } from "@/lib/hooks/use-firestore";
 
@@ -27,18 +28,20 @@ export function LoadMore({
   /** Plural noun for the caveat line, e.g. "notes". */
   noun: string;
 }) {
+  const { t } = useI18n();
+
   if (!hasMore) return null;
 
   return (
     <div className="mt-6 flex flex-col items-center gap-2">
       {searching ? (
         <p className="text-muted-foreground text-center text-xs">
-          Searching the {loadedCount.toLocaleString()} {noun} loaded so far.
+          {t.common.searchingLoaded(loadedCount.toLocaleString(), noun)}
         </p>
       ) : null}
       <Button variant="outline" onClick={loadMore}>
         <ChevronDown />
-        Load {PAGE_SIZE} more
+        {t.common.loadMore(PAGE_SIZE)}
       </Button>
     </div>
   );

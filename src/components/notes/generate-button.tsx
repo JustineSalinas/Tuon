@@ -8,21 +8,13 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { AnimatedMark } from "@/components/brand/animated-mark";
 import { useQuota } from "@/components/app/quota-indicator";
 import { formatResetDate } from "@/lib/quota";
 import { PLANS, UPGRADE_TARGET } from "@/lib/ai/config";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-/** Shown in sequence while the request is in flight. */
-const PROGRESS_MESSAGES = [
-  "Reading your note…",
-  "Picking out what matters…",
-  "Writing flashcards…",
-  "Building your practice quiz…",
-  "Almost there…",
-];
 
 export function GenerateStudySetButton({
   noteId,
@@ -44,7 +36,11 @@ export function GenerateStudySetButton({
 }) {
   const router = useRouter();
   const { authedFetch, refreshVerification } = useAuth();
+  const { t } = useI18n();
   const quota = useQuota();
+
+  /** Shown in sequence while the request is in flight. */
+  const progressMessages = t.generate.progress;
 
   const [generating, setGenerating] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -53,10 +49,10 @@ export function GenerateStudySetButton({
   useEffect(() => {
     if (!generating) return;
     const interval = setInterval(() => {
-      setMessageIndex((i) => Math.min(i + 1, PROGRESS_MESSAGES.length - 1));
+      setMessageIndex((i) => Math.min(i + 1, progressMessages.length - 1));
     }, 2600);
     return () => clearInterval(interval);
-  }, [generating]);
+  }, [generating, progressMessages.length]);
 
   const exhausted = quota?.exhausted ?? false;
 
@@ -104,7 +100,7 @@ export function GenerateStudySetButton({
       };
 
       if (!response.ok || !payload.studySetId) {
-        setError(payload.error ?? "Generation failed. Please try again.");
+        setError(payload.error ?? t.generate.failed);
         setGenerating(false);
         return;
       }
@@ -114,17 +110,20 @@ export function GenerateStudySetButton({
         // their review history survived — which is the whole worry here.
         toast.success(
           payload.addedCount
-            ? `${payload.addedCount} new card${payload.addedCount === 1 ? "" : "s"} added. Your ${payload.keptCount} existing card${payload.keptCount === 1 ? "" : "s"} kept their progress.`
-            : "Nothing new to add — your note has not changed enough since last time.",
+            ? t.generate.merged(payload.addedCount, payload.keptCount ?? 0)
+            : t.generate.nothingNew,
         );
       } else {
         toast.success(
-          `${payload.flashcardCount} flashcards and ${payload.quizQuestionCount} quiz questions ready.`,
+          t.generate.ready(
+            payload.flashcardCount ?? 0,
+            payload.quizQuestionCount ?? 0,
+          ),
         );
       }
       router.push(`/app/sets/${payload.studySetId}`);
     } catch {
-      setError("Could not reach the server. Check your connection and try again.");
+      setError(t.generate.offline);
       setGenerating(false);
     }
   }
@@ -135,17 +134,20 @@ export function GenerateStudySetButton({
         <Sparkles className="size-4" />
         <AlertDescription className="flex flex-wrap items-center gap-x-2">
           <span>
-            That&rsquo;s all {quota?.limit} study sets for this month
-            {quota?.resetsAt ? ` — they reset ${formatResetDate(quota.resetsAt)}` : ""}.
-            You can still write notes and make flashcards by hand.
+            {t.generate.exhausted(
+              quota?.limit ?? 0,
+              quota?.resetsAt ? formatResetDate(quota.resetsAt) : null,
+            )}
           </span>
           {quota?.plan === "free" ? (
             <Link
               href="/app/settings"
               className="text-primary font-medium underline underline-offset-4"
             >
-              Get {PLANS[UPGRADE_TARGET].monthlyGenerations}/month for ₱
-              {PLANS[UPGRADE_TARGET].phpMonthly}
+              {t.generate.upgradeOffer(
+                PLANS[UPGRADE_TARGET].monthlyGenerations,
+                PLANS[UPGRADE_TARGET].phpMonthly,
+              )}
             </Link>
           ) : null}
         </AlertDescription>
@@ -164,7 +166,7 @@ export function GenerateStudySetButton({
               onClick={() => void handleGenerate(Boolean(existingSetId))}
               className="font-medium underline underline-offset-4"
             >
-              Try again
+              {t.generate.tryAgain}
             </button>
           </AlertDescription>
         </Alert>
@@ -187,10 +189,10 @@ export function GenerateStudySetButton({
             <Sparkles />
           )}
           {generating
-            ? "Generating…"
+            ? t.generate.generating
             : existingSetId
-              ? "Update the study set"
-              : "Generate study set"}
+              ? t.generate.updateSet
+              : t.generate.generateSet}
         </Button>
 
         {existingSetId && !generating ? (
@@ -199,7 +201,7 @@ export function GenerateStudySetButton({
             onClick={() => void handleGenerate(false)}
             disabled={disabled}
           >
-            Make a separate set
+            {t.generate.separateSet}
           </Button>
         ) : null}
 
@@ -214,7 +216,7 @@ export function GenerateStudySetButton({
                 transition={{ duration: 0.2 }}
                 className="block"
               >
-                {PROGRESS_MESSAGES[messageIndex]}
+                {progressMessages[messageIndex]}
               </motion.span>
             ) : hint ? (
               <motion.span
@@ -232,7 +234,7 @@ export function GenerateStudySetButton({
                 animate={{ opacity: 1 }}
                 className="block tabular-nums"
               >
-                {quota.remaining} of {quota.limit} study sets left this month
+                {t.generate.remaining(quota.remaining, quota.limit)}
               </motion.span>
             ) : null}
           </AnimatePresence>

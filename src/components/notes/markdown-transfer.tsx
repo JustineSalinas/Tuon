@@ -21,8 +21,10 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { useNotes } from "@/lib/hooks/use-firestore";
 import {
+  MAX_CONTENT_CHARS,
   noteFilename,
   parseMarkdown,
   toMarkdown,
@@ -62,6 +64,7 @@ export function MarkdownTransfer() {
 
 function ImportButton() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
 
   const [notes, setNotes] = useState<ParsedNote[]>([]);
@@ -72,7 +75,7 @@ function ImportButton() {
   async function readFiles(files: FileList) {
     const picked = [...files].slice(0, MAX_FILES);
     if (files.length > MAX_FILES) {
-      toast.info(`Reading the first ${MAX_FILES} files of ${files.length}.`);
+      toast.info(t.markdown.readingFirst(MAX_FILES, files.length));
     }
 
     const parsed: ParsedNote[] = [];
@@ -83,7 +86,7 @@ function ImportButton() {
       try {
         text = await file.text();
       } catch {
-        failed.push({ filename: file.name, reason: "Could not be read" });
+        failed.push({ filename: file.name, reason: "unreadable" });
         continue;
       }
       const result = parseMarkdown(file.name, text);
@@ -118,14 +121,12 @@ function ImportButton() {
         await batch.commit();
       }
 
-      toast.success(
-        `${notes.length} ${notes.length === 1 ? "note" : "notes"} imported.`,
-      );
+      toast.success(t.markdown.imported(notes.length));
       setOpen(false);
       setNotes([]);
       setProblems([]);
     } catch {
-      toast.error("Could not import those notes. Nothing was saved.");
+      toast.error(t.markdown.importFailed);
     }
     setSaving(false);
   }
@@ -146,7 +147,7 @@ function ImportButton() {
       />
       <Button variant="outline" onClick={() => input.current?.click()}>
         <Upload />
-        Import Markdown
+        {t.markdown.importAction}
       </Button>
 
       <Dialog open={open} onOpenChange={(next) => (next ? null : setOpen(false))}>
@@ -154,13 +155,13 @@ function ImportButton() {
           <DialogHeader>
             <DialogTitle>
               {notes.length === 0
-                ? "Nothing to import"
-                : `Import ${notes.length} ${notes.length === 1 ? "note" : "notes"}?`}
+                ? t.markdown.nothingToImport
+                : t.markdown.importCount(notes.length)}
             </DialogTitle>
             <DialogDescription>
               {notes.length === 0
-                ? "None of those files could be read as notes."
-                : "Titles come from front matter, then a heading, then the filename. Any [[links]] between them keep working."}
+                ? t.markdown.noneReadable
+                : t.markdown.titleRule}
             </DialogDescription>
           </DialogHeader>
 
@@ -183,7 +184,7 @@ function ImportButton() {
           {problems.length > 0 ? (
             <div>
               <p className="text-sm font-medium">
-                {problems.length} {problems.length === 1 ? "file" : "files"} skipped
+                {t.markdown.skipped(problems.length)}
               </p>
               <ul className="text-muted-foreground mt-1.5 max-h-32 space-y-1 overflow-y-auto text-xs">
                 {problems.map((problem, i) => (
@@ -191,7 +192,12 @@ function ImportButton() {
                     <X className="mt-0.5 size-3 shrink-0" />
                     <span className="min-w-0">
                       <span className="font-medium">{problem.filename}</span> —{" "}
-                      {problem.reason}
+                      {problem.reason === "tooLong"
+                        ? t.markdown.tooLong(
+                            (problem.length ?? 0).toLocaleString(),
+                            MAX_CONTENT_CHARS.toLocaleString(),
+                          )
+                        : t.markdown[problem.reason]}
                     </span>
                   </li>
                 ))}
@@ -201,12 +207,12 @@ function ImportButton() {
 
           <DialogFooter>
             <DialogClose render={<Button variant="ghost" disabled={saving} />}>
-              Cancel
+              {t.common.cancel}
             </DialogClose>
             {notes.length > 0 ? (
               <Button onClick={confirmImport} disabled={saving}>
                 {saving ? <Loader2 className="animate-spin" /> : <Upload />}
-                Import
+                {t.markdown.importShort}
               </Button>
             ) : null}
           </DialogFooter>
@@ -218,6 +224,7 @@ function ImportButton() {
 
 function ExportButton() {
   const { user } = useAuth();
+  const { t } = useI18n();
   // The full library, not the paged view: an export that silently stops at the
   // first page would be the worst possible bug in a feature whose entire
   // promise is that nothing is trapped.
@@ -226,7 +233,7 @@ function ExportButton() {
 
   function exportAll() {
     if (notes.length === 0) {
-      toast.info("There are no notes to export yet.");
+      toast.info(t.markdown.nothingToExport);
       return;
     }
     setWorking(true);
@@ -239,9 +246,9 @@ function ExportButton() {
           text: toMarkdown(note),
         })),
       );
-      toast.success(`${notes.length} ${notes.length === 1 ? "note" : "notes"} exported.`);
+      toast.success(t.markdown.exported(notes.length));
     } catch {
-      toast.error("Could not build that export.");
+      toast.error(t.markdown.exportFailed);
     }
     setWorking(false);
   }
@@ -249,7 +256,7 @@ function ExportButton() {
   return (
     <Button variant="ghost" onClick={exportAll} disabled={loading || working}>
       {working ? <Loader2 className="animate-spin" /> : <Download />}
-      Export all
+      {t.markdown.exportAll}
     </Button>
   );
 }

@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import { Layers, Plus, Search, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import {
   activeSemester,
   readSemesters,
@@ -21,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudySetsPage() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { data: sets, loading, hasMore, loadMore } = usePagedStudySets(user?.uid);
   const { logs } = useReviewLogs(user?.uid);
   const [search, setSearch] = useState("");
@@ -83,10 +86,10 @@ export default function StudySetsPage() {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Study sets</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">{t.sets.title}</h1>
         <Button render={<Link href="/app/notes/new" />}>
             <Plus />
-            New note
+            {t.nav.newNote}
           </Button>
       </header>
 
@@ -96,7 +99,7 @@ export default function StudySetsPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search study sets"
+            placeholder={t.sets.search}
             className="pl-9"
           />
         </div>
@@ -108,7 +111,7 @@ export default function StudySetsPage() {
       {sets.length > 0 && term && term.subjects.length > 0 ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {[
-            { label: "All sets", value: false },
+            { label: t.sets.allSets, value: false },
             { label: term.name, value: true },
           ].map((option) => (
             <button
@@ -128,12 +131,12 @@ export default function StudySetsPage() {
             </button>
           ))}
           <span className="text-muted-foreground text-xs">
-            Terms and their subjects live in{" "}
+            {t.sets.termsLiveIn}{" "}
             <Link
               href="/app/settings#semesters"
               className="text-primary underline underline-offset-4"
             >
-              settings
+              {t.sets.settingsLink}
             </Link>
             .
           </span>
@@ -147,10 +150,10 @@ export default function StudySetsPage() {
           ))}
         </div>
       ) : sets.length === 0 ? (
-        <EmptySets />
+        <EmptySets t={t} />
       ) : withStats.length === 0 ? (
         <p className="text-muted-foreground mt-10 text-center text-sm">
-          No study sets match “{search}”.
+          {t.sets.noMatch(search)}
         </p>
       ) : (
         <div className="mt-4 grid gap-2">
@@ -169,20 +172,20 @@ export default function StudySetsPage() {
                   <h2 className="truncate font-medium">{set.title}</h2>
                   <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 text-xs">
                     {set.courseTag ? <span>{set.courseTag}</span> : null}
-                    <span>{set.flashcardCount} cards</span>
+                    <span>{t.common.cards(set.flashcardCount)}</span>
                     <span>·</span>
-                    <span>{set.quizQuestionCount} questions</span>
+                    <span>{t.sets.questions(set.quizQuestionCount)}</span>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {due > 0 ? (
                     <Badge className="bg-primary/15 text-primary border-transparent tabular-nums">
-                      {due} due
+                      {t.sets.due(due)}
                     </Badge>
                   ) : null}
                   {fresh > 0 ? (
                     <Badge variant="secondary" className="tabular-nums">
-                      {fresh} new
+                      {t.sets.fresh(fresh)}
                     </Badge>
                   ) : null}
                 </div>
@@ -198,29 +201,28 @@ export default function StudySetsPage() {
           loadMore={loadMore}
           loadedCount={sets.length}
           searching={search.trim().length > 0}
-          noun="study sets"
+          noun={t.common.nounSets}
         />
       ) : null}
     </main>
   );
 }
 
-function EmptySets() {
+function EmptySets({ t }: { t: Messages }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed py-14 text-center">
       <div className="bg-secondary mx-auto grid size-12 place-items-center rounded-full">
         <Layers className="text-muted-foreground size-5" />
       </div>
       <h2 className="font-display mt-4 text-lg font-semibold tracking-tight">
-        No study sets yet
+        {t.sets.noneYet}
       </h2>
       <p className="text-muted-foreground mx-auto mt-1.5 max-w-xs text-sm leading-relaxed">
-        Write a note, then hit Generate study set. Your flashcards and quiz will
-        show up here.
+        {t.sets.noneYetHint}
       </p>
       <Button className="mt-6" render={<Link href="/app/notes/new" />}>
           <Sparkles />
-          Start a note
+          {t.sets.startANote}
         </Button>
     </div>
   );

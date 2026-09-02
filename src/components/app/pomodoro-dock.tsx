@@ -23,6 +23,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import {
@@ -59,6 +60,7 @@ const REDRAW_MS = 500;
 
 export function PomodoroDock({ subjects }: { subjects: string[] }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { timeZone, pomodoro } = usePreferences();
 
   const state = useSyncExternalStore(
@@ -150,7 +152,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
               {formatRemaining(remaining)}
             </span>
             <span className="text-muted-foreground truncate text-[11px]">
-              {started ? PHASE_LABELS[state.phase] : "Focus"}
+              {started ? t.timer[state.phase] : t.timer.focus}
             </span>
           </div>
         </div>
@@ -160,7 +162,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           onClick={() =>
             updateTimerState((s) => (isRunning(s) ? pause(s, Date.now()) : start(s, Date.now())))
           }
-          aria-label={running ? "Pause the timer" : "Start a focus block"}
+          aria-label={running ? t.timer.pause : t.timer.start}
           className="bg-primary text-primary-foreground focus-visible:ring-ring grid size-7 shrink-0 place-items-center rounded-full transition-opacity hover:opacity-90 focus-visible:ring-[3px] focus-visible:outline-none"
         >
           {running ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
@@ -170,7 +172,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           <DropdownMenuTrigger
             render={
               <button
-                aria-label="Timer options"
+                aria-label={t.timer.options}
                 className="text-muted-foreground hover:text-foreground grid size-7 shrink-0 place-items-center rounded-md transition-colors"
               />
             }
@@ -180,9 +182,9 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
 
           <DropdownMenuContent align="start" className="w-60">
             <DropdownMenuLabel className="font-normal">
-              <p className="text-sm font-medium">{PHASE_LABELS[state.phase]}</p>
+              <p className="text-sm font-medium">{t.timer[state.phase]}</p>
               <p className="text-muted-foreground text-xs">
-                {state.completedFocus} {state.completedFocus === 1 ? "block" : "blocks"} today
+                {t.timer.blocksToday(state.completedFocus)}
               </p>
             </DropdownMenuLabel>
 
@@ -194,7 +196,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
                     htmlFor="dock-subject"
                     className="text-muted-foreground text-xs"
                   >
-                    Studying
+                    {t.timer.studying}
                   </label>
                   <select
                     id="dock-subject"
@@ -202,7 +204,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
                     onChange={(e) => setSubject(e.target.value)}
                     className="border-input bg-background focus-visible:ring-ring mt-1 h-8 w-full rounded-md border px-2 text-xs focus-visible:ring-[3px] focus-visible:outline-none"
                   >
-                    <option value="">No subject</option>
+                    <option value="">{t.timer.noSubject}</option>
                     {courses.map((name) => (
                       <option key={name} value={name}>
                         {name}
@@ -221,7 +223,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
               }}
             >
               <SkipForward className="size-4" />
-              {focus ? "End block and log it" : "Skip the break"}
+              {focus ? t.timer.endBlock : t.timer.skipBreak}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -230,13 +232,13 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
               }}
             >
               <RotateCcw className="size-4" />
-              Reset — log nothing
+              {t.timer.resetNothing}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/app/settings#timer" />}>
               <Settings2 className="size-4" />
-              Change the lengths
+              {t.timer.changeLengths}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -259,7 +261,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           past forever. */}
       {!started ? (
         <p className="text-muted-foreground mt-1.5 text-[11px] leading-snug">
-          Keeps running in the background. Only focus blocks are logged.
+          {t.timer.backgroundNote}
         </p>
       ) : null}
     </div>

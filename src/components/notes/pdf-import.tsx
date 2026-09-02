@@ -4,7 +4,9 @@ import { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FileUp, Loader2 } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import {
+  MAX_PDF_BYTES,
   MAX_PDF_PAGES,
   PdfExtractError,
   extractPdfText,
@@ -26,6 +28,7 @@ export function usePdfImport(
   onImported: (imported: ImportedPdf) => void,
   maxNoteChars: number,
 ) {
+  const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -39,7 +42,7 @@ export function usePdfImport(
     async (file: File | undefined) => {
       if (!file) return;
       if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
-        setError("That is not a PDF. Only PDF files can be imported right now.");
+        setError(t.pdf.notAPdf);
         return;
       }
 
@@ -58,10 +61,14 @@ export function usePdfImport(
         });
       } catch (err) {
         if (err instanceof PdfExtractError) {
-          setError(err.userMessage);
+          setError(
+            err.code === "tooLarge"
+              ? t.pdf.tooLarge(err.sizeMb ?? "?", MAX_PDF_BYTES / 1024 / 1024)
+              : t.pdf[err.code],
+          );
         } else {
           console.error("[pdf-import]", err);
-          setError("Something went wrong reading that PDF. Please try another file.");
+          setError(t.pdf.unknown);
         }
       } finally {
         setImporting(false);
@@ -69,7 +76,7 @@ export function usePdfImport(
         if (inputRef.current) inputRef.current.value = "";
       }
     },
-    [onImported, maxNoteChars],
+    [onImported, maxNoteChars, t],
   );
 
   const dragHandlers = {
@@ -127,6 +134,7 @@ export function PdfImportOverlay({
   importing: boolean;
   progress: number;
 }) {
+  const { t } = useI18n();
   const visible = isDragging || importing;
 
   return (
@@ -146,7 +154,7 @@ export function PdfImportOverlay({
             {importing ? (
               <>
                 <Loader2 className="text-primary mx-auto size-7 animate-spin" />
-                <p className="mt-3 font-medium">Reading your PDF…</p>
+                <p className="mt-3 font-medium">{t.pdf.reading}</p>
                 <div className="bg-secondary mx-auto mt-3 h-1.5 w-48 overflow-hidden rounded-full">
                   <motion.div
                     className="bg-primary h-full"
@@ -161,9 +169,9 @@ export function PdfImportOverlay({
             ) : (
               <>
                 <FileUp className="text-primary mx-auto size-7" />
-                <p className="mt-3 font-medium">Drop your PDF here</p>
+                <p className="mt-3 font-medium">{t.pdf.dropHere}</p>
                 <p className="text-muted-foreground mt-1 text-sm">
-                  Up to {MAX_PDF_PAGES} pages · stays on your device
+                  {t.pdf.limitNote(MAX_PDF_PAGES)}
                 </p>
               </>
             )}

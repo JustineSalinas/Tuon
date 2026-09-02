@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { ArrowUpRight, CornerUpLeft, FileText, Link2, Plus } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { findBacklinks, resolveLinks } from "@/lib/notes/links";
 import type { Note } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export function NoteLinksPanel({
   content: string;
   allNotes: Note[];
 }) {
+  const { t } = useI18n();
   const outgoing = useMemo(() => resolveLinks(content, allNotes), [content, allNotes]);
   const backlinks = useMemo(
     () => (note ? findBacklinks({ ...note, title: note.title }, allNotes) : []),
@@ -37,9 +39,9 @@ export function NoteLinksPanel({
         <div className="text-muted-foreground flex items-start gap-2.5 text-sm">
           <Link2 className="mt-0.5 size-4 shrink-0" />
           <p className="leading-relaxed">
-            Type <code className="bg-muted rounded px-1 py-0.5 text-xs">[[</code> to
-            link another note. Linked notes show up here, along with anything that
-            links back.
+            {t.notes.linkHintBefore}{" "}
+            <code className="bg-muted rounded px-1 py-0.5 text-xs">[[</code>{" "}
+            {t.notes.linkHintAfter}
           </p>
         </div>
       </section>
@@ -52,7 +54,7 @@ export function NoteLinksPanel({
         <div>
           <h2 className="flex items-center gap-2 text-sm font-medium">
             <ArrowUpRight className="text-muted-foreground size-3.5" />
-            Links from this note
+            {t.notes.linksFrom}
             <Badge variant="secondary" className="tabular-nums">
               {outgoing.length}
             </Badge>
@@ -75,7 +77,7 @@ export function NoteLinksPanel({
                   >
                     <Plus className="size-3.5 shrink-0" />
                     <span className="truncate">{link.title}</span>
-                    <span className="ml-auto shrink-0 text-xs">not created yet</span>
+                    <span className="ml-auto shrink-0 text-xs">{t.notes.notCreatedYet}</span>
                   </Link>
                 )}
               </li>
@@ -88,7 +90,7 @@ export function NoteLinksPanel({
         <div>
           <h2 className="flex items-center gap-2 text-sm font-medium">
             <CornerUpLeft className="text-muted-foreground size-3.5" />
-            Linked from
+            {t.notes.linkedFrom}
             <Badge variant="secondary" className="tabular-nums">
               {backlinks.length}
             </Badge>

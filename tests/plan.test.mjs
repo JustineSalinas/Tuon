@@ -33,7 +33,7 @@ check("the weakest subject comes first, not the biggest pile", () => {
   const sets = [set("big", "Strong", 40), set("small", "Weak", 3)];
   const plan = buildPlan(sets, [], ["Weak", "Strong"], 100);
   assert.equal(plan.steps[0].id, "small");
-  assert.equal(plan.steps[0].reason, "Weakest subject");
+  assert.equal(plan.steps[0].reason, "weakestSubject");
 });
 
 check("within one subject, the bigger pile comes first", () => {
@@ -189,7 +189,7 @@ check("sets with nothing pending never appear", () => {
 check("never-seen cards count toward a step even with nothing due", () => {
   const plan = buildPlan([set("a", "Weak", 0, 7)], [], ["Weak"], 20);
   assert.equal(plan.steps[0].cards, 7);
-  assert.equal(plan.steps[0].reason, "Weakest subject");
+  assert.equal(plan.steps[0].reason, "weakestSubject");
 });
 
 check("a non-weakest set with only new cards says so", () => {
@@ -199,7 +199,7 @@ check("a non-weakest set with only new cards says so", () => {
     ["Weak", "Other"],
     20,
   );
-  assert.equal(plan.steps[1].reason, "Never seen");
+  assert.equal(plan.steps[1].reason, "neverSeen");
 });
 
 console.log("\nShaky cards that are not due yet");
@@ -281,15 +281,15 @@ check("only one test step is offered", () => {
   assert.equal(plan.steps.filter((s) => s.kind === "test").length, 1);
 });
 
-check("the reason names how many cards are shaky", () => {
-  assert.equal(
-    buildPlan([shakySet("s1", "Biology", 1)], [], ["Biology"], 20).steps[0].reason,
-    "1 shaky card",
-  );
-  assert.equal(
-    buildPlan([shakySet("s1", "Biology", 6)], [], ["Biology"], 20).steps[0].reason,
-    "6 shaky cards",
-  );
+check("the reason carries the shaky count for the view to render", () => {
+  // The reason is a key rather than a sentence: this module is pure and has no
+  // idea what language the student reads.
+  const one = buildPlan([shakySet("s1", "Biology", 1)], [], ["Biology"], 20).steps[0];
+  assert.equal(one.reason, "shaky");
+  assert.equal(one.shakyCount, 1);
+
+  const six = buildPlan([shakySet("s1", "Biology", 6)], [], ["Biology"], 20).steps[0];
+  assert.equal(six.shakyCount, 6);
 });
 
 check("sets with no shaky cards produce no test step", () => {

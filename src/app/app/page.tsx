@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import {
@@ -35,6 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { data: sets, loading: setsLoading } = useStudySets(user?.uid);
   const { data: notes, loading: notesLoading } = useNotes(user?.uid);
   const { logs, loading: logsLoading } = useReviewLogs(user?.uid);
@@ -139,7 +142,7 @@ export default function DashboardPage() {
             thing the student actually opened the app for — most of a screen
             down on a laptop. */}
         <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {greeting()}, {firstName}
+          {greeting(t)}, {firstName}
         </h1>
         <ExamCountdown
           examDate={profile?.examDate}
@@ -215,9 +218,9 @@ export default function DashboardPage() {
             {plan.steps.length > 0 ? (
               <section className="min-w-0">
                 <SectionHeading
-                  title="Today's plan"
+                  title={t.dashboard.todaysPlan}
                   href="/app/sets"
-                  linkLabel="All sets"
+                  linkLabel={t.dashboard.allSets}
                 />
                 <div className="mt-3">
                   <TodaysPlan plan={plan} />
@@ -227,7 +230,7 @@ export default function DashboardPage() {
 
             {notes.length > 0 ? (
               <section className="min-w-0">
-                <SectionHeading title="Recent notes" href="/app/notes" linkLabel="All notes" />
+                <SectionHeading title={t.dashboard.recentNotes} href="/app/notes" linkLabel={t.dashboard.allNotes} />
                 <div className="mt-3 grid gap-2">
                   {notes.slice(0, 4).map((note) => (
                     <Link
@@ -256,9 +259,9 @@ export default function DashboardPage() {
               "have I actually been doing this?" */}
           <section className="mt-10">
             <SectionHeading
-              title="Study time"
+              title={t.dashboard.studyTime}
               href="/app/calendar"
-              linkLabel="Full log"
+              linkLabel={t.dashboard.fullLog}
             />
             <div className="mt-3">
               <StudyHeatmap />
@@ -296,7 +299,13 @@ function SectionHeading({
   );
 }
 
-function greeting(): string {
+/**
+ * Takes the greetings rather than returning English.
+ *
+ * The hour still comes from Manila regardless of locale: it decides which
+ * greeting is TRUE, and that is a fact about the clock, not about language.
+ */
+function greeting(t: Messages): string {
   const hour = Number(
     new Intl.DateTimeFormat("en-PH", {
       hour: "numeric",
@@ -304,9 +313,9 @@ function greeting(): string {
       timeZone: "Asia/Manila",
     }).format(new Date()),
   );
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return t.dashboard.goodMorning;
+  if (hour < 18) return t.dashboard.goodAfternoon;
+  return t.dashboard.goodEvening;
 }
 
 /**

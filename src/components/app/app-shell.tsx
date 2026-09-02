@@ -70,7 +70,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <DesktopSidebar pathname={pathname} />
       <MobileHeader />
 
-      <div className="flex-1 pb-20 md:pb-0">
+      {/* min-w-0: a flex child will not shrink below its content, so any
+          page with something intrinsically wide in it — the study heatmap
+          is a year of columns — pushed the whole app wider than the
+          viewport and put a horizontal scrollbar on every screen beside
+          the sidebar. The heatmap scrolls itself; it can only do that if
+          this is allowed to be narrower than it. */}
+      <div className="min-w-0 flex-1 pb-20 md:pb-0">
         <ServiceWorkerRegistration />
         <ReminderRunner />
         {/* Renders nothing. Here rather than inside the timer so presence

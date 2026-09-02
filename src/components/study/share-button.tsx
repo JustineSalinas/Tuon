@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { PLANS, UPGRADE_TARGET, planCan } from "@/lib/ai/config";
 import type { StudySet } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
 
 export function ShareButton({ studySet }: { studySet: StudySet | null }) {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const plan = profile?.plan ?? "free";
   const allowed = planCan(plan, "canShare");
   const upgrade = PLANS[UPGRADE_TARGET];
@@ -44,9 +46,9 @@ export function ShareButton({ studySet }: { studySet: StudySet | null }) {
       await updateDoc(doc(db, "users", user.uid, "studySets", studySet.id), {
         isShared: next,
       });
-      toast.success(next ? "Link is live." : "Link revoked.");
+      toast.success(next ? t.share.live : t.share.revoked);
     } catch {
-      toast.error("Could not change sharing. Please try again.");
+      toast.error(t.share.changeFailed);
     }
     setSaving(false);
   }
@@ -57,7 +59,7 @@ export function ShareButton({ studySet }: { studySet: StudySet | null }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Could not copy. Select the link and copy it manually.");
+      toast.error(t.share.copyFailed);
     }
   }
 
@@ -67,10 +69,10 @@ export function ShareButton({ studySet }: { studySet: StudySet | null }) {
         variant="outline"
         size="sm"
         render={<Link href="/app/settings" />}
-        title={`Sharing is part of ${upgrade.name}`}
+        title={t.share.lockedTitle(upgrade.name)}
       >
         <Lock />
-        Share
+        {t.share.action}
       </Button>
     );
   }
@@ -81,50 +83,46 @@ export function ShareButton({ studySet }: { studySet: StudySet | null }) {
         render={
           <Button variant="outline" size="sm" disabled={!studySet}>
             {isShared ? <Globe /> : <Link2 />}
-            Share
+            {t.share.action}
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share this study set</DialogTitle>
+          <DialogTitle>{t.share.title}</DialogTitle>
           <DialogDescription>
-            Anyone with the link can view the cards and save a copy. They cannot
-            edit yours, and your review history stays private.
+            {t.share.body}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
           <div>
             <div className="text-sm font-medium">
-              {isShared ? "Anyone with the link" : "Only you"}
+              {isShared ? t.share.anyoneWithLink : t.share.onlyYou}
             </div>
             <p className="text-muted-foreground mt-0.5 text-xs">
-              {isShared
-                ? "Turning this off breaks the link immediately."
-                : "Turn on to create a shareable link."}
+              {isShared ? t.share.turningOff : t.share.turnOn}
             </p>
           </div>
           <Switch
             checked={isShared}
             disabled={saving}
             onCheckedChange={(next) => void toggle(next)}
-            aria-label="Share by link"
+            aria-label={t.share.toggleLabel}
           />
         </div>
 
         {isShared ? (
           <div className="flex gap-2">
             <Input readOnly value={url} onFocus={(e) => e.currentTarget.select()} />
-            <Button variant="outline" onClick={copy} aria-label="Copy link">
+            <Button variant="outline" onClick={copy} aria-label={t.share.copyLink}>
               {saving ? <Loader2 className="animate-spin" /> : copied ? <Check /> : <Copy />}
             </Button>
           </div>
         ) : null}
 
         <p className="text-muted-foreground text-xs leading-relaxed">
-          The link is not listed or searchable anywhere — it only works for
-          someone you send it to.
+          {t.share.unlistedNote}
         </p>
       </DialogContent>
     </Dialog>

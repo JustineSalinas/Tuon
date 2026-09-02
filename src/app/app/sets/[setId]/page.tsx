@@ -22,6 +22,7 @@ import {
   resetStudySetProgress,
 } from "@/lib/firebase/delete-set";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import {
   useFlashcards,
   useQuizQuestions,
@@ -53,6 +54,7 @@ export default function StudySetPage() {
   const params = useParams<{ setId: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const { data: studySet, loading, notFound } = useStudySet(user?.uid, params.setId);
   const { data: cards, loading: cardsLoading } = useFlashcards(user?.uid, params.setId);
@@ -88,9 +90,9 @@ export default function StudySetPage() {
     setResetting(true);
     try {
       const count = await resetStudySetProgress(user.uid, studySet.id);
-      toast.success(`${count} ${count === 1 ? "card is" : "cards are"} due again.`);
+      toast.success(t.sets.resetDone(count));
     } catch {
-      toast.error("Could not reset this set's progress.");
+      toast.error(t.sets.resetFailed);
     }
     setResetting(false);
   }
@@ -100,10 +102,10 @@ export default function StudySetPage() {
     setDeleting(true);
     try {
       await deleteStudySetDeep(user.uid, studySet.id);
-      toast.success("Study set deleted.");
+      toast.success(t.sets.deleteDone);
       router.replace("/app/sets");
     } catch {
-      toast.error("Could not delete that study set.");
+      toast.error(t.sets.deleteFailed);
       setDeleting(false);
     }
   }
@@ -122,9 +124,9 @@ export default function StudySetPage() {
       <main className="mx-auto grid min-h-[60vh] max-w-md place-items-center px-6 text-center">
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">
-            Study set not found
+            {t.sets.notFound}
           </h1>
-          <Button className="mt-6" render={<Link href="/app/sets" />}>Back to study sets</Button>
+          <Button className="mt-6" render={<Link href="/app/sets" />}>{t.sets.backToSets}</Button>
         </div>
       </main>
     );
@@ -135,7 +137,7 @@ export default function StudySetPage() {
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" render={<Link href="/app/sets" />}>
             <ArrowLeft />
-            Study sets
+            {t.sets.title}
           </Button>
 
         <div className="ml-auto flex items-center gap-2">
@@ -154,7 +156,7 @@ export default function StudySetPage() {
                 variant="ghost"
                 size="icon"
                 className="ml-auto"
-                aria-label="Reset progress"
+                aria-label={t.sets.resetProgress}
               />
             }
           >
@@ -162,21 +164,18 @@ export default function StudySetPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Start this set over?</DialogTitle>
+              <DialogTitle>{t.sets.resetTitle}</DialogTitle>
               <DialogDescription>
-                Every card in this set becomes due again and forgets how well
-                you knew it. The cards themselves are untouched — this only
-                clears the schedule, for when you are studying a subject from
-                scratch.
+                {t.sets.resetBody}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+              <DialogClose render={<Button variant="outline" />}>{t.common.cancel}</DialogClose>
               <DialogClose
                 render={
                   <Button onClick={handleReset} disabled={resetting}>
                     {resetting ? <Loader2 className="animate-spin" /> : <RotateCcw />}
-                    Reset progress
+                    {t.sets.resetProgress}
                   </Button>
                 }
               />
@@ -185,22 +184,21 @@ export default function StudySetPage() {
         </Dialog>
 
         <Dialog>
-          <DialogTrigger render={<Button variant="ghost" size="icon" aria-label="Delete set" />}>
+          <DialogTrigger render={<Button variant="ghost" size="icon" aria-label={t.sets.deleteSet} />}>
               <Trash2 className="text-muted-foreground size-4" />
             </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete this study set?</DialogTitle>
+              <DialogTitle>{t.sets.deleteTitle}</DialogTitle>
               <DialogDescription>
-                Its flashcards, quiz, and review history will no longer be reachable.
-                The note it came from stays.
+                {t.sets.deleteBody}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+              <DialogClose render={<Button variant="outline" />}>{t.common.cancel}</DialogClose>
               <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                 {deleting ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                Delete set
+                {t.sets.deleteSet}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -220,9 +218,9 @@ export default function StudySetPage() {
           {studySet.courseTag ? (
             <Badge variant="secondary">{studySet.courseTag}</Badge>
           ) : null}
-          <span>{studySet.flashcardCount} flashcards</span>
+          <span>{t.sets.flashcards(studySet.flashcardCount)}</span>
           <span>·</span>
-          <span>{studySet.quizQuestionCount} quiz questions</span>
+          <span>{t.sets.quizQuestions(studySet.quizQuestionCount)}</span>
           {studySet.noteId ? (
             <>
               <span>·</span>
@@ -231,7 +229,7 @@ export default function StudySetPage() {
                 className="hover:text-foreground inline-flex items-center gap-1 underline underline-offset-4"
               >
                 <FileText className="size-3" />
-                source note
+                {t.sets.sourceNote}
               </Link>
             </>
           ) : null}
@@ -252,11 +250,11 @@ export default function StudySetPage() {
               </Badge>
             ) : null}
           </div>
-          <div className="mt-3 font-medium">Review flashcards</div>
+          <div className="mt-3 font-medium">{t.sets.reviewFlashcards}</div>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
             {stats.pending > 0
-              ? `${stats.due} due, ${stats.fresh} new`
-              : "All caught up for now"}
+              ? t.sets.dueAndNew(stats.due, stats.fresh)
+              : t.sets.caughtUpForNow}
           </p>
         </Link>
 
@@ -265,9 +263,9 @@ export default function StudySetPage() {
           className="hover:border-primary/40 hover:bg-accent/20 group rounded-2xl border p-5 transition-colors"
         >
           <ListChecks className="text-muted-foreground size-5" />
-          <div className="mt-3 font-medium">Take the quiz</div>
+          <div className="mt-3 font-medium">{t.sets.takeTheQuiz}</div>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            {studySet.quizQuestionCount} multiple-choice questions
+            {t.sets.multipleChoice(studySet.quizQuestionCount)}
           </p>
         </Link>
 
@@ -276,9 +274,9 @@ export default function StudySetPage() {
           className="hover:border-primary/40 hover:bg-accent/20 group rounded-2xl border p-5 transition-colors"
         >
           <Timer className="text-muted-foreground size-5" />
-          <div className="mt-3 font-medium">Sit a test</div>
+          <div className="mt-3 font-medium">{t.sets.sitATest}</div>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            Timed and mixed, from your weakest cards
+            {t.sets.testHint}
           </p>
         </Link>
       </div>
@@ -293,9 +291,9 @@ export default function StudySetPage() {
 
       {/* Progress */}
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <StatTile label="Due now" value={stats.due} />
-        <StatTile label="Never seen" value={stats.fresh} />
-        <StatTile label="Scheduled" value={stats.scheduled} />
+        <StatTile label={t.sets.dueNow} value={stats.due} />
+        <StatTile label={t.sets.neverSeen} value={stats.fresh} />
+        <StatTile label={t.sets.scheduled} value={stats.scheduled} />
       </div>
 
       {/* Card list */}
@@ -303,7 +301,7 @@ export default function StudySetPage() {
         <TabsList>
           <TabsTrigger value="cards">
             <Layers className="size-3.5" />
-            Flashcards
+            {t.sets.cardsTab}
           </TabsTrigger>
         </TabsList>
 
@@ -328,7 +326,7 @@ export default function StudySetPage() {
                         </p>
                       </div>
                       <span className="text-muted-foreground shrink-0 text-xs">
-                        {log ? formatInterval(log.intervalDays) : "New"}
+                        {log ? formatInterval(log.intervalDays) : t.sets.newCard}
                       </span>
                     </div>
                   </div>
