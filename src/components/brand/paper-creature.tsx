@@ -77,6 +77,25 @@ const PUPIL = "#241610";
 const PAPER = "#FFFFFF";
 const BOOK = "#7C9C74"; // sage, the one non-terracotta note
 
+/**
+ * The two periods the resting animation is built from, and the reason they are
+ * these numbers.
+ *
+ * A single looping idle is visibly a loop within about thirty seconds, which
+ * is roughly how long a review session keeps her on screen — the exact window
+ * where it matters. Randomising the blink fixed part of that; the body was
+ * still repeating on the dot every seven seconds.
+ *
+ * So the head turn and the breath run on separate layers at periods with no
+ * small common multiple: 7 and 4.3 only realign after 301 seconds. The
+ * composite never visibly repeats, and it costs one extra transform node.
+ *
+ * Keep them coprime-ish if you change them. 7 and 3.5 would resync every
+ * fourteen seconds and undo the whole trick.
+ */
+const HEAD_SECONDS = 7;
+const BREATH_SECONDS = 4.3;
+
 /** Eye centres. Everything in the eye is built from these two points. */
 const EYES = [41, 79] as const;
 const EYE_Y = 45;
@@ -139,9 +158,17 @@ export function PaperCreature({
    * over and hold it there, then settle.
    */
   const body: Record<CreatureState, TargetAndTransition> = {
+    /**
+     * The head turn only. The breath lives on its own layer below, on a
+     * period that does not divide into this one — see BREATH_SECONDS.
+     *
+     * The two small counter-rotations before each snap are ANTICIPATION: an
+     * owl loads the turn a fraction before it makes it, and without that the
+     * head arrives as if it had been teleported. Two degrees is enough; the
+     * eye reads the direction change, not the distance.
+     */
     idle: {
-      y: [0, -3, 0, -3, 0, 0, 0, 0, 0],
-      rotate: [0, 0, 0, 0, 0, -11, 11, 0, 0],
+      rotate: [0, 0, 0, 2, -11, -11, -2, 11, 11, 0, 0],
     },
     // A long, slow tilt: the "working on it" pose.
     thinking: { y: 0, rotate: [-6, 6, -6], scale: 1 },
@@ -166,9 +193,11 @@ export function PaperCreature({
 
   const bodyTransition: Record<CreatureState, Transition> = {
     idle: {
-      duration: 7,
+      duration: HEAD_SECONDS,
       repeat: Infinity,
-      times: [0, 0.09, 0.18, 0.27, 0.36, 0.5, 0.58, 0.66, 1],
+      // Clustered, with long stillnesses between: owls move in steps, and
+      // evenly spaced keyframes read as a constant sway, which is a pigeon.
+      times: [0, 0.3, 0.42, 0.46, 0.5, 0.56, 0.6, 0.64, 0.7, 0.75, 1],
       ease: "easeInOut",
     },
     thinking: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
@@ -205,17 +234,38 @@ export function PaperCreature({
     if (state === "celebrating") {
       return { rotate: [0, side * 40, side * 20, side * 36, 0] };
     }
-    // Only the near wing waves. Both at once is a semaphore, not a hello.
-    if (side === 1) return { rotate: 0 };
+    /**
+     * The far wing does not wave, but it does LAG.
+     *
+     * Overlapping action: when the head snaps left the wing trails a few
+     * degrees behind and catches up after. It is four degrees and nobody will
+     * ever consciously see it — which is the point. Without it the whole body
+     * rotates as one rigid piece, and rigid is the difference between a
+     * character and a sticker.
+     */
+    if (side === 1) {
+      return state === "idle" ? { rotate: [0, 0, 0, 4, 0, 0, -4, 0, 0] } : { rotate: 0 };
+    }
     return state === "overdue"
       ? { rotate: [0, 0, -34, -14, -34, 0, 0] }
       : { rotate: [0, 0, -32, -12, -32, -12, 0, 0] };
   };
 
   const wingTransition = (side: -1 | 1): Transition => {
-    const still =
-      reduce || asleep || holdsBook || (side === 1 && state !== "celebrating");
+    const still = reduce || asleep || holdsBook;
     if (still) return { duration: 0.3 };
+
+    // The far wing's lag rides the head turn, so it shares its timing exactly.
+    if (side === 1 && state !== "celebrating") {
+      if (state !== "idle") return { duration: 0.3 };
+      return {
+        duration: HEAD_SECONDS,
+        repeat: Infinity,
+        times: [0, 0.3, 0.42, 0.48, 0.54, 0.6, 0.66, 0.72, 1],
+        ease: "easeInOut",
+      };
+    }
+
     switch (state) {
       case "celebrating":
         return { duration: 1.1, ease: "easeInOut" };
@@ -326,15 +376,21 @@ export function PaperCreature({
   const beakAnimation = (): TargetAndTransition =>
     reduce || state !== "talking"
       ? { scaleY: 1 }
-      : { scaleY: [1, 1.55, 1, 1.35, 1, 1.6, 1, 1, 1] };
+      : {
+          // Uneven heights as well as uneven gaps. Every syllable opening to
+          // the same width is a nutcracker; real speech has stresses in it.
+          scaleY: [1, 1.55, 1, 1.28, 1, 1.62, 1.1, 1.4, 1, 1, 1],
+        };
 
   const beakTransition = (): Transition =>
     reduce || state !== "talking"
       ? { duration: 0.2 }
       : {
-          duration: 1.15,
+          duration: 1.45,
           repeat: Infinity,
-          times: [0, 0.08, 0.17, 0.26, 0.34, 0.43, 0.52, 0.7, 1],
+          // 0 to 0.62 is a phrase; 0.62 to 1 is the breath between phrases.
+          // The gap is what the eye reads as words rather than chewing.
+          times: [0, 0.06, 0.13, 0.2, 0.27, 0.34, 0.42, 0.5, 0.62, 0.68, 1],
           ease: "easeInOut",
         };
 
@@ -431,6 +487,34 @@ export function PaperCreature({
         transition={hops ? bodyTransition[state] : { duration: 0.3 }}
         style={{ transformOrigin: "60px 115px" }}
       />
+
+      {/* The breath.
+          Everything from here down rides on its own slow rise and fall, at a
+          period that does not divide into the head turn above it. Two layers
+          at coprime periods is the cheapest way to make a loop stop looking
+          like one — see HEAD_SECONDS.
+
+          The ground shadow is deliberately OUTSIDE it: a shadow that rises
+          with the body is a shadow stuck to her feet. */}
+      <motion.g
+        animate={
+          reduce || asleep
+            ? { y: 0 }
+            : state === "idle" || state === "listening" || state === "talking"
+              ? { y: [0, -2.4, 0, -1.2, 0] }
+              : { y: 0 }
+        }
+        transition={
+          reduce
+            ? { duration: 0 }
+            : {
+                duration: BREATH_SECONDS,
+                repeat: Infinity,
+                times: [0, 0.28, 0.5, 0.74, 1],
+                ease: "easeInOut",
+              }
+        }
+      >
 
       {/* Feet, behind the body so the toes read as poking out from under her. */}
       <g fill={AMBER} stroke={INK} strokeWidth="2.6" strokeLinejoin="round">
@@ -581,6 +665,8 @@ export function PaperCreature({
       ) : null}
 
       {holdsBook ? [-1 as const, 1 as const].map(wing) : null}
+
+      </motion.g>
 
       {/* Sleeping: the small breath, in place of a snore cliché. */}
       {asleep && !reduce ? (
