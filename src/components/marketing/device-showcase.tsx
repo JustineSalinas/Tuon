@@ -1,19 +1,33 @@
 "use client";
 
 /**
- * Scaled-down device silhouettes for the landing page.
+ * The real interface, at the size it fits.
  *
- * Deliberately abstract — bars and blocks rather than legible screenshots.
- * A shrunk real screenshot is unreadable at this size and dates the moment
- * any screen changes; the shapes carry "it fits your desk, your bag, your
- * pocket" without pretending to be a product tour.
+ * These were abstract bars and blocks, on the argument that a shrunk
+ * screenshot is unreadable and dates the moment a screen changes. That is
+ * true of screenshots and not of this: every screen below is built from the
+ * same design tokens and the same sample set the rest of the page uses, so it
+ * cannot drift from the product, and it is drawn at a size chosen for
+ * legibility rather than photographed at one that is not.
  *
- * Hardware only: bezels, the Dynamic Island and the hinge are drawn because
- * they are physical. No painted status bar — a fake one reads as doubled-up
+ * Which screens appear was decided by what survives the shrink. A heatmap,
+ * three figures and one flashcard still read at eight pixels; a dense list
+ * does not, which is why the notes screen carries four rows and not twelve.
+ *
+ * Hardware is still drawn because it is physical: bezels, the Dynamic Island,
+ * the hinge. Still no painted status bar — a fake one reads as doubled-up
  * against the real thing.
  */
 
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+
+import { FileText, Search, X } from "lucide-react";
+
+import { TuonMark } from "@/components/brand/logo";
 import { useI18n } from "@/components/providers/i18n-provider";
+import { SAMPLE_FLASHCARDS, SAMPLE_NOTE } from "@/lib/marketing/sample-set";
+import { cn } from "@/lib/utils";
 
 /**
  * Platform marks for the "soon on" pills.
@@ -49,35 +63,126 @@ function PlayStoreLogo({ className = "size-5" }: { className?: string }) {
 }
 
 function MacBookMini({ caption }: { caption: string }) {
+  const { t } = useI18n();
+
   return (
     <div className="flex shrink-0 flex-col items-center">
       <div className="w-[420px] rounded-t-[9px] rounded-b-[2px] bg-gradient-to-br from-neutral-600 via-neutral-800 to-neutral-700 p-1.5 pb-2.5">
         <div className="bg-background flex h-[255px] w-[408px] overflow-hidden rounded-[4px]">
-          <div className="bg-sidebar border-border flex w-[74px] flex-col gap-1.5 border-r p-2.5">
-            <div className="border-primary size-[15px] rounded-full border-2" />
-            <div className="bg-border mt-1.5 h-[7px] rounded-sm" />
-            <div className="bg-accent h-[7px] rounded-sm" />
-            <div className="bg-border h-[7px] rounded-sm" />
-            <div className="bg-border h-[7px] rounded-sm" />
-          </div>
-          <div className="flex-1 p-3.5">
-            <div className="bg-foreground/75 h-[9px] w-[58%] rounded-sm" />
-            <div className="mt-3 grid grid-cols-4 gap-1.5">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="border-border bg-card h-[34px] rounded-[5px] border" />
-              ))}
+          {/* The real rail: eight destinations, the new-note button, the
+              month's quota at the foot. */}
+          <div className="bg-sidebar border-border flex w-[86px] shrink-0 flex-col border-r p-2">
+            <div className="mb-2 flex items-center gap-1 px-1">
+              <TuonMark className="text-primary size-[13px]" />
+              <span className="font-display text-[10px] font-semibold">Tu&oacute;n</span>
             </div>
-            <div className="border-border bg-card mt-3 flex h-[108px] items-end gap-1 rounded-md border p-2.5">
-              {[74, 48, 30, 57, 22, 40, 16, 34].map((h, i) => (
-                <div
-                  key={i}
-                  style={{ height: `${h}%` }}
-                  className={
-                    "flex-1 rounded-t-[2px] " +
-                    (i === 0 ? "bg-seq-4" : i === 1 ? "bg-seq-3" : "bg-seq-1")
-                  }
-                />
-              ))}
+
+            {t.marketing.devices.nav.map((item, index) => (
+              <span
+                key={item}
+                className={cn(
+                  "rounded-[3px] px-1.5 py-[3px] text-[7px] leading-none",
+                  index === 0
+                    ? "bg-accent text-foreground font-medium"
+                    : "text-muted-foreground",
+                )}
+              >
+                {item}
+              </span>
+            ))}
+
+            <span className="bg-primary text-primary-foreground mt-2 rounded-[4px] px-1.5 py-[4px] text-center text-[7px] leading-none font-medium">
+              {t.nav.newNote}
+            </span>
+
+            <div className="border-border mt-auto rounded-[4px] border p-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[6px] font-medium">{t.nav.sets}</span>
+                <span className="text-muted-foreground text-[6px]">2/5</span>
+              </div>
+              <div className="bg-secondary mt-1 h-[3px] overflow-hidden rounded-full">
+                <div className="bg-primary h-full w-2/5 rounded-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 p-2.5">
+            <p className="text-[9px] font-semibold">{t.dashboard.goodAfternoon}</p>
+
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="min-w-0">
+                <p className="text-[7px] font-semibold">{t.dashboard.todaysPlan}</p>
+                <div className="border-border bg-card mt-1 rounded-[5px] border p-1.5">
+                  <p className="text-[6px] leading-tight font-medium">
+                    {t.marketing.devices.planStep}
+                  </p>
+                  <p className="text-muted-foreground mt-[2px] text-[6px] leading-tight">
+                    {t.marketing.devices.planDetail}
+                  </p>
+                </div>
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[7px] font-semibold">{t.dashboard.recentNotes}</p>
+                <div className="mt-1 flex flex-col gap-1">
+                  {t.marketing.devices.notes.slice(0, 2).map((note) => (
+                    <div
+                      key={note.title}
+                      className="border-border bg-card rounded-[5px] border px-1.5 py-1"
+                    >
+                      <p className="truncate text-[6px] leading-tight font-medium">
+                        {note.title}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="min-w-0">
+                <p className="text-[7px] font-semibold">{t.dashboard.thisWeek}</p>
+                <div className="border-border bg-card mt-1 rounded-[5px] border p-1.5">
+                  <p className="text-[8px] leading-none font-semibold">
+                    {t.marketing.hero.hoursMinutes(2, 40)}
+                  </p>
+                  <div className="mt-1.5 flex items-end justify-between gap-[2px]">
+                    {WEEK.map((value, index) => (
+                      <span
+                        key={index}
+                        style={{ height: value === 0 ? 2 : `${Math.max(3, value / 2)}px` }}
+                        className={cn(
+                          "flex-1 rounded-t-[1px]",
+                          value === 0
+                            ? "bg-secondary"
+                            : index === 6
+                              ? "bg-primary"
+                              : "bg-primary/55",
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[7px] font-semibold">{t.dashboard.comingUp}</p>
+                <div className="mt-1 flex flex-col gap-1">
+                  {t.marketing.devices.due.slice(0, 2).map((item) => (
+                    <div
+                      key={item.title}
+                      className="border-border bg-card flex items-baseline justify-between gap-1 rounded-[5px] border px-1.5 py-1"
+                    >
+                      <span className="truncate text-[6px] leading-tight font-medium">
+                        {item.title}
+                      </span>
+                      <span className="text-muted-foreground shrink-0 text-[6px]">
+                        {item.when}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -88,59 +193,158 @@ function MacBookMini({ caption }: { caption: string }) {
   );
 }
 
+/** A plausible week: two heavy nights, a quiet Friday, a gap. */
+const WEEK = [25, 0, 48, 32, 0, 15, 40];
+
 function IPadMini() {
+  const { t } = useI18n();
+
   return (
     <div className="flex shrink-0 flex-col items-center">
       <div className="w-[250px] rounded-2xl bg-gradient-to-br from-neutral-600 via-neutral-800 to-neutral-700 p-[9px]">
-        <div className="bg-background h-[300px] w-[232px] overflow-hidden rounded-md p-3.5">
-          <div className="bg-foreground/75 h-2.5 w-[62%] rounded-sm" />
-          <div className="mt-3.5 flex flex-col gap-1.5">
-            <div className="bg-border h-1.5 rounded-sm" />
-            <div className="bg-border h-1.5 rounded-sm" />
-            <div className="bg-primary/55 h-1.5 w-[74%] rounded-sm" />
-            <div className="bg-border h-1.5 rounded-sm" />
-            <div className="bg-border h-1.5 w-[86%] rounded-sm" />
+        <div className="bg-background h-[300px] w-[232px] overflow-hidden rounded-md p-3">
+          <p className="text-[11px] font-semibold">{t.nav.notes}</p>
+
+          {/* The search field, because it is the first thing on the real
+              screen and the thing that makes a library of forty notes usable. */}
+          <div className="border-border bg-card mt-2 flex items-center gap-1.5 rounded-[7px] border px-2 py-1.5">
+            <Search className="text-muted-foreground size-[9px] shrink-0" />
+            <span className="text-muted-foreground text-[8px]">{t.notes.search}</span>
           </div>
-          <div className="mt-[18px] flex flex-col gap-1.5">
-            <div className="border-border bg-card h-[30px] rounded-md border" />
-            <div className="border-border bg-card h-[30px] rounded-md border" />
-            <div className="border-border h-[30px] rounded-md border border-dashed" />
+
+          <div className="mt-2 flex flex-col gap-1.5">
+            {t.marketing.devices.notes.map((note, index) => (
+              <div
+                key={note.title}
+                className={cn(
+                  "rounded-[7px] border p-2",
+                  index === 0 ? "border-primary/40 bg-accent/25" : "border-border bg-card",
+                )}
+              >
+                <div className="flex items-start gap-1.5">
+                  <FileText className="text-muted-foreground mt-[1px] size-[9px] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="truncate text-[8px] leading-tight font-medium">
+                      {note.title}
+                    </p>
+                    <p className="text-muted-foreground mt-[2px] line-clamp-1 text-[7px] leading-tight">
+                      {note.excerpt}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-1.5 flex items-center justify-between">
+                  <span className="bg-secondary text-muted-foreground rounded-[3px] px-1 py-[1px] text-[6px] leading-none">
+                    {note.subject}
+                  </span>
+                  <span className="text-muted-foreground text-[6px]">{note.chars}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <span className="text-muted-foreground mt-4 text-xs">Notes and their links</span>
+      <span className="text-muted-foreground mt-4 text-xs">
+        {t.marketing.devices.tabletCaption}
+      </span>
     </div>
   );
 }
 
+/**
+ * The phone screen runs.
+ *
+ * A still screen inside a device frame reads as a picture of an app; one that
+ * moves reads as the app. It flips between the question and the answer the way
+ * the review screen does, with the review screen's own chrome around it — the
+ * exit, the set name, the progress bar — because a bare card floating in a
+ * phone is not a screen anyone has ever seen.
+ */
 function IPhoneMini() {
+  const { t } = useI18n();
+  const reduce = useReducedMotion();
+  const [showAnswer, setShowAnswer] = useState(false);
+  const card = SAMPLE_FLASHCARDS[1];
+
+  useEffect(() => {
+    if (reduce) return;
+    const timer = setInterval(() => setShowAnswer((shown) => !shown), 3200);
+    return () => clearInterval(timer);
+  }, [reduce]);
+
   return (
     <div className="flex shrink-0 flex-col items-center">
       <div className="w-[168px] rounded-3xl bg-gradient-to-br from-neutral-600 via-neutral-800 to-neutral-700 p-1.5">
         <div className="bg-background relative h-[328px] w-[156px] overflow-hidden rounded-[19px] px-3 pt-[26px] pb-3">
           {/* Dynamic Island — hardware, so it is drawn. */}
           <div className="absolute top-1.5 left-1/2 h-[15px] w-[52px] -translate-x-1/2 rounded-[9px] bg-neutral-950" />
-          <div className="border-border bg-card flex h-[190px] flex-col rounded-[10px] border p-3">
-            <div className="bg-border h-[5px] w-[40%] rounded-sm" />
-            <div className="mt-3 flex flex-col gap-1.5">
-              <div className="bg-foreground/70 h-[7px] rounded-sm" />
-              <div className="bg-foreground/70 h-[7px] w-[80%] rounded-sm" />
-            </div>
-            <div className="bg-border my-3 h-px" />
-            <div className="flex flex-col gap-1">
-              <div className="bg-border h-[5px] rounded-sm" />
-              <div className="bg-border h-[5px] w-[66%] rounded-sm" />
+
+          {/* Review chrome: the way out, what you are in, how far through. */}
+          <div className="flex items-center gap-1.5">
+            <X className="text-muted-foreground size-[10px] shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[7px] font-medium">
+                {SAMPLE_NOTE.title}
+              </p>
+              <div className="bg-secondary mt-[3px] h-[2px] overflow-hidden rounded-full">
+                <div className="bg-primary h-full w-1/3 rounded-full" />
+              </div>
             </div>
           </div>
-          <div className="mt-2.5 grid grid-cols-4 gap-1">
-            <div className="border-border h-[26px] rounded-md border" />
-            <div className="border-border h-[26px] rounded-md border" />
-            <div className="bg-success h-[26px] rounded-md" />
-            <div className="border-border h-[26px] rounded-md border" />
+
+          <div className="border-border bg-card mt-2 flex h-[196px] flex-col rounded-[10px] border p-2.5">
+            <p className="text-muted-foreground text-[6px] tracking-widest uppercase">
+              {t.review.question}
+            </p>
+            <p className="mt-1 text-[8px] leading-snug font-medium">{card.front}</p>
+
+            <motion.div
+              animate={{ opacity: showAnswer || reduce ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-2"
+            >
+              <div className="bg-border h-px" />
+              <p className="text-muted-foreground mt-1.5 text-[6px] tracking-widest uppercase">
+                {t.review.answer}
+              </p>
+              <p className="mt-1 text-[8px] leading-snug">{card.back}</p>
+            </motion.div>
+
+            <motion.p
+              animate={{ opacity: showAnswer || reduce ? 0 : 1 }}
+              transition={{ duration: 0.3 }}
+              className="text-muted-foreground mt-auto text-center text-[7px]"
+            >
+              {t.marketing.devices.tapToFlip}
+            </motion.p>
           </div>
+
+          {/* The four ratings, dimmed until the answer is showing — the rule
+              the review screen follows, so you cannot grade yourself before
+              finding out whether you were right. */}
+          <motion.div
+            animate={{ opacity: showAnswer || reduce ? 1 : 0.25 }}
+            transition={{ duration: 0.3 }}
+            className="mt-2 grid grid-cols-4 gap-1"
+          >
+            {t.marketing.how.ratings.map((rating, index) => (
+              <span
+                key={rating}
+                className={cn(
+                  "grid h-[24px] place-items-center rounded-md text-[6px] leading-none",
+                  index === 2
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "border-border text-muted-foreground border",
+                )}
+              >
+                {rating}
+              </span>
+            ))}
+          </motion.div>
         </div>
       </div>
-      <span className="text-muted-foreground mt-4 text-xs">Reviewing on the jeep</span>
+      <span className="text-muted-foreground mt-4 text-xs">
+        {t.marketing.devices.phoneCaption}
+      </span>
     </div>
   );
 }
@@ -201,7 +405,7 @@ export function NativeAppsNotice() {
           <AppleLogo />
           <div>
             <p className="text-muted-foreground text-[10.5px] tracking-wider uppercase">
-              Soon on
+              {t.marketing.devices.soonOn}
             </p>
             <p className="text-sm font-medium">App Store</p>
           </div>
@@ -210,7 +414,7 @@ export function NativeAppsNotice() {
           <PlayStoreLogo />
           <div>
             <p className="text-muted-foreground text-[10.5px] tracking-wider uppercase">
-              Soon on
+              {t.marketing.devices.soonOn}
             </p>
             <p className="text-sm font-medium">Google Play</p>
           </div>

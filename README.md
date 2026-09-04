@@ -2,153 +2,162 @@
 
 **tuón** — Cebuano and Tagalog: *to study; to give something your full attention.*
 
-An AI study app for Philippine Senior High School (Grades 11–12) and college
-students. Paste your class notes, get flashcards and a practice quiz back, then
-review them on an SM-2 spaced-repetition schedule.
+Tuón turns your class notes into flashcards and practice quizzes, then schedules
+your reviews so the material actually stays. Paste a lecture handout, import a
+PDF, or write your own notes — you get a study set back in one step, and a
+spaced-repetition schedule that decides what you see tomorrow.
+
+Built for how studying actually works in the Philippines: Senior High strands
+and college degree programs out of the box, a Manila-time study calendar, GCash
+and Maya for payment, and a free tier that is genuinely usable.
 
 ---
 
-## Before it runs: two keys you need to add
+## Who it's for
 
-Everything else is already provisioned. These two cannot be generated from a
-CLI, so they are on you.
+**Senior High School students (Grades 11–12).** Onboarding asks for your
+strand — STEM, ABM, HUMSS, GAS, TVL — and fills in your subjects, so you are
+not typing "General Chemistry 2" by hand.
 
-### 1. Firebase service-account key
+**College students.** Pick your degree program and add your own subjects per
+semester. Study sets, deadlines, and the timetable all follow the semester you
+are in.
 
-1. Open the [service accounts settings][sa] for project `tuon-1673l9ve`
-2. Click **Generate new private key** — it downloads a `.json` file
-3. Paste the entire file contents, on one line in single quotes, into
-   `FIREBASE_SERVICE_ACCOUNT_KEY` in `.env.local`
-
-```
-FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account","project_id":"tuon-1673l9ve",...}'
-```
-
-### 2. Anthropic API key
-
-Get one at [console.anthropic.com][anthropic] and set `ANTHROPIC_API_KEY` in
-`.env.local`.
-
-Until both are set, the API routes return `503` with a clear reason in the
-server log — they will not silently look like an auth failure.
-
-```bash
-npm install
-npm run dev      # http://localhost:3000
-```
-
-[sa]: https://console.firebase.google.com/project/tuon-1673l9ve/settings/serviceaccounts/adminsdk
-[anthropic]: https://console.anthropic.com/settings/keys
+**Board and licensure reviewers.** Long-horizon review is the case spaced
+repetition was built for. Set your exam date and the schedule compresses to
+fit the runway you actually have, rather than politely scheduling a card for
+after the exam.
 
 ---
 
-## Already set up
+## What it does
 
-Firebase project **`tuon-1673l9ve`**, provisioned and live:
+### Turning notes into study material
+- **Paste, type, or import.** Notes autosave as you write. PDF import pulls the
+  text out of a handout or a scanned reviewer. Markdown imports and exports
+  cleanly, so your notes are never trapped here.
+- **One generation, two outputs.** A single call returns 8–15 flashcards and a
+  5-question multiple-choice quiz, tagged to the subject the note belongs to.
+- **Your own cards too.** Write flashcards by hand and mix them into any set.
 
-| Thing | State |
-| --- | --- |
-| Firestore | Created in `asia-southeast1` (Singapore — lowest latency for PH) |
-| Security rules | Written and deployed |
-| Email/Password auth | Enabled |
-| Google auth | Enabled |
-| Web app config | Filled into `.env.local` |
+### Reviewing
+- **SM-2 spaced repetition.** Rate a card Again / Hard / Good / Easy and the
+  interval adjusts. Cards you blank on come back later in the same session
+  rather than being pushed to tomorrow.
+- **Typed recall and hints.** Type the answer instead of flipping, for the
+  material where recognition is not the same as knowing it.
+- **Timed tests.** A test drawn from your weakest cards, under a clock, scored
+  at the end.
+- **Quizzes** with instant feedback and an explanation for each answer.
+
+### Keeping track
+- **Readiness per subject.** How ready you are for each subject, measured
+  against the exam date you set — not a generic percentage.
+- **Retention stats.** What you are about to forget, before you forget it.
+- **A study plan** that says what to do today, in order, and why.
+- **Pomodoro timer** tagged to a subject, so focused minutes are attributed to
+  the thing you were actually studying.
+- **Study heatmap and streaks**, built from those minutes, with a per-subject
+  breakdown across the year.
+- **Calendar and timetable** for deadlines, class schedule, and exam dates.
+- **A knowledge graph** of how your subjects and sets connect.
+
+### Studying with other people
+- **Private study groups.** Join your class or block with an invite code and
+  share sets inside the group.
+- **Share a set by link.** A read-only page anyone can open — no account needed
+  to study from it.
+
+### Tala, the study companion
+Tala is the paper owl in the corner of the app, and she talks. She can see your
+study state — cards due, weakest subject, readiness against your exam, what
+today's plan already decided — and answers questions about it in plain language.
+She never sees your note text or your card contents, and the conversation stays
+on your device.
+
+There is also **Ask Tuón** on the landing page, for questions about the app
+before you sign up.
+
+### The rest
+- **English and Filipino** throughout the product.
+- **Works offline** for reviewing, and installs as an app on your phone.
+- **Themes and colour palettes**, light and dark.
+- **Export everything** — your sets to Anki, CSV, or PDF; your whole account as
+  a data file; and a one-click account deletion that actually deletes.
+- **A help page** that explains the four rating buttons, the vocabulary, and
+  what to do when something looks wrong.
+
+---
+
+## How the loop goes
+
+1. **Sign up** with email or Google, verify your address
+2. **Onboard** — name, education level, strand or degree program, subjects,
+   exam dates
+3. **Write or import a note**, tagged with a subject
+4. **Generate** — flashcards and a quiz come back in one step
+5. **Review** on the schedule Tuón sets, rating each card as you go
+6. **Check your readiness** before the exam, and let the plan tell you what is
+   most overdue
+
+---
+
+## Plans
+
+| | Free | Plus — ₱149/mo | Pro — ₱299/mo |
+| --- | --- | --- | --- |
+| AI study sets a month | 5 | 50 | 120 |
+| Note length | 30,000 chars | 60,000 | 120,000 |
+| Notes, PDF import, own flashcards | ✓ | ✓ | ✓ |
+| Spaced repetition, tests, quizzes | ✓ | ✓ | ✓ |
+| Deadlines, timetable, Pomodoro, study log | ✓ | ✓ | ✓ |
+| Private study groups | ✓ | ✓ | ✓ |
+| Export to Anki, CSV, PDF | — | ✓ | ✓ |
+| Retention stats | — | ✓ | ✓ |
+| Share a set by link | — | ✓ | ✓ |
+| Wait between generations | 20s | 5s | none |
+
+Annual billing is ten months' price for twelve months' access. Payment is by
+GCash, Maya, or card through PayMongo.
+
+---
 
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 ·
-shadcn/ui (on Base UI) · Motion · Lenis · Firebase Auth + Firestore ·
-Anthropic Claude Sonnet 5 · deploys to Vercel
+shadcn/ui on Base UI · Motion · Lenis · Firebase Auth, Firestore and App Check ·
+Anthropic Claude (Sonnet 5 for generation, Haiku 4.5 for conversation) ·
+PayMongo · Resend · deployed on Vercel
 
-## The loop
+The spaced-repetition scheduler, the readiness model, the study plan, and the
+quiz scorer are all plain TypeScript modules with no framework or network
+dependency, tested directly by the suite in `tests/`.
 
-1. **Sign up** → email/password or Google
-2. **Onboard** → name → education level → *strand* (SHS only) → subjects or degree program
-3. **Write a note** → paste text, tag it with a subject, autosaves as you type
-4. **Generate** → one Claude call returns 8–15 flashcards + a 5-question quiz
-5. **Review** → flip cards, rate Again / Hard / Good / Easy, SM-2 schedules the next sighting
-6. **Quiz** → multiple choice with instant feedback and a score
+---
 
-## Layout
+## Running it locally
 
-```
-src/
-  app/
-    page.tsx                     marketing page (Lenis + scroll reveals)
-    login/  signup/  onboarding/
-    app/                         the signed-in product
-      page.tsx                   dashboard
-      notes/  sets/  settings/
-    api/
-      generate/                  note -> Claude -> flashcards + quiz
-      profile/bootstrap/         server-side profile creation
-  components/
-    providers/auth-provider      auth + live profile subscription
-    onboarding/  notes/  study/  app/  marketing/  brand/
-    ui/                          shadcn (Base UI)
-  lib/
-    srs/sm2.ts                   the spaced-repetition algorithm
-    ai/                          config, prompt, defensive parser
-    curriculum.ts                SHS strands/subjects + degree programs
-    quota.ts                     monthly free-tier accounting
-    firebase/                    client + admin SDKs
-    hooks/                       Firestore subscriptions, clock
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm test         # the full suite
 ```
 
-## Decisions worth knowing
+Copy `.env.example` to `.env.local` and fill it in. Two values cannot be
+generated from a CLI and have to come from a console: a Firebase
+service-account key (Firebase console → Project settings → Service accounts)
+and an Anthropic API key. Until both are set the API routes return `503` with
+the reason in the server log, rather than looking like an auth failure.
 
-**Plan and quota are server-owned.** `firestore.rules` lets a user edit only
-`displayName`, `educationLevel`, `strand`, `courses`, and `onboardingCompleted`.
-`plan` and `aiGenerationsUsedThisPeriod` are writable only through the Admin
-SDK. Without this, any student could open devtools and set `plan: "paid"`.
-
-**Generations are reserved, then refunded.** `/api/generate` increments the
-counter inside a Firestore transaction *before* calling Claude, and decrements
-it if the model call, parse, or save fails. Incrementing afterwards would let
-twenty parallel requests each read "4 used" and all pass.
-
-**The model output is never trusted.** `lib/ai/schema.ts` strips code fences,
-slices JSON out of surrounding prose, validates with Zod, then drops individual
-questions whose answer key is out of range or whose choices are not distinct. If
-too little survives, the generation is refunded and the student gets a retry.
-
-**Failed cards return within the session.** Pure SM-2 pushes a lapsed card to
-"tomorrow", which feels broken when you just blanked on it. The saved schedule
-follows SM-2 exactly; the in-memory queue re-inserts the card a few positions
-later.
-
-**Quota months are Manila months.** Periods roll over at midnight UTC+8, not
-UTC — otherwise a student generating at 9am on the 1st would still be spending
-last month's allowance.
-
-**Smooth scrolling is marketing-only.** Lenis runs on the landing page. The
-review and quiz screens skip it: mid-session, input latency matters more than
-scroll feel, and the bottom nav is hidden there so the rating buttons own the
-thumb zone.
-
-## Tuning
-
-`src/lib/ai/config.ts`:
-
-```ts
-AI_MODEL                       = "claude-sonnet-5"
-FREE_TIER_MONTHLY_GENERATIONS  = 5
-MIN_FLASHCARDS / MAX_FLASHCARDS = 8 / 15
-QUIZ_QUESTIONS                 = 5
-PAID_PLAN_PHP_MONTHLY          = 149
-```
-
-## Deploying
-
-Push to a repo, import into Vercel, and add all the `.env.local` variables to
-the Vercel project. Then re-deploy rules if you change them:
+Firestore rules and indexes deploy separately:
 
 ```bash
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
-## Not built yet (deliberately)
+---
 
-Payment processing (PayMongo, for GCash/Maya) · public/shared study sets ·
-PDF and audio upload · interactive simulations · school accounts ·
-international curricula
+## Not built yet
+
+Audio and video notes · interactive simulations · school and teacher accounts ·
+curricula outside the Philippines

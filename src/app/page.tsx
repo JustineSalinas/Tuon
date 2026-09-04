@@ -3,19 +3,19 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { ArrowRight, Check, Clock, FileText, Layers, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Clock, Sparkles } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
-import { TryIt } from "@/components/marketing/try-it";
 import { Faq } from "@/components/marketing/faq";
 import { DeviceLineup, NativeAppsNotice } from "@/components/marketing/device-showcase";
+import { HowItWorks } from "@/components/marketing/how-it-works";
 import { SetupFlow } from "@/components/marketing/setup-flow";
-import { ForgettingCurve } from "@/components/marketing/forgetting-curve";
+import { MemoryDecay } from "@/components/marketing/memory-decay";
 import { ByHand } from "@/components/marketing/by-hand";
-import { HeroPreview } from "@/components/marketing/hero-preview";
+import { HeroDashboard } from "@/components/marketing/hero-dashboard";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaAside, TalaPerch } from "@/components/marketing/tala";
@@ -42,8 +42,7 @@ export default function LandingPage() {
         <main className="flex-1">
           <Hero />
           <WhyItSticks />
-          <HowItWorks />
-          <SeeItWork />
+          <HowItWorksSection />
           <VersusByHand />
           <EveryDevice />
           <BuiltForPH />
@@ -64,33 +63,38 @@ function Hero() {
 
   return (
     <section className="paper-grain relative overflow-hidden border-b">
-      <div className="relative z-10 mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-32">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)] lg:gap-16">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-28">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-3xl text-center"
         >
           <Badge variant="secondary" className="gap-1.5">
             <Sparkles className="size-3" />
             {t.marketing.hero.badge}
           </Badge>
 
-          <h1 className="font-display mt-6 text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem]">
+          <h1 className="font-display mt-6 text-4xl leading-[1.03] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
             {t.marketing.hero.headline}
             <span className="text-primary">{t.marketing.hero.headlineAccent}</span>
           </h1>
 
-          <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-relaxed">
+          <p className="text-muted-foreground mx-auto mt-6 max-w-xl text-lg leading-relaxed text-balance">
             {t.marketing.hero.body}
           </p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <Button size="lg" className="text-base" render={<Link href="/signup" />}>
-                {t.marketing.hero.startFree}
-                <ArrowRight />
-              </Button>
-            <Button size="lg" variant="outline" className="text-base" render={<Link href="/login" />}>
+              {t.marketing.hero.startFree}
+              <ArrowRight />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-base"
+              render={<Link href="/login" />}
+            >
               {t.marketing.hero.haveAccount}
             </Button>
           </div>
@@ -100,14 +104,21 @@ function Hero() {
           </p>
         </motion.div>
 
-          {/* Tala waves from the corner of the preview — the first thing she
-              does on the page is say hello, before any feature does. */}
-          <div className="relative">
-            <TalaPerch className="-top-12 -right-3 size-24 lg:-top-14 lg:-right-6 lg:size-28" />
-            <HeroPreview />
-          </div>
-        </div>
+        {/* The product itself, running, directly under the promise about it.
+            Tala perches on the corner so the first thing she does on the page
+            is say hello — before any feature does. */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="relative mx-auto mt-14 max-w-4xl md:mt-16"
+        >
+          <TalaPerch className="-top-10 -right-2 z-10 size-20 md:-top-12 md:-right-5 md:size-24" />
+          <HeroDashboard />
+        </motion.div>
+      </div>
 
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-16 md:px-8 md:pb-20">
         {/* Meaning of the name */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -178,7 +189,7 @@ function WhyItSticks() {
         </TalaAside>
       </Reveal>
       <Reveal delay={0.1}>
-        <ForgettingCurve />
+        <MemoryDecay />
       </Reveal>
     </Section>
   );
@@ -205,10 +216,7 @@ function VersusByHand() {
   );
 }
 
-/** Only the icons are structural; the words come from the catalogue. */
-const STEP_ICONS = [FileText, Sparkles, Layers];
-
-function HowItWorks() {
+function HowItWorksSection() {
   const { t } = useI18n();
 
   return (
@@ -217,46 +225,8 @@ function HowItWorks() {
       eyebrow={t.marketing.how.eyebrow}
       title={t.marketing.how.title}
     >
-      <div className="mt-14 grid gap-8 md:grid-cols-3 md:gap-10">
-        {t.marketing.how.steps.map((step, index) => {
-          const Icon = STEP_ICONS[index];
-          return (
-          <Reveal key={step.title} delay={index * 0.1}>
-            <div className="bg-primary/10 text-primary grid size-11 place-items-center rounded-xl">
-              <Icon className="size-5" />
-            </div>
-            <div className="text-muted-foreground mt-5 text-xs font-medium tracking-widest uppercase">
-              {t.marketing.how.step(index + 1)}
-            </div>
-            <h3 className="font-display mt-2 text-xl font-semibold tracking-tight">
-              {step.title}
-            </h3>
-            <p className="text-muted-foreground mt-2.5 leading-relaxed">{step.body}</p>
-          </Reveal>
-          );
-        })}
-      </div>
-    </Section>
-  );
-}
-
-function SeeItWork() {
-  const { t } = useI18n();
-
-  return (
-    <Section
-      id="try"
-      eyebrow={t.marketing.tryIt.eyebrow}
-      title={t.marketing.tryIt.title}
-      muted
-    >
       <Reveal>
-        <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
-          {t.marketing.tryIt.body}
-        </p>
-      </Reveal>
-      <Reveal delay={0.05}>
-        <TryIt />
+        <HowItWorks />
       </Reveal>
     </Section>
   );

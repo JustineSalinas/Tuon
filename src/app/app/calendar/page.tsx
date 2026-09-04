@@ -18,6 +18,7 @@ import {
   type ReviewCard,
 } from "@/lib/hooks/use-review-cards";
 import { Organiser } from "@/components/organiser/organiser";
+import { StudyHeatmap } from "@/components/app/study-heatmap";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -179,6 +180,18 @@ export default function CalendarPage() {
           hiding their timetable until they have generated a study set would
           be backwards. */}
       <Organiser todayKey={todayKey} />
+
+      {/* The year, moved off the dashboard. It belongs with the rest of "your
+          time" rather than under today's plan, and this is where the
+          dashboard's own link has always pointed. */}
+      <section className="mt-10">
+        <h2 className="font-display text-lg font-semibold tracking-tight">
+          {t.dashboard.yearOfStudy}
+        </h2>
+        <div className="mt-3">
+          <StudyHeatmap />
+        </div>
+      </section>
     </main>
   );
 }

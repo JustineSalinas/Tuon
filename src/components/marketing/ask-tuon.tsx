@@ -62,6 +62,8 @@ export function AskTuon() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  /** The answer so far, while it is still arriving. */
+  const [streaming, setStreaming] = useState("");
   const reduce = useReducedMotion();
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -73,6 +75,27 @@ export function AskTuon() {
 
   // Abandoning an in-flight request on unmount stops a setState after teardown.
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  /**
+   * Ask whether the assistant can answer, before anyone has typed.
+   *
+   * A failed probe proves nothing — the visitor may simply be offline — so it
+   * leaves the section standing and lets a real send decide. Only an explicit
+   * "not configured" takes it down, and then it happens before the input is
+   * ever offered rather than swallowing a question someone already wrote.
+   */
+  useEffect(() => {
+    let live = true;
+    fetch("/api/chat")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { configured?: boolean } | null) => {
+        if (live && body?.configured === false) setUnavailable(true);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
 
   /**
    * Follow the newest message.
@@ -89,7 +112,7 @@ export function AskTuon() {
   useEffect(() => {
     if (turns.length === 0 || !answered.current) return;
     endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [turns, pending]);
+  }, [turns, pending, streaming]);
 
   /**
    * Sends `history` (which must end on a user turn) and stores the answer.
@@ -103,8 +126,13 @@ export function AskTuon() {
     abortRef.current = controller;
 
     setError(null);
+    setStreaming("");
     saveSession(history);
     setPending(true);
+
+    // Held outside state as well as in it: the setter is asynchronous, and the
+    // `finally` below needs the finished text in order to persist it.
+    let answer = "";
 
     try {
       const appCheckToken = await getAppCheckToken();
@@ -118,36 +146,46 @@ export function AskTuon() {
         body: JSON.stringify({ messages: history, locale }),
       });
 
-      const body = (await response.json().catch(() => ({}))) as {
-        reply?: string;
-        code?: string;
-        error?: string;
-      };
-
-      if (body.code === "CHAT_NOT_CONFIGURED") {
-        setUnavailable(true);
+      if (!response.ok || !response.body) {
+        const body = (await response.json().catch(() => ({}))) as {
+          code?: string;
+          error?: string;
+        };
+        if (body.code === "CHAT_NOT_CONFIGURED") {
+          setUnavailable(true);
+          return;
+        }
+        // An error is a status, not a message. Keeping it out of the transcript
+        // means it is never replayed to the model and never persisted.
+        setError(body.error ?? t.ask.failed);
         return;
       }
 
-      if (response.ok && body.reply) {
-        saveSession([...history, { role: "assistant", content: body.reply }]);
-      } else {
-        // An error is a status, not a message. Keeping it out of the transcript
-        // means it is never replayed to the model and never persisted.
-        setError(
-          body.error ??
-            t.ask.failed,
-        );
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        answer += decoder.decode(value, { stream: true });
+        setStreaming(answer);
       }
+
+      if (!answer.trim()) setError(t.ask.failed);
     } catch (err) {
-      // A stop is not a failure; leave the conversation exactly as it was.
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setError(
-        t.ask.offline,
-      );
+      // A stop is not a failure. It used to leave the conversation untouched,
+      // which was right when there was nothing to see until the whole answer
+      // arrived; now the visitor has been watching the words appear, so
+      // whatever they read is kept below rather than yanked off the screen.
+      if (!(err instanceof DOMException && err.name === "AbortError")) {
+        setError(t.ask.offline);
+      }
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
       setPending(false);
+      setStreaming("");
+      if (answer.trim()) {
+        saveSession([...history, { role: "assistant", content: answer.trim() }]);
+      }
     }
   }, [locale, t.ask.failed, t.ask.offline]);
 
@@ -233,7 +271,15 @@ export function AskTuon() {
                 </div>
               ))}
 
-              {pending ? (
+              {/* The answer as it arrives. Not in the transcript yet — it is
+                  saved once, whole, when the stream ends. */}
+              {streaming ? (
+                <div className="bg-muted w-fit max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed whitespace-pre-wrap">
+                  {streaming}
+                </div>
+              ) : null}
+
+              {pending && !streaming ? (
                 <div className="bg-muted flex w-fit items-center gap-1.5 rounded-2xl px-3.5 py-3">
                   {[0, 1, 2].map((d) => (
                     <motion.span

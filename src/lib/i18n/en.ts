@@ -43,6 +43,15 @@ export const en = {
     recentNotes: "Recent notes",
     allNotes: "All notes",
     studyTime: "Study time",
+    thisWeek: "This week",
+    fullYear: "Full year",
+    streakDays: (n: number) =>
+      n === 0 ? "No run going" : `${n} ${n === 1 ? "day" : "days"} in a row`,
+    comingUp: "Coming up",
+    allDeadlines: "Calendar",
+    nothingDue: "Nothing due",
+    addDeadline: "Add a deadline in the calendar",
+    yearOfStudy: "Your year",
     fullLog: "Full log",
     startReviewing: "Start reviewing",
     everythingOnTrack: "Everything is on track.",
@@ -1340,7 +1349,6 @@ export const en = {
   marketing: {
     nav: {
       how: "How it works",
-      try: "See it work",
       local: "Built for here",
       pricing: "Pricing",
       faq: "FAQ",
@@ -1351,6 +1359,27 @@ export const en = {
     },
 
     hero: {
+      dueLeft: (n: number) => `${n} card${n === 1 ? "" : "s"} due`,
+      tapToReveal: "Tap to see the answer",
+      hoursMinutes: (h: number, m: number) => `${h}h ${m}m`,
+      thisSession: "This session",
+      requeued: "Back before you finish — that is what Again is for.",
+      interval: (days: number) =>
+        days <= 0
+          ? "Today"
+          : days === 1
+            ? "Tomorrow"
+            : days < 30
+              ? `${days} days`
+              : `${Math.round(days / 30)} months`,
+      scheduled: (days: number) =>
+        days <= 1
+          ? "Scheduled — back tomorrow."
+          : `Scheduled — back in ${days} days.`,
+      doneTitle: "That is the whole loop.",
+      doneBody:
+        "Six cards, about forty seconds. Tuón does that with your own notes, and decides when each card comes back so you do not have to.",
+      again: "Run it again",
       badge: "Built for Filipino students",
       headline: "Cramming works.",
       headlineAccent: " For about three days.",
@@ -1365,41 +1394,30 @@ export const en = {
       askTala: (creature: string) => `Ask ${creature}`,
     },
 
-    preview: {
-      noteTitle: "Photosynthesis — Gen Bio 1",
-      noteBody:
-        "Light-dependent reactions occur in the thylakoid membrane. Water is split, releasing O₂, and the energy is stored as ATP and NADPH…",
-      output: "12 flashcards · 5 quiz questions · 11 seconds",
-      cardIndex: "Card 3 of 12",
-      front: "Where do the light-dependent reactions take place?",
-      back: "In the thylakoid membrane of the chloroplast.",
-      nextReview: "Next review in 6 days",
-    },
 
     why: {
       eyebrow: "Why you forget",
-      title: "Studying once is the problem, not you",
-      body: "Everyone forgets on roughly the same curve. The fix is not more hours the night before — it is meeting the same card again just as it starts to slip. That is the whole idea behind spaced repetition, and doing the scheduling by hand is the part nobody keeps up.",
+      title: "Your brain throws away whatever it stops seeing",
+      body: "That is not a flaw, and it is not a discipline problem — it is what memory is for. Anything you meet once and never again gets cleared out. The fix is not more hours the night before; it is meeting the same card again just as it starts to slip. Doing that scheduling by hand is the part nobody keeps up.",
       aside:
         "A card you have not seen in three weeks is asleep. Tuón wakes it up the day before you would have lost it.",
     },
 
     curve: {
-      onceLabel: "Studied once, the night before",
-      onceValueBefore: "You remember",
-      onceValue: "1 card in 10",
+      lead: "Watch it happen to one card. Drag through the month.",
+      question: "What does the mitochondria do?",
+      answer: "Releases energy from food into a form the cell can use.",
+      onceLabel: "Studied once",
       reviewedLabel: "Reviewed when Tuón says",
-      reviewedValue: "9 in 10",
-      aMonthLater: "a month later",
-      chartAlt:
-        "Two lines over one month. Studied once, memory falls away within the first week and stays near nothing. Reviewed on Tuón's schedule, it dips slightly between reviews and recovers each time, staying high all month.",
-      keepIt: "Reviewed — you keep it",
-      fades: "Studied once — it fades",
+      recall: "you would remember this",
+      dayLabel: (day: number) => (day === 0 ? "Today" : `Day ${day}`),
       today: "Today",
-      oneWeek: "One week",
       oneMonth: "One month",
+      scrub: "Move through the month",
+      alt:
+        "The same flashcard twice, over one month. Left, studied once: the answer blurs away within days until it cannot be read, ending near one in ten. Right, reviewed on Tuón's schedule: the answer stays sharp all month, with four reviews marked along the way.",
       fourReviews: "Four reviews. About six minutes in total.",
-      wholeDifference: "That is the whole difference between the two lines.",
+      wholeDifference: "That is the whole difference between these two cards.",
       source:
         "Based on the forgetting curve first measured by Hermann Ebbinghaus in 1885 and reproduced many times since. Drawn to show the mechanism — these are not measurements of Tuón users.",
     },
@@ -1408,6 +1426,9 @@ export const en = {
       eyebrow: "How it works",
       title: "From notes to knowing it, in three steps",
       step: (n: number) => `Step ${n}`,
+      answer: "Answer",
+      ratings: ["Again", "Hard", "Good", "Easy"],
+      nextDue: "Next time you see this card: in 6 days.",
       steps: [
         {
           title: "Paste your notes",
@@ -1424,11 +1445,6 @@ export const en = {
       ],
     },
 
-    tryIt: {
-      eyebrow: "See it work",
-      title: "Try it before you sign up",
-      body: "A real note, and the study set Tuón actually produced from it. Flip the cards, sit the quiz. No account, nothing to install.",
-    },
 
     versus: {
       eyebrow: "Versus doing it yourself",
@@ -1470,6 +1486,45 @@ export const en = {
       title: "Open it on whatever is in front of you",
       body: "Tuón runs in the browser, so there is nothing to install and nothing to sideload. Review on your phone on the jeep, write notes on the library desktop — your schedule is the same in both, because it lives with your account and not the device.",
       desktopCaption: "Stats on the library desktop",
+      tabletCaption: "Notes and their links",
+      phoneCaption: "Reviewing on the jeep",
+      nav: [
+        "Home",
+        "Notes",
+        "Study sets",
+        "Calendar",
+        "Ask Tala",
+        "Groups",
+        "Graph",
+        "Retention",
+      ],
+      planStep: "Review General Chemistry 1",
+      planDetail: "12 cards · weakest subject",
+      due: [
+        { title: "Gen Chem long quiz", when: "Today" },
+        { title: "Bio lab report", when: "Tomorrow" },
+      ],
+      notes: [
+        {
+          title: "Le Chatelier's Principle",
+          subject: "General Chemistry 1",
+          excerpt: "If a system at equilibrium is disturbed, it shifts to counteract…",
+          chars: "2,840 characters",
+        },
+        {
+          title: "Enzyme kinetics",
+          subject: "General Biology 1",
+          excerpt: "Michaelis–Menten describes the rate of an enzyme reaction…",
+          chars: "1,930 characters",
+        },
+        {
+          title: "Limits and continuity",
+          subject: "Pre-Calculus",
+          excerpt: "A limit describes what a function approaches, not what it is…",
+          chars: "2,110 characters",
+        },
+      ],
+      tapToFlip: "Tap to see the answer",
       inTheWorks: "IN THE WORKS",
       nativeTitle: "Native apps are coming to iPhone and Android",
       nativeBody:
@@ -1608,6 +1663,8 @@ export const en = {
       privacy: "Privacy notice",
       terms: "Terms of use",
       contact: "Contact us",
+      language: "Language",
+      draft: "draft",
       madeIn: "Made in the Philippines, for Filipino students.",
       rights: (year: number) =>
         `© ${year} Tuón · Adrian Salinas. All rights reserved.`,

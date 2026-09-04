@@ -46,6 +46,24 @@ export const dynamic = "force-dynamic";
  */
 const CHAT_MODEL = "claude-haiku-4-5-20251001";
 
+/**
+ * Whether the assistant can answer at all.
+ *
+ * A separate question from "answer this", and it has to be: the section only
+ * used to find out by sending a message and reading the 501, which meant the
+ * visitor lost the question they had just typed at the same moment the
+ * section vanished. That is worse than the broken widget the 501 exists to
+ * avoid.
+ *
+ * Only a boolean leaves here and it reads one environment variable, so it
+ * needs neither App Check nor a rate limit.
+ */
+export async function GET() {
+  return NextResponse.json({
+    configured: Boolean(process.env.ANTHROPIC_API_KEY),
+  });
+}
+
 export async function POST(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
@@ -81,7 +99,7 @@ export async function POST(request: Request) {
 
   try {
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const message = await anthropic.messages.create({
+    const stream = await anthropic.messages.create({
       model: CHAT_MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
       system: [
@@ -96,32 +114,72 @@ export async function POST(request: Request) {
         },
       ],
       messages: transcript.turns,
+      stream: true,
     });
 
-    const reply = message.content
-      .filter((block): block is Anthropic.TextBlock => block.type === "text")
-      .map((block) => block.text)
-      .join("")
-      .trim();
+    const encoder = new TextEncoder();
+    const turns = transcript.turns.length;
 
-    if (!reply) {
-      log.warn({ scope: "chat", event: "empty_reply", stop: message.stop_reason });
-      return NextResponse.json(
-        { error: "Could not answer that one.", code: "EMPTY_REPLY" },
-        { status: 502 },
-      );
-    }
+    const readable = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        // Usage rides on the envelope events rather than with the text, so it
+        // is accumulated here to keep the per-call cost log the non-streaming
+        // version had. Spend is the entire risk on this endpoint, and a log
+        // that stopped reporting it would hide exactly the thing worth
+        // watching.
+        let inputTokens = 0;
+        let cachedTokens = 0;
+        let outputTokens = 0;
+        let chars = 0;
 
-    log.info({
-      scope: "chat",
-      event: "answered",
-      turns: transcript.turns.length,
-      inputTokens: message.usage.input_tokens,
-      cachedTokens: message.usage.cache_read_input_tokens ?? 0,
-      outputTokens: message.usage.output_tokens,
+        try {
+          for await (const event of stream) {
+            if (event.type === "message_start") {
+              inputTokens = event.message.usage.input_tokens;
+              cachedTokens = event.message.usage.cache_read_input_tokens ?? 0;
+            } else if (
+              event.type === "content_block_delta" &&
+              event.delta.type === "text_delta"
+            ) {
+              chars += event.delta.text.length;
+              controller.enqueue(encoder.encode(event.delta.text));
+            } else if (event.type === "message_delta") {
+              outputTokens = event.usage.output_tokens;
+            }
+          }
+
+          if (chars === 0) {
+            log.warn({ scope: "chat", event: "empty_reply", turns });
+          } else {
+            log.info({
+              scope: "chat",
+              event: "answered",
+              turns,
+              inputTokens,
+              cachedTokens,
+              outputTokens,
+              chars,
+            });
+          }
+        } catch (error) {
+          // The stream is already open, so there is no status code left to
+          // change. Close cleanly and let the visitor keep the partial answer:
+          // half an answer is more useful than an error that replaces it.
+          log.error({ scope: "chat", event: "stream_failed", turns }, error);
+        } finally {
+          controller.close();
+        }
+      },
     });
 
-    return NextResponse.json({ reply });
+    return new Response(readable, {
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        // Proxies that buffer a stream turn it back into a wall of text.
+        "cache-control": "no-store, no-transform",
+        "x-accel-buffering": "no",
+      },
+    });
   } catch (error) {
     log.error({ scope: "chat", event: "model_call_failed" }, error);
     return NextResponse.json(

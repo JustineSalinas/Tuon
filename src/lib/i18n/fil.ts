@@ -50,6 +50,15 @@ export const fil: Messages = {
     recentNotes: "Mga bagong nota",
     allNotes: "Lahat ng nota",
     studyTime: "Oras ng pag-aaral",
+    thisWeek: "Ngayong linggo",
+    fullYear: "Buong taon",
+    streakDays: (n: number) =>
+      n === 0 ? "Walang sunod-sunod" : `${n} araw na sunod-sunod`,
+    comingUp: "Paparating",
+    allDeadlines: "Kalendaryo",
+    nothingDue: "Walang nakatakda",
+    addDeadline: "Magdagdag ng deadline sa kalendaryo",
+    yearOfStudy: "Ang taon mo",
     fullLog: "Buong log",
     startReviewing: "Simulan ang review",
     everythingOnTrack: "Nasa tamang landas ang lahat.",
@@ -1340,7 +1349,6 @@ export const fil: Messages = {
   marketing: {
     nav: {
       how: "Paano ito gumagana",
-      try: "Tingnan sa aksyon",
       local: "Gawa para dito",
       pricing: "Presyo",
       faq: "FAQ",
@@ -1351,6 +1359,27 @@ export const fil: Messages = {
     },
 
     hero: {
+      dueLeft: (n: number) => `${n} kard ang dapat aralin`,
+      tapToReveal: "I-tap para makita ang sagot",
+      hoursMinutes: (h: number, m: number) => `${h}h ${m}m`,
+      thisSession: "Ngayong sesyon",
+      requeued: "Babalik bago ka matapos — para diyan ang Ulit.",
+      interval: (days: number) =>
+        days <= 0
+          ? "Ngayon"
+          : days === 1
+            ? "Bukas"
+            : days < 30
+              ? `${days} araw`
+              : `${Math.round(days / 30)} buwan`,
+      scheduled: (days: number) =>
+        days <= 1
+          ? "Nakaiskedyul na — babalik bukas."
+          : `Nakaiskedyul na — babalik sa loob ng ${days} araw.`,
+      doneTitle: "Iyan ang buong proseso.",
+      doneBody:
+        "Anim na kard, mga apatnapung segundo. Ginagawa iyan ng Tuón gamit ang sarili mong notes, at siya na ang bahala kung kailan babalik ang bawat kard.",
+      again: "Ulitin",
       badge: "Gawa para sa mga estudyanteng Pilipino",
       headline: "Epektibo ang cramming.",
       headlineAccent: " Sa loob ng mga tatlong araw.",
@@ -1365,41 +1394,30 @@ export const fil: Messages = {
       askTala: (creature: string) => `Tanungin si ${creature}`,
     },
 
-    preview: {
-      noteTitle: "Photosynthesis — Gen Bio 1",
-      noteBody:
-        "Nagaganap ang light-dependent reactions sa thylakoid membrane. Hinahati ang tubig, naglalabas ng O₂, at naiimbak ang enerhiya bilang ATP at NADPH…",
-      output: "12 flashcard · 5 tanong sa quiz · 11 segundo",
-      cardIndex: "Kard 3 sa 12",
-      front: "Saan nagaganap ang light-dependent reactions?",
-      back: "Sa thylakoid membrane ng chloroplast.",
-      nextReview: "Susunod na review sa loob ng 6 na araw",
-    },
 
     why: {
       eyebrow: "Bakit ka nakakalimot",
-      title: "Ang pag-aaral nang minsan ang problema, hindi ikaw",
-      body: "Halos pareho ang kurba ng paglimot ng lahat. Ang solusyon ay hindi mas maraming oras kagabi bago ang exam — ito ay ang muling pagharap sa parehong kard habang nagsisimula pa lang itong madulas. Iyan ang buong ideya ng spaced repetition, at ang manu-manong pag-iiskedyul ang bahaging walang nakakasunod.",
+      title: "Tinatapon ng utak mo ang hindi na niya nakikita",
+      body: "Hindi ito depekto, at hindi ito problema sa disiplina — ganito talaga gumana ang memorya. Anumang nakita mo nang minsan at hindi na muli ay nililinis. Ang solusyon ay hindi mas maraming oras kagabi bago ang exam; ito ay ang muling pagharap sa parehong kard habang nagsisimula pa lang itong madulas. Ang manu-manong pag-iiskedyul niyan ang bahaging walang nakakasunod.",
       aside:
         "Ang kard na tatlong linggo mo nang hindi nakikita ay tulog. Ginigising ito ng Tuón isang araw bago mo ito mawala.",
     },
 
     curve: {
-      onceLabel: "Nag-aral minsan, gabi bago ang exam",
-      onceValueBefore: "Naaalala mo ang",
-      onceValue: "1 kard sa 10",
+      lead: "Panoorin itong mangyari sa isang kard. I-drag sa buong buwan.",
+      question: "Ano ang ginagawa ng mitochondria?",
+      answer: "Naglalabas ng enerhiya mula sa pagkain tungo sa anyong magagamit ng selula.",
+      onceLabel: "Minsan lang inaral",
       reviewedLabel: "Nire-review kapag sinabi ng Tuón",
-      reviewedValue: "9 sa 10",
-      aMonthLater: "makalipas ang isang buwan",
-      chartAlt:
-        "Dalawang linya sa loob ng isang buwan. Kapag minsan lang nag-aral, bumabagsak ang memorya sa loob ng unang linggo at nananatiling halos wala. Kapag nire-review sa iskedyul ng Tuón, bahagya itong bumababa sa pagitan ng mga review at bumabalik sa tuwing nire-review, na nananatiling mataas buong buwan.",
-      keepIt: "Nire-review — nananatili sa iyo",
-      fades: "Minsan lang inaral — kumukupas",
+      recall: "ang matatandaan mo nito",
+      dayLabel: (day: number) => (day === 0 ? "Ngayon" : `Araw ${day}`),
       today: "Ngayon",
-      oneWeek: "Isang linggo",
       oneMonth: "Isang buwan",
+      scrub: "Igalaw sa buong buwan",
+      alt:
+        "Ang parehong flashcard nang dalawang beses, sa loob ng isang buwan. Kaliwa, minsan lang inaral: lumalabo ang sagot sa loob ng ilang araw hanggang hindi na mabasa, nagtatapos sa halos 1 sa 10. Kanan, nire-review sa iskedyul ng Tuón: nananatiling malinaw ang sagot buong buwan, may apat na review na nakamarka.",
       fourReviews: "Apat na review. Mga anim na minuto lahat-lahat.",
-      wholeDifference: "Iyan ang buong pagkakaiba ng dalawang linya.",
+      wholeDifference: "Iyan ang buong pagkakaiba ng dalawang kard na ito.",
       source:
         "Batay sa forgetting curve na unang sinukat ni Hermann Ebbinghaus noong 1885 at paulit-ulit nang naipakita mula noon. Iginuhit para ipakita ang mekanismo — hindi ito sukat ng mga gumagamit ng Tuón.",
     },
@@ -1408,6 +1426,9 @@ export const fil: Messages = {
       eyebrow: "Paano ito gumagana",
       title: "Mula sa nota hanggang sa alam mo na, sa tatlong hakbang",
       step: (n: number) => `Hakbang ${n}`,
+      answer: "Sagot",
+      ratings: ["Ulit", "Mahirap", "Maayos", "Madali"],
+      nextDue: "Susunod mong makikita ang kard na ito: sa loob ng 6 na araw.",
       steps: [
         {
           title: "I-paste ang notes mo",
@@ -1424,11 +1445,6 @@ export const fil: Messages = {
       ],
     },
 
-    tryIt: {
-      eyebrow: "Tingnan sa aksyon",
-      title: "Subukan bago mag-sign up",
-      body: "Isang tunay na nota, at ang study set na talagang ginawa rito ng Tuón. I-flip ang mga kard, sagutan ang quiz. Walang account, walang i-install.",
-    },
 
     versus: {
       eyebrow: "Kumpara sa manu-mano",
@@ -1470,6 +1486,45 @@ export const fil: Messages = {
       title: "Buksan ito kahit ano ang nasa harap mo",
       body: "Tumatakbo ang Tuón sa browser, kaya walang i-i-install at walang isa-sideload. Mag-review sa telepono mo habang nasa jeep, magsulat ng nota sa desktop ng library — pareho ang iskedyul mo sa dalawa, dahil nasa account mo ito at hindi sa device.",
       desktopCaption: "Stats sa desktop ng library",
+      tabletCaption: "Mga nota at ang kanilang ugnayan",
+      phoneCaption: "Nagre-review sa jeep",
+      nav: [
+        "Home",
+        "Nota",
+        "Study sets",
+        "Kalendaryo",
+        "Tanungin si Tala",
+        "Grupo",
+        "Graph",
+        "Retention",
+      ],
+      planStep: "I-review ang General Chemistry 1",
+      planDetail: "12 kard · pinakamahinang asignatura",
+      due: [
+        { title: "Gen Chem long quiz", when: "Ngayon" },
+        { title: "Bio lab report", when: "Bukas" },
+      ],
+      notes: [
+        {
+          title: "Le Chatelier's Principle",
+          subject: "General Chemistry 1",
+          excerpt: "Kapag naistorbo ang sistemang nasa equilibrium, lilipat ito…",
+          chars: "2,840 na karakter",
+        },
+        {
+          title: "Enzyme kinetics",
+          subject: "General Biology 1",
+          excerpt: "Inilalarawan ng Michaelis–Menten ang bilis ng reaksyon…",
+          chars: "1,930 na karakter",
+        },
+        {
+          title: "Limits and continuity",
+          subject: "Pre-Calculus",
+          excerpt: "Inilalarawan ng limit kung saan papunta ang function…",
+          chars: "2,110 na karakter",
+        },
+      ],
+      tapToFlip: "I-tap para makita ang sagot",
       inTheWorks: "GINAGAWA PA",
       nativeTitle: "Paparating na ang native apps sa iPhone at Android",
       nativeBody:
@@ -1603,6 +1658,8 @@ export const fil: Messages = {
       privacy: "Paunawa sa privacy",
       terms: "Mga tuntunin ng paggamit",
       contact: "Kontakin kami",
+      language: "Wika",
+      draft: "draft",
       madeIn: "Gawa sa Pilipinas, para sa mga estudyanteng Pilipino.",
       rights: (year: number) =>
         `© ${year} Tuón · Adrian Salinas. Nakalaan ang lahat ng karapatan.`,

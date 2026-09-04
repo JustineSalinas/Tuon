@@ -30,7 +30,8 @@ import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { FirstRun } from "@/components/app/first-run";
 import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
 import { TodaysPlan } from "@/components/app/todays-plan";
-import { StudyHeatmap } from "@/components/app/study-heatmap";
+import { WeekStudy } from "@/components/app/week-study";
+import { Upcoming } from "@/components/app/upcoming";
 import { buildReadiness } from "@/lib/stats/readiness";
 import { Button } from "@/components/ui/button";
 import { buildPlan } from "@/lib/stats/plan";
@@ -257,19 +258,34 @@ export default function DashboardPage() {
             ) : null}
           </div>
 
-          {/* The habit, under the material. Everything above answers a
-              question about the cards; this is the only thing that answers
-              "have I actually been doing this?" */}
-          <section className="mt-10">
-            <SectionHeading
-              title={t.dashboard.studyTime}
-              href="/app/calendar"
-              linkLabel={t.dashboard.fullLog}
-            />
-            <div className="mt-3">
-              <StudyHeatmap />
-            </div>
-          </section>
+          {/* The habit and the horizon, side by side. Everything above
+              answers a question about the cards; these two answer "have I
+              actually been doing this" and "for what" — and neither is much
+              use alone. An empty week is only alarming next to a deadline,
+              and a deadline is only reassuring next to a week of work. */}
+          <div className="mt-10 grid items-start gap-8 lg:grid-cols-2">
+            <section className="min-w-0">
+              <SectionHeading
+                title={t.dashboard.thisWeek}
+                href="/app/calendar"
+                linkLabel={t.dashboard.fullYear}
+              />
+              <div className="mt-3">
+                <WeekStudy />
+              </div>
+            </section>
+
+            <section className="min-w-0">
+              <SectionHeading
+                title={t.dashboard.comingUp}
+                href="/app/calendar"
+                linkLabel={t.dashboard.allDeadlines}
+              />
+              <div className="mt-3">
+                <Upcoming />
+              </div>
+            </section>
+          </div>
 
           <HelpCard t={t} />
 

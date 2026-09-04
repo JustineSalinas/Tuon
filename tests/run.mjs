@@ -26,3 +26,5 @@ import "./scoring.test.mjs";
 import "./semesters.test.mjs";
 import "./i18n.test.mjs";
 import "./companion.test.mjs";
+import "./rate-limit.test.mjs";
+import "./memory.test.mjs";

@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { Wordmark } from "@/components/brand/logo";
+import { LocaleSwitch } from "@/components/marketing/locale-switch";
 import { useI18n } from "@/components/providers/i18n-provider";
 
 /**
@@ -22,7 +23,6 @@ export function SiteFooter() {
       heading: f.product,
       links: [
         { href: "#how", label: t.marketing.nav.how },
-        { href: "#try", label: t.marketing.nav.try },
         { href: "#pricing", label: t.marketing.nav.pricing },
         { href: "#faq", label: t.marketing.nav.faq },
       ],
@@ -95,9 +95,12 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="text-muted-foreground mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t pt-6 text-sm">
-          <p>{f.madeIn}</p>
-          <p>{f.rights(new Date().getFullYear())}</p>
+        <div className="mt-12 border-t pt-6">
+          <LocaleSwitch />
+          <div className="text-muted-foreground mt-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm">
+            <p>{f.madeIn}</p>
+            <p>{f.rights(new Date().getFullYear())}</p>
+          </div>
         </div>
       </div>
     </footer>
