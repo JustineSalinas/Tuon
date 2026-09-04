@@ -36,29 +36,6 @@ export const MASTERY_LEVELS = [
 
 export type MasteryLevel = (typeof MASTERY_LEVELS)[number];
 
-export const MASTERY_LABELS: Record<MasteryLevel, string> = {
-  untouched: "Not started",
-  learning: "Learning",
-  familiar: "Familiar",
-  confident: "Confident",
-  mastered: "Mastered",
-};
-
-/**
- * What each level actually claims, in the student's terms.
- *
- * Written as statements about the schedule rather than about the student,
- * because that is all this can honestly know. "Mastered" means the cards are
- * scheduled a month out and none of them are shaky — not that the exam is won.
- */
-export const MASTERY_HINTS: Record<MasteryLevel, string> = {
-  untouched: "nothing reviewed yet",
-  learning: "most cards are still coming back within the week",
-  familiar: "the schedule is starting to stretch out",
-  confident: "most cards hold for weeks at a time",
-  mastered: "everything is weeks out and nothing is shaky",
-};
-
 /**
  * Score per card, mirroring the maturity pipeline stage for stage.
  *
@@ -95,10 +72,14 @@ export interface MasteryReport {
   /** Scheduled a month or more out and not shaky. */
   strong: number;
   /**
-   * The one sentence worth acting on, or null when there is nothing to do.
-   * This is the part a student can use; the percentage is just the headline.
+   * The one thing worth acting on, or null when there is nothing to do. This
+   * is the part a student can use; the percentage is just the headline.
+   *
+   * A KEY AND A COUNT, not a sentence. This module is pure and has no idea
+   * what language the student reads, so the words are the view's job — the
+   * same split `plan.ts` makes with its step reasons.
    */
-  nextStep: string | null;
+  nextStep: { kind: "shaky" | "untouched"; count: number } | null;
 }
 
 export function buildMastery(logs: (MasteryLog | null | undefined)[]): MasteryReport {
@@ -167,12 +148,11 @@ export function levelFor(percent: number, untouched: number, shaky: number): Mas
  * Shaky cards come before unreviewed ones: a card you keep failing is already
  * costing you review time, while one you have never seen has cost nothing yet.
  */
-function nextStepFor(untouched: number, shaky: number): string | null {
-  if (shaky > 0) {
-    return `${shaky} ${shaky === 1 ? "card keeps" : "cards keep"} tripping you up — those are worth the most right now.`;
-  }
-  if (untouched > 0) {
-    return `${untouched} ${untouched === 1 ? "card has" : "cards have"} never been reviewed.`;
-  }
+function nextStepFor(
+  untouched: number,
+  shaky: number,
+): MasteryReport["nextStep"] {
+  if (shaky > 0) return { kind: "shaky", count: shaky };
+  if (untouched > 0) return { kind: "untouched", count: untouched };
   return null;
 }

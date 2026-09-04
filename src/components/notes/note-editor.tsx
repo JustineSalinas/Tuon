@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { useNotes, useStudySets } from "@/lib/hooks/use-firestore";
 import { useLinkAutocomplete } from "@/components/notes/link-autocomplete";
 import { NoteLinksPanel } from "@/components/notes/note-links-panel";
@@ -28,6 +29,7 @@ import {
 import { isSeniorHigh } from "@/lib/curriculum";
 import { normaliseTitle, parseWikiLinks } from "@/lib/notes/links";
 import { MIN_NOTE_CHARS, maxNoteCharsFor } from "@/lib/ai/config";
+import type { Messages } from "@/lib/i18n/en";
 import type { Note } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +63,7 @@ type SaveState = "idle" | "saving" | "saved" | "error";
 export function NoteEditor({ note }: { note?: Note }) {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { t } = useI18n();
 
   const searchParams = useSearchParams();
   const { data: allNotes } = useNotes(user?.uid);
@@ -101,7 +104,7 @@ export function NoteEditor({ note }: { note?: Note }) {
 
     setSaveState("saving");
     const payload = {
-      title: title.trim() || "Untitled note",
+      title: title.trim() || t.notes.untitled,
       content,
       courseTag: courseTag.trim() || null,
       // Persisted so backlinks are an array-contains query rather than a
@@ -133,7 +136,7 @@ export function NoteEditor({ note }: { note?: Note }) {
       creatingRef.current = false;
       setSaveState("error");
     }
-  }, [user, noteId, title, content, courseTag]);
+  }, [user, noteId, title, content, courseTag, t]);
 
   const handlePdfImported = useCallback(
     ({ title: pdfTitle, text, result, clipped }: ImportedPdf) => {
@@ -149,12 +152,12 @@ ${text}` : text;
       dirtyRef.current = true;
       setSaveState("idle");
 
-      const parts = [`Imported ${result.pagesRead} page${result.pagesRead === 1 ? "" : "s"}`];
-      if (result.truncated) parts.push(`only the first ${result.pagesRead} of ${result.pageCount} were read`);
-      if (clipped) parts.push("text was clipped to fit one note");
+      const parts = [t.pdf.imported(result.pagesRead)];
+      if (result.truncated) parts.push(t.pdf.onlyFirst(result.pagesRead, result.pageCount));
+      if (clipped) parts.push(t.pdf.clipped);
       toast.success(parts.join(" — "));
     },
-    [maxNoteChars],
+    [maxNoteChars, t],
   );
 
   const pdf = usePdfImport(handlePdfImported, maxNoteChars);
@@ -198,10 +201,10 @@ ${text}` : text;
     setDeleting(true);
     try {
       await deleteDoc(doc(db, "users", user.uid, "notes", noteId));
-      toast.success("Note deleted.");
+      toast.success(t.notes.deleted);
       router.replace("/app/notes");
     } catch {
-      toast.error("Could not delete that note.");
+      toast.error(t.notes.deleteFailed);
       setDeleting(false);
     }
   }
@@ -211,29 +214,28 @@ ${text}` : text;
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" render={<Link href="/app/notes" />}>
             <ArrowLeft />
-            Notes
+            {t.nav.notes}
           </Button>
 
-        <SaveIndicator state={saveState} className="ml-auto" />
+        <SaveIndicator state={saveState} t={t} className="ml-auto" />
 
         {noteId ? (
           <Dialog>
-            <DialogTrigger render={<Button variant="ghost" size="icon" aria-label="Delete note" />}>
+            <DialogTrigger render={<Button variant="ghost" size="icon" aria-label={t.notes.deleteNote} />}>
                 <Trash2 className="text-muted-foreground size-4" />
               </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Delete this note?</DialogTitle>
+                <DialogTitle>{t.notes.deleteTitle}</DialogTitle>
                 <DialogDescription>
-                  The note will be removed. Study sets you already generated from it
-                  will stay.
+                  {t.notes.deleteBody}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+                <DialogClose render={<Button variant="outline" />}>{t.common.cancel}</DialogClose>
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                   {deleting ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                  Delete note
+                  {t.notes.deleteNote}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -244,7 +246,7 @@ ${text}` : text;
       <div className="mt-4 space-y-5">
         <div>
           <Label htmlFor="title" className="sr-only">
-            Note title
+            {t.notes.titlePlaceholder}
           </Label>
           <Input
             id="title"
@@ -253,7 +255,7 @@ ${text}` : text;
               setTitle(e.target.value);
               markDirty();
             }}
-            placeholder="Note title"
+            placeholder={t.notes.titlePlaceholder}
             maxLength={140}
             autoFocus={!note}
             className="font-display h-auto border-0 bg-transparent px-0 py-1 text-3xl font-semibold tracking-tight shadow-none focus-visible:ring-0 md:text-4xl"
@@ -262,7 +264,7 @@ ${text}` : text;
 
         <div className="max-w-sm space-y-2">
           <Label htmlFor="courseTag" className="text-muted-foreground text-xs">
-            {seniorHigh ? "Subject" : "Subject (optional)"}
+            {seniorHigh ? t.notes.subject : t.notes.subjectOptional}
           </Label>
 
           {seniorHigh && subjectOptions.length > 0 ? (
@@ -279,14 +281,14 @@ ${text}` : text;
                 {/* Base UI renders the raw VALUE unless given a formatter —
                     unlike Radix, which rendered the item's children. Without
                     this the trigger literally read "__none__". */}
-                <SelectValue placeholder="No subject">
+                <SelectValue placeholder={t.notes.noSubject}>
                   {(value: string | null) =>
-                    !value || value === NO_TAG ? "No subject" : value
+                    !value || value === NO_TAG ? t.notes.noSubject : value
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_TAG}>No subject</SelectItem>
+                <SelectItem value={NO_TAG}>{t.notes.noSubject}</SelectItem>
                 {subjectOptions.map((subject) => (
                   <SelectItem key={subject} value={subject}>
                     {subject}
@@ -305,7 +307,7 @@ ${text}` : text;
                   setCourseTag(e.target.value);
                   markDirty();
                 }}
-                placeholder="e.g. Calculus 1"
+                placeholder={t.notes.subjectExample}
                 maxLength={80}
                 list="tuon-course-suggestions"
               />
@@ -321,7 +323,7 @@ ${text}` : text;
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <Label htmlFor="content" className="sr-only">
-              Note content
+              {t.notes.contentLabel}
             </Label>
             <Button
               type="button"
@@ -331,10 +333,10 @@ ${text}` : text;
               disabled={pdf.importing}
             >
               {pdf.importing ? <Loader2 className="animate-spin" /> : <FileUp />}
-              Import PDF
+              {t.pdf.importPdf}
             </Button>
             <span className="text-muted-foreground text-xs">
-              or drop a file anywhere below
+              {t.pdf.orDrop}
             </span>
           </div>
 
@@ -353,7 +355,7 @@ ${text}` : text;
               }}
               onKeyUp={linkAutocomplete.syncFromCaret}
               onClick={linkAutocomplete.syncFromCaret}
-              placeholder="Paste or type your class notes here — or drop a PDF. Type [[ to link another note."
+              placeholder={t.notes.contentPlaceholder}
               className="min-h-[45vh] resize-y text-base leading-relaxed"
             />
             {linkAutocomplete.popover}
@@ -375,7 +377,7 @@ ${text}` : text;
                   onClick={pdf.clearError}
                   className="font-medium underline underline-offset-4"
                 >
-                  Dismiss
+                  {t.notes.dismiss}
                 </button>
               </AlertDescription>
             </Alert>
@@ -387,11 +389,11 @@ ${text}` : text;
               {trimmedContent.length > maxNoteChars * 0.7
                 ? ` / ${maxNoteChars.toLocaleString()}`
                 : ""}{" "}
-              characters
+              {t.notes.charactersUnit}
             </span>
             {trimmedContent.length > 0 && trimmedContent.length < MIN_NOTE_CHARS ? (
               <span>
-                {MIN_NOTE_CHARS - trimmedContent.length} more needed to generate
+                {t.notes.moreNeeded(MIN_NOTE_CHARS - trimmedContent.length)}
               </span>
             ) : null}
           </div>
@@ -410,9 +412,9 @@ ${text}` : text;
           }}
           hint={
             !noteId
-              ? "Start typing to save this note."
+              ? t.notes.startTyping
               : trimmedContent.length < MIN_NOTE_CHARS
-                ? `Add ${MIN_NOTE_CHARS - trimmedContent.length} more characters to generate a study set.`
+                ? t.notes.addMoreToGenerate(MIN_NOTE_CHARS - trimmedContent.length)
                 : null
           }
         />
@@ -421,7 +423,15 @@ ${text}` : text;
   );
 }
 
-function SaveIndicator({ state, className }: { state: SaveState; className?: string }) {
+function SaveIndicator({
+  state,
+  t,
+  className,
+}: {
+  state: SaveState;
+  t: Messages;
+  className?: string;
+}) {
   if (state === "idle") return <span className={className} />;
 
   return (
@@ -435,15 +445,15 @@ function SaveIndicator({ state, className }: { state: SaveState; className?: str
       {state === "saving" ? (
         <>
           <Loader2 className="size-3 animate-spin" />
-          Saving
+          {t.notes.saving}
         </>
       ) : state === "saved" ? (
         <>
           <Check className="size-3" />
-          Saved
+          {t.notes.saved}
         </>
       ) : (
-        "Could not save"
+        t.notes.saveFailed
       )}
     </span>
   );

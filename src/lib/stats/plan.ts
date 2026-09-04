@@ -22,8 +22,15 @@ export interface PlanStep {
   /** Cards this step covers. Zero for a generate step. */
   cards: number;
   href: string;
-  /** Why this step is here, in three or four words. */
-  reason: string;
+  /**
+   * Why this step is here, as a key rather than a sentence.
+   *
+   * The plan is computed in a pure module with no access to the catalogue, so
+   * it names the reason and the component renders it in the student's
+   * language. `shakyCount` carries the number that reason needs.
+   */
+  reason: "weakestSubject" | "dueToday" | "neverSeen" | "noCardsYet" | "shaky";
+  shakyCount?: number;
 }
 
 export interface StudyPlan {
@@ -126,10 +133,10 @@ export function buildPlan(
       href: `/app/sets/${set.id}/review`,
       reason:
         subject && subject === weakest
-          ? "Weakest subject"
+          ? "weakestSubject"
           : set.due > 0
-            ? "Due today"
-            : "Never seen",
+            ? "dueToday"
+            : "neverSeen",
     });
     budget -= take;
   }
@@ -169,8 +176,8 @@ export function buildPlan(
         // genuinely due.
         cards: 0,
         href: `/app/sets/${worst.id}/test`,
-        reason:
-          (worst.shaky ?? 0) === 1 ? "1 shaky card" : `${worst.shaky} shaky cards`,
+        reason: "shaky",
+        shakyCount: worst.shaky ?? 0,
       });
     }
   }
@@ -188,7 +195,7 @@ export function buildPlan(
         subject: null,
         cards: 0,
         href: `/app/notes/${orphan.id}`,
-        reason: "No cards yet",
+        reason: "noCardsYet",
       });
     }
   }

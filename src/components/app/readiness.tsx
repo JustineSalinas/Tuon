@@ -5,6 +5,8 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 
 import { PaperCreature, type CreatureState } from "@/components/brand/paper-creature";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { daysUntil } from "@/lib/srs/sm2";
@@ -38,7 +40,7 @@ import { cn } from "@/lib/utils";
 const BUCKETS = [
   {
     key: "onTrack" as const,
-    label: "On track",
+    labelKey: "onTrack" as const,
     swatch: "bg-success",
     fill: "bg-success",
     /** Only ready work fills the bar's full height. See ReadinessBar. */
@@ -47,7 +49,7 @@ const BUCKETS = [
   },
   {
     key: "atRisk" as const,
-    label: "Shaky",
+    labelKey: "shaky" as const,
     swatch: "bg-warning",
     fill: "bg-warning/60",
     full: false,
@@ -55,7 +57,7 @@ const BUCKETS = [
   },
   {
     key: "notStarted" as const,
-    label: "Not started",
+    labelKey: "notStarted" as const,
     swatch: "bg-muted-foreground/35",
     fill: "bg-muted-foreground/30",
     full: false,
@@ -73,12 +75,12 @@ function horizonLabel(report: ReadinessReport): string {
 }
 
 /** The eyebrow, phrased so it reads as a sentence rather than a label. */
-function horizonEyebrow(report: ReadinessReport): string {
-  if (report.source === "rolling") return "The next 30 days";
+function horizonEyebrow(report: ReadinessReport, t: Messages): string {
+  if (report.source === "rolling") return t.dashboard.nextDays(30);
   const left = daysUntil(report.horizon);
   const when = horizonLabel(report);
-  if (left <= 0) return `Today — ${when}`;
-  return `${left} ${left === 1 ? "day" : "days"} to ${when}`;
+  if (left <= 0) return t.dashboard.todayIs(when);
+  return t.dashboard.daysTo(left, when);
 }
 
 /**
@@ -104,6 +106,7 @@ function creatureFor(report: ReadinessReport): CreatureState {
 }
 
 export function ReadinessCard({ report }: { report: ReadinessReport }) {
+  const { t } = useI18n();
   const ready = report.needsWork === 0;
   const untouched = isUntouched(report);
   const pct = Math.round((report.share ?? 0) * 100);
@@ -121,42 +124,37 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 sm:flex-1">
             <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
-              {horizonEyebrow(report)}
+              {horizonEyebrow(report, t)}
             </p>
 
             {ready ? (
               <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
-                Everything is on track.
+                {t.dashboard.everythingOnTrack}
               </p>
             ) : untouched ? (
               <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
-                <span className="tabular-nums">{report.total}</span>{" "}
-                {report.total === 1 ? "card is" : "cards are"} ready to start
+                {t.dashboard.cardsReadyToStart(report.total)}
               </p>
             ) : (
               <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
-                <span className="tabular-nums">{report.needsWork}</span>{" "}
-                {report.needsWork === 1 ? "card needs" : "cards need"} work
+                {t.dashboard.cardsNeedWork(report.needsWork)}
               </p>
             )}
 
             {untouched ? (
               <p className="text-muted-foreground mt-1 text-sm">
-                Rate each one and Tuón schedules when you see it again.
+                {t.dashboard.rateEachOne}
               </p>
             ) : report.onTrack === 0 ? (
               // "0 of 8 cards will still be fresh — 0%" said the same thing as
               // the headline three more times. When the answer is none, say
               // none and name the date it is measured against.
               <p className="text-muted-foreground mt-1 text-sm">
-                None of them will hold until {horizonLabel(report)}.
+                {t.dashboard.noneWillHold(horizonLabel(report))}
               </p>
             ) : (
               <p className="text-muted-foreground mt-1 text-sm">
-                <span className="tabular-nums">{report.onTrack}</span> of{" "}
-                <span className="tabular-nums">{report.total}</span>{" "}
-                {report.total === 1 ? "card" : "cards"} should still be fresh —{" "}
-                <span className="tabular-nums">{pct}%</span>
+                {t.dashboard.freshLine(report.onTrack, report.total, pct)}
               </p>
             )}
           </div>
@@ -173,7 +171,7 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
                 className="max-sm:w-full"
                 render={<Link href="/app/review" />}
               >
-                Start reviewing
+                {t.dashboard.startReviewing}
                 <ArrowRight />
               </Button>
             ) : null}
@@ -184,14 +182,14 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
 
         {/* A legend is always present, so identity is never colour alone. */}
         <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-          {BUCKETS.map(({ key, label, swatch }) =>
+          {BUCKETS.map(({ key, labelKey, swatch }) =>
             report[key] === 0 ? null : (
               <div key={key} className="flex items-center gap-1.5">
                 <span
                   aria-hidden="true"
                   className={cn("size-2.5 shrink-0 rounded-[3px]", swatch)}
                 />
-                <dt className="text-sm">{label}</dt>
+                <dt className="text-sm">{t.dashboard[labelKey]}</dt>
                 <dd className="text-muted-foreground text-sm tabular-nums">
                   {report[key]}
                 </dd>
@@ -204,9 +202,7 @@ export function ReadinessCard({ report }: { report: ReadinessReport }) {
             Claiming otherwise would be noise on a user's first screen. */}
         {untouched ? null : (
           <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-            Projected from your own review schedule, assuming you keep up. It is
-            an estimate of what you will still remember — not a prediction of
-            your score.
+            {t.dashboard.projectedNote}
           </p>
         )}
       </CardContent>

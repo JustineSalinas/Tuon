@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Timer } from "lucide-react";
 
 import type { StudyPlan } from "@/lib/stats/plan";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -20,6 +21,8 @@ import { cn } from "@/lib/utils";
  * governs the review queue's cap.
  */
 export function TodaysPlan({ plan }: { plan: StudyPlan }) {
+  const { t } = useI18n();
+
   if (plan.steps.length === 0) return null;
 
   return (
@@ -65,9 +68,9 @@ export function TodaysPlan({ plan }: { plan: StudyPlan }) {
                   ) : null}
                   <span className="truncate text-sm font-medium">
                     {step.kind === "generate"
-                      ? `Turn “${step.title}” into cards`
+                      ? t.dashboard.turnIntoCards(step.title)
                       : step.kind === "test"
-                        ? `Test yourself on ${step.title}`
+                        ? t.dashboard.testYourselfOn(step.title)
                         : step.title}
                   </span>
                 </div>
@@ -75,10 +78,14 @@ export function TodaysPlan({ plan }: { plan: StudyPlan }) {
                   {step.subject ? <span>{step.subject}</span> : null}
                   {step.cards > 0 ? (
                     <span className="tabular-nums">
-                      {step.cards} {step.cards === 1 ? "card" : "cards"}
+                      {t.common.cards(step.cards)}
                     </span>
                   ) : null}
-                  <span className="text-primary/80">{step.reason}</span>
+                  <span className="text-primary/80">
+                    {step.reason === "shaky"
+                      ? t.dashboard.shakyCards(step.shakyCount ?? 0)
+                      : t.dashboard[step.reason]}
+                  </span>
                 </div>
               </div>
 

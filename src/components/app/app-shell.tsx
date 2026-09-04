@@ -12,11 +12,14 @@ import {
   Users,
   Plus,
   TrendingUp,
+  LifeBuoy,
+  MessageCircle,
   Settings,
 } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { isUsableAvatar } from "@/lib/profile/avatar";
+import { activeSemester, readSemesters } from "@/lib/profile/semesters";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { Wordmark } from "@/components/brand/logo";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
@@ -44,6 +47,7 @@ const NAV = [
   { href: "/app/notes", key: "notes", icon: FileText, exact: false },
   { href: "/app/sets", key: "sets", icon: Layers, exact: false },
   { href: "/app/calendar", key: "calendar", icon: CalendarDays, exact: false },
+  { href: "/app/tala", key: "tala", icon: MessageCircle, exact: false },
   { href: "/app/groups", key: "groups", icon: Users, exact: false },
   { href: "/app/graph", key: "graph", icon: Network, exact: false },
   { href: "/app/stats", key: "retention", icon: TrendingUp, exact: false },
@@ -69,7 +73,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <DesktopSidebar pathname={pathname} />
       <MobileHeader />
 
-      <div className="flex-1 pb-20 md:pb-0">
+      {/* min-w-0: a flex child will not shrink below its content, so any
+          page with something intrinsically wide in it — the study heatmap
+          is a year of columns — pushed the whole app wider than the
+          viewport and put a horizontal scrollbar on every screen beside
+          the sidebar. The heatmap scrolls itself; it can only do that if
+          this is allowed to be narrower than it. */}
+      <div className="min-w-0 flex-1 pb-20 md:pb-0">
         <ServiceWorkerRegistration />
         <ReminderRunner />
         {/* Renders nothing. Here rather than inside the timer so presence
@@ -214,7 +224,15 @@ function UserMenu({ align }: { align: "start" | "end" }) {
   // src goes straight into an <img>.
   const photo = isUsableAvatar(profile?.photoURL) ? profile.photoURL : null;
 
+  // The current term leads when there is one: it changes, and it is the thing
+  // that decides which subjects the rest of the app offers. Education level
+  // and strand are set once and never move, so they give way.
+  const term = activeSemester(
+    readSemesters(profile?.semesters),
+    profile?.activeSemesterId,
+  );
   const context = [
+    term?.name,
     educationLevelLabel(profile?.educationLevel ?? null),
     strandLabel(profile?.strand ?? null),
   ]
@@ -251,6 +269,13 @@ function UserMenu({ align }: { align: "start" | "end" }) {
             <Settings className="size-4" />
             {t.nav.settings}
           </DropdownMenuItem>
+        {/* Beside settings rather than in the sidebar rail: help is looked
+            for when something is confusing, which is the same moment
+            somebody goes hunting through their account menu. */}
+        <DropdownMenuItem render={<Link href="/app/help" />}>
+          <LifeBuoy className="size-4" />
+          {t.nav.help}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} variant="destructive">
           <LogOut className="size-4" />

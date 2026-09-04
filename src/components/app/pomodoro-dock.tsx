@@ -18,15 +18,24 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { Coffee, Pause, Play, RotateCcw, Settings2, SkipForward, Timer } from "lucide-react";
+import {
+  BookMarked,
+  Coffee,
+  Pause,
+  Play,
+  RotateCcw,
+  Settings2,
+  SkipForward,
+  Timer,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import {
-  PHASE_LABELS,
   formatRemaining,
   isRunning,
   loggableMinutes,
@@ -35,6 +44,7 @@ import {
   phaseDurationMs,
   remainingMs,
   reset,
+  setSubject,
   start,
 } from "@/lib/organiser/pomodoro";
 import {
@@ -59,6 +69,7 @@ const REDRAW_MS = 500;
 
 export function PomodoroDock({ subjects }: { subjects: string[] }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { timeZone, pomodoro } = usePreferences();
 
   const state = useSyncExternalStore(
@@ -68,7 +79,9 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
   );
 
   const [now, setNow] = useState(() => Date.now());
-  const [subject, setSubject] = useState("");
+  // The subject lives in the timer's own state, so a reload mid-block comes
+  // back still knowing what it is counting.
+  const subject = state.subject ?? "";
   const running = isRunning(state);
   const focus = state.phase === "focus";
 
@@ -99,7 +112,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
       startedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     }).catch(() => {
-      toast.error("That block was not saved to your log.");
+      toast.error(t.timer.notLogged);
     });
   }
 
@@ -111,13 +124,17 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
 
     if (!announce) return;
     if (focus) {
+      // Naming the subject in the confirmation is what makes the tag
+      // believable: the student sees where the block landed at the moment it
+      // lands, rather than finding out at the end of the week.
+      const where = subject ? ` · ${subject}` : "";
       toast.success(
         minutes > 0
-          ? `${formatMinutes(minutes)} logged. ${PHASE_LABELS[next.phase]} next.`
-          : `${PHASE_LABELS[next.phase]} next.`,
+          ? `${t.timer.logged(formatMinutes(minutes), t.timer[next.phase])}${where}`
+          : t.timer.nextUp(t.timer[next.phase]),
       );
     } else {
-      toast.success("Break over. Back to it.");
+      toast.success(t.timer.breakOver);
     }
   }
 
@@ -150,7 +167,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
               {formatRemaining(remaining)}
             </span>
             <span className="text-muted-foreground truncate text-[11px]">
-              {started ? PHASE_LABELS[state.phase] : "Focus"}
+              {started ? t.timer[state.phase] : t.timer.focus}
             </span>
           </div>
         </div>
@@ -160,7 +177,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           onClick={() =>
             updateTimerState((s) => (isRunning(s) ? pause(s, Date.now()) : start(s, Date.now())))
           }
-          aria-label={running ? "Pause the timer" : "Start a focus block"}
+          aria-label={running ? t.timer.pause : t.timer.start}
           className="bg-primary text-primary-foreground focus-visible:ring-ring grid size-7 shrink-0 place-items-center rounded-full transition-opacity hover:opacity-90 focus-visible:ring-[3px] focus-visible:outline-none"
         >
           {running ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
@@ -170,7 +187,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           <DropdownMenuTrigger
             render={
               <button
-                aria-label="Timer options"
+                aria-label={t.timer.options}
                 className="text-muted-foreground hover:text-foreground grid size-7 shrink-0 place-items-center rounded-md transition-colors"
               />
             }
@@ -180,38 +197,11 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
 
           <DropdownMenuContent align="start" className="w-60">
             <DropdownMenuLabel className="font-normal">
-              <p className="text-sm font-medium">{PHASE_LABELS[state.phase]}</p>
+              <p className="text-sm font-medium">{t.timer[state.phase]}</p>
               <p className="text-muted-foreground text-xs">
-                {state.completedFocus} {state.completedFocus === 1 ? "block" : "blocks"} today
+                {t.timer.blocksToday(state.completedFocus)}
               </p>
             </DropdownMenuLabel>
-
-            {courses.length > 0 && focus ? (
-              <>
-                <DropdownMenuSeparator />
-                <div className="px-2 py-1.5">
-                  <label
-                    htmlFor="dock-subject"
-                    className="text-muted-foreground text-xs"
-                  >
-                    Studying
-                  </label>
-                  <select
-                    id="dock-subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="border-input bg-background focus-visible:ring-ring mt-1 h-8 w-full rounded-md border px-2 text-xs focus-visible:ring-[3px] focus-visible:outline-none"
-                  >
-                    <option value="">No subject</option>
-                    {courses.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            ) : null}
 
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -221,7 +211,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
               }}
             >
               <SkipForward className="size-4" />
-              {focus ? "End block and log it" : "Skip the break"}
+              {focus ? t.timer.endBlock : t.timer.skipBreak}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -230,17 +220,50 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
               }}
             >
               <RotateCcw className="size-4" />
-              Reset — log nothing
+              {t.timer.resetNothing}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/app/settings#timer" />}>
               <Settings2 className="size-4" />
-              Change the lengths
+              {t.timer.changeLengths}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* The subject sits on the face of the dock, not inside the menu it
+          used to hide in. A tag nobody finds is a tag nobody sets, and every
+          untagged block is an hour the per-subject totals cannot account
+          for — which makes the breakdown beside the heatmap a lie of
+          omission rather than a summary. */}
+      {courses.length > 0 && focus ? (
+        <div className="mt-2 flex items-center gap-1.5">
+          <BookMarked className="text-muted-foreground size-3 shrink-0" />
+          <label htmlFor="dock-subject" className="sr-only">
+            {t.timer.studying}
+          </label>
+          <select
+            id="dock-subject"
+            value={subject}
+            onChange={(e) =>
+              updateTimerState((s) => setSubject(s, e.target.value || null))
+            }
+            className={cn(
+              "focus-visible:ring-ring -mx-1 min-w-0 flex-1 truncate rounded-md border-0 bg-transparent px-1 py-0.5 text-[11px]",
+              "hover:bg-sidebar-accent/60 cursor-pointer transition-colors focus-visible:ring-[3px] focus-visible:outline-none",
+              subject ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            <option value="">{t.timer.noSubject}</option>
+            {courses.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
 
       {started ? (
         <div className="bg-muted mt-2 h-0.5 overflow-hidden rounded-full">
@@ -259,7 +282,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           past forever. */}
       {!started ? (
         <p className="text-muted-foreground mt-1.5 text-[11px] leading-snug">
-          Keeps running in the background. Only focus blocks are logged.
+          {t.timer.backgroundNote}
         </p>
       ) : null}
     </div>

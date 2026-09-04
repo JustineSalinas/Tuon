@@ -5,6 +5,7 @@ import { Flag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { getAppCheckToken } from "@/lib/firebase/client";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,12 +21,18 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+/**
+ * The reasons, as the values the API stores.
+ *
+ * Their labels live in the message catalogue keyed by the same value — the
+ * stored reason must never change with the reader\'s language.
+ */
 const REASONS = [
-  { value: "not-study-material", label: "Not study material" },
-  { value: "harassment", label: "Bullying or harassment" },
-  { value: "copyright", label: "Copied from a book or paid course" },
-  { value: "personal-information", label: "Contains someone's personal details" },
-  { value: "other", label: "Something else" },
+  "not-study-material",
+  "harassment",
+  "copyright",
+  "personal-information",
+  "other",
 ] as const;
 
 /**
@@ -35,7 +42,16 @@ const REASONS = [
  * notice a problem is usually the blockmate who was sent the link, not a user.
  */
 export function ReportButton({ userId, setId }: { userId: string; setId: string }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
+
+  const LABELS: Record<(typeof REASONS)[number], string> = {
+    "not-study-material": t.report.notStudyMaterial,
+    harassment: t.report.harassment,
+    copyright: t.report.copyright,
+    "personal-information": t.report.personalInformation,
+    other: t.report.other,
+  };
   const [reason, setReason] = useState<string | null>(null);
   const [detail, setDetail] = useState("");
   const [sending, setSending] = useState(false);
@@ -58,9 +74,9 @@ export function ReportButton({ userId, setId }: { userId: string; setId: string 
       setOpen(false);
       setReason(null);
       setDetail("");
-      toast.success("Thanks — we'll take a look.");
+      toast.success(t.report.thanks);
     } catch {
-      toast.error("Could not send that report. Please try again.");
+      toast.error(t.report.failed);
     }
     setSending(false);
   }
@@ -71,49 +87,46 @@ export function ReportButton({ userId, setId }: { userId: string; setId: string 
         render={
           <Button variant="ghost" size="sm" className="text-muted-foreground">
             <Flag />
-            Report
+            {t.report.action}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Report this study set</DialogTitle>
-          <DialogDescription>
-            Tell us what&rsquo;s wrong with it. We read every report; we
-            don&rsquo;t act on them automatically.
-          </DialogDescription>
+          <DialogTitle>{t.report.title}</DialogTitle>
+          <DialogDescription>{t.report.body}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid gap-2">
-            {REASONS.map((option) => (
+            {REASONS.map((value) => (
               <button
-                key={option.value}
+                key={value}
                 type="button"
-                onClick={() => setReason(option.value)}
-                aria-pressed={reason === option.value}
+                onClick={() => setReason(value)}
+                aria-pressed={reason === value}
                 className={cn(
                   "rounded-lg border px-3.5 py-2.5 text-left text-sm transition-colors",
                   "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
-                  reason === option.value
+                  reason === value
                     ? "border-primary bg-accent/60"
                     : "border-border hover:border-primary/50 hover:bg-accent/30",
                 )}
               >
-                {option.label}
+                {LABELS[value]}
               </button>
             ))}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="report-detail">Anything else? (optional)</Label>
+            <Label htmlFor="report-detail">{t.report.anythingElse}</Label>
             <Textarea
               id="report-detail"
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
               maxLength={1000}
               rows={3}
-              placeholder="What should we look at?"
+              placeholder={t.report.detailPlaceholder}
             />
           </div>
         </div>
@@ -122,13 +135,13 @@ export function ReportButton({ userId, setId }: { userId: string; setId: string 
           <DialogClose
             render={
               <Button variant="ghost" disabled={sending}>
-                Cancel
+                {t.common.cancel}
               </Button>
             }
           />
           <Button onClick={submit} disabled={!reason || sending}>
             {sending ? <Loader2 className="animate-spin" /> : <Flag />}
-            Send report
+            {t.report.send}
           </Button>
         </DialogFooter>
       </DialogContent>

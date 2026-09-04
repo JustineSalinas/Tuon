@@ -17,10 +17,10 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import {
   ACCEPTED_IMAGE_TYPES,
   checkFile,
-  describeProblem,
   fileToAvatar,
   isUsableAvatar,
   type AvatarProblem,
@@ -30,8 +30,17 @@ import { Button } from "@/components/ui/button";
 
 export function ProfilePicture() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+
+  /** Keyed by the problem the avatar pipeline reports. */
+  const PROBLEM = {
+    type: t.picture.type,
+    "too-big": t.picture.tooBig,
+    decode: t.picture.decode,
+    encode: t.picture.encode,
+  } as const;
 
   const photo = isUsableAvatar(profile?.photoURL) ? profile.photoURL : null;
   const name = profile?.displayName || user?.displayName || "Student";
@@ -40,7 +49,7 @@ export function ProfilePicture() {
   async function pick(file: File) {
     const problem = checkFile(file);
     if (problem) {
-      toast.error(describeProblem(problem));
+      toast.error(PROBLEM[problem]);
       return;
     }
 
@@ -52,13 +61,13 @@ export function ProfilePicture() {
         photoURL: dataUrl,
         updatedAt: serverTimestamp(),
       });
-      toast.success("Picture updated.");
+      toast.success(t.picture.updated);
     } catch (error) {
       const reason = (error instanceof Error ? error.message : "") as AvatarProblem;
       toast.error(
         reason === "decode" || reason === "encode"
-          ? describeProblem(reason)
-          : "Could not save that picture.",
+          ? PROBLEM[reason]
+          : t.picture.saveFailed,
       );
     }
     setBusy(false);
@@ -73,18 +82,16 @@ export function ProfilePicture() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not remove that picture.");
+      toast.error(t.picture.removeFailed);
     }
     setBusy(false);
   }
 
   return (
     <div>
-      <p className="text-sm font-medium">Picture</p>
+      <p className="text-sm font-medium">{t.picture.title}</p>
       <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
-        Shown to you, and to anyone in a study group with you. Resized on your
-        device before it is saved, so a photo straight off your phone does not
-        cost you data.
+        {t.picture.hint}
       </p>
 
       <div className="mt-3 flex items-center gap-4">
@@ -111,12 +118,12 @@ export function ProfilePicture() {
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => input.current?.click()} disabled={busy}>
             {busy ? <Loader2 className="animate-spin" /> : <Camera />}
-            {photo ? "Change" : "Upload"}
+            {photo ? t.settings.change : t.settings.upload}
           </Button>
           {photo ? (
             <Button variant="ghost" size="sm" onClick={remove} disabled={busy}>
               <Trash2 />
-              Remove
+              {t.common.remove}
             </Button>
           ) : null}
         </div>

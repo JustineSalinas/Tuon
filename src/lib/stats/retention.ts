@@ -11,19 +11,9 @@ import type { ReviewCard } from "@/lib/hooks/use-review-cards";
 export const MATURITY_STAGES = ["new", "learning", "young", "mature"] as const;
 export type MaturityStage = (typeof MATURITY_STAGES)[number];
 
-export const MATURITY_LABELS: Record<MaturityStage, string> = {
-  new: "Never seen",
-  learning: "Learning",
-  young: "Young",
-  mature: "Mature",
-};
-
-export const MATURITY_HINTS: Record<MaturityStage, string> = {
-  new: "no reviews yet",
-  learning: "coming back within a week",
-  young: "1 to 4 weeks out",
-  mature: "a month or more out",
-};
+// Each stage's name and its one-line claim live in the message catalogue,
+// keyed by the stage — this module is pure and has no idea what language the
+// student reads.
 
 /**
  * Below this the card has been failed enough times that SM-2 has pulled its

@@ -27,6 +27,8 @@ import { ArrowRight, Check, Clock, Loader2, RotateCcw, X } from "lucide-react";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import {
   useFlashcards,
   useQuizQuestions,
@@ -65,6 +67,7 @@ interface Answered {
 
 export function TestRunner({ studySetId }: { studySetId: string }) {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { data: studySet } = useStudySet(user?.uid, studySetId);
   const { data: cards, loading: cardsLoading } = useFlashcards(user?.uid, studySetId);
   const { data: questions, loading: questionsLoading } = useQuizQuestions(user?.uid, studySetId);
@@ -143,7 +146,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
       try {
         await addDoc(collection(db, "users", user.uid, "quizAttempts"), {
           studySetId,
-          studySetTitle: studySet?.title ?? "Test",
+          studySetTitle: studySet?.title ?? t.test.title,
           score: score.correct,
           total: score.total,
           completedAt: serverTimestamp(),
@@ -209,7 +212,17 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
 
       setSaving(false);
     },
-    [user, items.length, profile?.examDate, studySetId, studySet, byFlashcardId, startedAt, timeZone],
+    [
+      user,
+      items.length,
+      profile?.examDate,
+      studySetId,
+      studySet,
+      byFlashcardId,
+      startedAt,
+      timeZone,
+      t.test.title,
+    ],
   );
 
   /**
@@ -291,19 +304,18 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
 
   if (items.length === 0) {
     return (
-      <Shell exitHref={exitHref} title={studySet?.title}>
+      <Shell exitHref={exitHref} title={studySet?.title} t={t}>
         <div className="grid flex-1 place-items-center px-6 text-center">
           <div className="max-w-sm">
             <PaperCreature state="asleep" className="mx-auto size-28" />
             <h1 className="font-display mt-2 text-2xl font-semibold tracking-tight">
-              Nothing to test yet
+              {t.test.noneYet}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-              This set has no flashcards, so there is nothing to draw a test
-              from.
+              {t.test.noneYetHint}
             </p>
             <Button className="mt-6" render={<Link href={exitHref} />}>
-              Back to the set
+              {t.test.backToSet}
             </Button>
           </div>
         </div>
@@ -318,7 +330,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
       .filter(({ answer }) => !answer || !answer.correct);
 
     return (
-      <Shell exitHref={exitHref} title={studySet?.title}>
+      <Shell exitHref={exitHref} title={studySet?.title} t={t}>
         <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 md:px-6">
           <div className="text-center">
             <PaperCreature
@@ -329,18 +341,18 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
               {score.correct} / {score.total}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              {score.percent}% under time
-              {saving ? " · saving your schedule…" : " · your schedule has been updated"}
+              {t.test.underTime(score.percent)}
+              {saving ? t.test.savingSchedule : t.test.scheduleUpdated}
             </p>
           </div>
 
           {missed.length > 0 ? (
             <section className="mt-8">
               <h2 className="font-display text-lg font-semibold tracking-tight">
-                Worth another look
+                {t.test.worthAnotherLook}
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                These are due again sooner now.
+                {t.test.dueSooner}
               </p>
               <ul className="mt-3 divide-y rounded-xl border">
                 {missed.map(({ item, answer }, i) => (
@@ -351,18 +363,18 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
                     </p>
                     {answer?.given ? (
                       <p className="text-muted-foreground mt-1.5 text-xs">
-                        You put &ldquo;{answer.given}&rdquo;
+                        {t.test.youPut(answer.given)}
                       </p>
                     ) : answer ? (
                       // Answered, but with nothing to quote back: a self-graded
                       // card the student marked as missed. Saying "not reached"
                       // here would be a plain lie about what they did.
                       <p className="text-muted-foreground mt-1.5 text-xs">
-                        You marked this one as missed
+                        {t.test.markedMissed}
                       </p>
                     ) : (
                       <p className="text-muted-foreground mt-1.5 text-xs">
-                        Not reached before time ran out
+                        {t.test.notReached}
                       </p>
                     )}
                   </li>
@@ -374,10 +386,10 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
           <div className="mt-8 flex flex-col gap-2">
             <Button onClick={restart}>
               <RotateCcw />
-              Take another
+              {t.test.takeAnother}
             </Button>
             <Button variant="ghost" render={<Link href={exitHref} />}>
-              Back to the set
+              {t.test.backToSet}
             </Button>
           </div>
         </div>
@@ -387,22 +399,21 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
 
   if (startedAt === null) {
     return (
-      <Shell exitHref={exitHref} title={studySet?.title}>
+      <Shell exitHref={exitHref} title={studySet?.title} t={t}>
         <div className="grid flex-1 place-items-center px-6 text-center">
           <div className="max-w-md">
             <Clock className="text-primary mx-auto size-8" />
             <h1 className="font-display mt-4 text-2xl font-semibold tracking-tight">
-              {items.length} questions, {Math.round(testDurationMinutes(items.length))} minutes
+              {t.test.briefTitle(
+                items.length,
+                Math.round(testDurationMinutes(items.length)),
+              )}
             </h1>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-              Drawn from the cards you are weakest on, not the ones you like.
-              Some you type, some are multiple choice. The clock keeps running
-              if you switch tabs, and anything you do not reach counts as wrong
-              — which is what an exam does.
+              {t.test.brief}
             </p>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-              Every answer updates your review schedule, so this is not a
-              practice run you can throw away.
+              {t.test.briefSchedule}
             </p>
             <Button
               size="lg"
@@ -413,7 +424,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
                 setStartedAt(Date.now());
               }}
             >
-              Start the test
+              {t.test.start}
             </Button>
           </div>
         </div>
@@ -425,7 +436,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
     current?.kind === "mcq" ? picked !== null : current?.kind === "typed" ? true : false;
 
   return (
-    <Shell exitHref={exitHref} title={studySet?.title}>
+    <Shell exitHref={exitHref} title={studySet?.title} t={t}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-4 md:px-6">
         <div className="flex items-center gap-3">
           <Progress value={(index / items.length) * 100} className="h-1 flex-1" />
@@ -439,7 +450,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
           </span>
         </div>
         <p className="text-muted-foreground mt-2 text-xs tabular-nums">
-          {index + 1} of {items.length}
+          {t.test.position(index + 1, items.length)}
         </p>
 
         <AnimatePresence mode="wait">
@@ -491,18 +502,18 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
                       answerCurrent();
                     }
                   }}
-                  placeholder="Your answer"
-                  aria-label="Your answer"
+                  placeholder={t.test.yourAnswer}
+                  aria-label={t.test.yourAnswer}
                   autoComplete="off"
                   spellCheck={false}
                   className="h-12 text-base"
                 />
                 <p className="text-muted-foreground mt-2 text-xs">
-                  Spelling and word order are forgiven.
+                  {t.test.forgiving}
                 </p>
               </div>
             ) : (
-              <RecallItem back={current?.back ?? ""} onGrade={answerRecall} />
+              <RecallItem back={current?.back ?? ""} onGrade={answerRecall} t={t} />
             )}
           </motion.div>
         </AnimatePresence>
@@ -515,7 +526,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
               onClick={answerCurrent}
               disabled={!answerable}
             >
-              {index + 1 >= items.length ? "Finish" : "Next"}
+              {index + 1 >= items.length ? t.test.finish : t.test.next}
               <ArrowRight />
             </Button>
           </div>
@@ -533,17 +544,25 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
  * them would quietly exclude the long-form material from every test, and that
  * is exactly what a board exam asks about.
  */
-function RecallItem({ back, onGrade }: { back: string; onGrade: (correct: boolean) => void }) {
+function RecallItem({
+  back,
+  onGrade,
+  t,
+}: {
+  back: string;
+  onGrade: (correct: boolean) => void;
+  t: Messages;
+}) {
   const [revealed, setRevealed] = useState(false);
 
   if (!revealed) {
     return (
       <div className="mt-6">
         <p className="text-muted-foreground text-sm">
-          Answer it in your head, then check yourself.
+          {t.test.answerInYourHead}
         </p>
         <Button className="mt-4 w-full" size="lg" onClick={() => setRevealed(true)}>
-          Show the answer
+          {t.test.showAnswer}
         </Button>
       </div>
     );
@@ -555,11 +574,11 @@ function RecallItem({ back, onGrade }: { back: string; onGrade: (correct: boolea
       <div className="mt-6 grid grid-cols-2 gap-2">
         <Button variant="outline" onClick={() => onGrade(false)}>
           <X />
-          Missed it
+          {t.test.missedIt}
         </Button>
         <Button variant="outline" onClick={() => onGrade(true)}>
           <Check />
-          Had it
+          {t.test.hadIt}
         </Button>
       </div>
     </div>
@@ -570,19 +589,26 @@ function Shell({
   exitHref,
   title,
   children,
+  t,
 }: {
   exitHref: string;
   title?: string;
   children: React.ReactNode;
+  t: Messages;
 }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center gap-4 px-4 py-3 md:px-6">
-        <Button variant="ghost" size="icon" aria-label="Leave the test" render={<Link href={exitHref} />}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t.test.leave}
+          render={<Link href={exitHref} />}
+        >
           <X />
         </Button>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">{title ?? "Test"}</div>
+          <div className="truncate text-sm font-medium">{title ?? t.test.title}</div>
         </div>
       </header>
       {children}

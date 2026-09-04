@@ -112,6 +112,17 @@ export const RATE_LIMITS = {
     windowSeconds: 3600,
   },
   /**
+   * Tala, the in-app companion. Keyed on the ACCOUNT rather than the address,
+   * unlike everything else here: a school computer lab is one IP, and one
+   * student holding a conversation must not lock out the room. There is a
+   * verified account behind every call, so the account is the honest subject.
+   */
+  companion: {
+    scope: "companion",
+    limit: envLimit("RATE_LIMIT_COMPANION", 60),
+    windowSeconds: 3600,
+  },
+  /**
    * The landing-page assistant. The tightest limit here, and the only one
    * guarding an endpoint that spends money for someone who has not signed up:
    * there is no account, no quota and no cooldown behind it, so this and App
@@ -130,22 +141,6 @@ export const RATE_LIMITS = {
     windowSeconds: 3600,
   },
 } satisfies Record<string, RateLimitRule>;
-
-/**
- * Best-effort client address.
- *
- * `x-forwarded-for` is client-controlled in general, but on Vercel the proxy
- * rewrites it, so the FIRST entry is the real peer. Reading the last entry, or
- * trusting the header off-platform, would let a caller spoof their way around
- * the limit — so a request with no usable address is limited under a shared
- * key rather than waved through.
- */
-export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const first = forwarded?.split(",")[0]?.trim();
-  if (first) return first;
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
 
 export async function checkRateLimit(
   rule: RateLimitRule,
@@ -221,3 +216,6 @@ export function rateLimitedResponse(result: RateLimitResult, what: string) {
     { status: 429, headers: { "retry-after": String(result.retryAfter) } },
   );
 }
+
+// Re-exported so every route keeps importing its limit key from one place.
+export { clientIp } from "@/lib/net/client-ip";

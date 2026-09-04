@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/providers/i18n-provider";
 import { STRANDS } from "@/lib/curriculum";
 import { cn } from "@/lib/utils";
 
@@ -23,9 +24,11 @@ const SAMPLE_SUBJECTS = [
 ];
 
 export function SetupFlow() {
+  const { t } = useI18n();
+
   return (
     <div className="mt-14 border-t pt-10">
-      <p className="font-medium">Three questions and you are studying.</p>
+      <p className="font-medium">{t.marketing.local.setupTitle}</p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         {/* 1 — school */}
@@ -33,7 +36,7 @@ export function SetupFlow() {
           <div className="flex items-center gap-2.5">
             <span className="font-display text-primary text-[13px] font-semibold">01</span>
             <span className="text-muted-foreground text-[13px] font-medium">
-              Your school
+              {t.marketing.local.yourSchool}
             </span>
           </div>
 
@@ -53,7 +56,7 @@ export function SetupFlow() {
           </div>
 
           <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-            Type anything — your school does not have to be on a list.
+            {t.marketing.local.schoolHint}
           </p>
         </div>
 
@@ -62,7 +65,7 @@ export function SetupFlow() {
           <div className="flex items-center gap-2.5">
             <span className="font-display text-primary text-[13px] font-semibold">02</span>
             <span className="text-muted-foreground text-[13px] font-medium">
-              Your strand
+              {t.marketing.local.yourStrand}
             </span>
           </div>
 
@@ -87,7 +90,7 @@ export function SetupFlow() {
           </div>
 
           <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-            College instead? You pick a degree program here.
+            {t.marketing.local.strandHint}
           </p>
         </div>
 
@@ -96,7 +99,7 @@ export function SetupFlow() {
           <div className="flex items-center gap-2.5">
             <span className="font-display text-primary text-[13px] font-semibold">03</span>
             <span className="text-muted-foreground text-[13px] font-medium">
-              Your subjects
+              {t.marketing.local.yourSubjects}
             </span>
           </div>
 
@@ -114,12 +117,12 @@ export function SetupFlow() {
               </span>
             ))}
             <span className="border-primary/50 text-primary flex h-8 items-center rounded-full border border-dashed px-3 text-[12.5px]">
-              + Add your own
+              {t.marketing.local.addYourOwn}
             </span>
           </div>
 
           <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-            Every note and set is tagged with one, so nothing gets mixed up.
+            {t.marketing.local.subjectsHint}
           </p>
         </div>
       </div>

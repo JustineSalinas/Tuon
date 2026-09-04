@@ -6,13 +6,13 @@ import { motion } from "motion/react";
 import { AlertTriangle, Lock, Table2, TrendingUp } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { useNow } from "@/lib/hooks/use-now";
 import { useReviewCards } from "@/lib/hooks/use-review-cards";
 import { PLANS, UPGRADE_TARGET, planCan } from "@/lib/ai/config";
 import {
   AT_RISK_EASE,
-  MATURITY_HINTS,
-  MATURITY_LABELS,
   buildForecast,
   difficultyOf,
   maturityBreakdown,
@@ -35,6 +35,7 @@ const STAGE_COLOR: Record<MaturityStage, string> = {
 
 export default function StatsPage() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { cards, loading } = useReviewCards(user?.uid);
   const now = useNow(60_000);
   const [showTable, setShowTable] = useState(false);
@@ -45,16 +46,30 @@ export default function StatsPage() {
   const maturity = useMemo(() => maturityBreakdown(cards), [cards]);
   const forecast = useMemo(() => buildForecast(cards, now), [cards, now]);
 
-  if (!allowed) return <Upsell />;
+  // Stage names, keyed by stage, so the catalogue can hold them side by side.
+  const STAGE_LABEL = {
+    new: t.stats.maturity.new,
+    learning: t.stats.maturity.learning,
+    young: t.stats.maturity.young,
+    mature: t.stats.maturity.matureStage,
+  } as const;
+  const STAGE_HINT = {
+    new: t.stats.maturity.newHint,
+    learning: t.stats.maturity.learningHint,
+    young: t.stats.maturity.youngHint,
+    mature: t.stats.maturity.matureHint,
+  } as const;
+
+  if (!allowed) return <Upsell t={t} />;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
       <header>
         <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Retention
+          {t.stats.title}
         </h1>
         <p className="text-muted-foreground mt-1.5 text-sm">
-          What your schedule looks like, and which cards are slipping.
+          {t.stats.subtitle}
         </p>
       </header>
 
@@ -64,7 +79,7 @@ export default function StatsPage() {
           <Skeleton className="h-56 w-full rounded-2xl" />
         </div>
       ) : summary.reviewed === 0 ? (
-        <NothingYet hasCards={cards.length > 0} />
+        <NothingYet hasCards={cards.length > 0} t={t} />
       ) : (
         <>
           {/* --- Headline. A single number, not a chart. ----------------- */}
@@ -86,27 +101,29 @@ export default function StatsPage() {
                 ) : (
                   <TrendingUp className="text-success size-3.5" />
                 )}
-                Keep forgetting
+                {t.stats.keepForgetting}
               </div>
               <div className="font-display mt-2 text-4xl font-semibold tabular-nums">
                 {summary.atRisk.length}
               </div>
               <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
                 {summary.atRisk.length > 0
-                  ? "cards you have failed repeatedly"
-                  : "nothing is giving you trouble"}
+                  ? t.stats.failedRepeatedly
+                  : t.stats.nothingTroubling}
               </p>
             </div>
 
             <StatTile
-              label="Due now"
+              label={t.stats.dueNow}
               value={summary.overdue}
-              hint={summary.overdue > 0 ? "waiting for you" : "all caught up"}
+              hint={
+                summary.overdue > 0 ? t.stats.waitingForYou : t.stats.allCaughtUp
+              }
             />
             <StatTile
-              label="Mature"
+              label={t.stats.mature}
               value={`${Math.round(summary.matureShare * 100)}%`}
-              hint="coming back a month or more out"
+              hint={t.stats.matureHint}
             />
           </motion.section>
 
@@ -115,10 +132,10 @@ export default function StatsPage() {
             <div className="flex items-baseline justify-between gap-3">
               <div>
                 <h2 className="font-display text-lg font-semibold tracking-tight">
-                  Next two weeks
+                  {t.stats.nextTwoWeeks}
                 </h2>
                 <p className="text-muted-foreground mt-0.5 text-sm">
-                  How many cards come back each day.
+                  {t.stats.perDay}
                 </p>
               </div>
               <Button
@@ -128,24 +145,24 @@ export default function StatsPage() {
                 aria-pressed={showTable}
               >
                 <Table2 />
-                {showTable ? "Chart" : "Table"}
+                {showTable ? t.stats.chart : t.stats.table}
               </Button>
             </div>
 
             {showTable ? (
-              <ForecastTable forecast={forecast} />
+              <ForecastTable forecast={forecast} t={t} />
             ) : (
-              <ForecastChart forecast={forecast} />
+              <ForecastChart forecast={forecast} t={t} />
             )}
           </section>
 
           {/* --- Maturity: ordered stages of one pipeline. --------------- */}
           <section className="mt-10">
             <h2 className="font-display text-lg font-semibold tracking-tight">
-              Where your cards are
+              {t.stats.whereCardsAre}
             </h2>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Every card moves left to right as you keep remembering it.
+              {t.stats.whereCardsAreHint}
             </p>
 
             <div className="mt-4 flex h-11 w-full gap-[2px] overflow-hidden rounded-xl">
@@ -158,7 +175,7 @@ export default function StatsPage() {
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                     style={{ backgroundColor: STAGE_COLOR[stage], flexBasis: 0 }}
                     className="min-w-1 first:rounded-l-xl last:rounded-r-xl"
-                    title={`${MATURITY_LABELS[stage]}: ${count}`}
+                    title={t.stats.stageCount(STAGE_LABEL[stage], count)}
                   />
                 ),
               )}
@@ -175,11 +192,11 @@ export default function StatsPage() {
                   />
                   <div className="min-w-0">
                     <dt className="text-sm font-medium">
-                      {MATURITY_LABELS[stage]}{" "}
+                      {STAGE_LABEL[stage]}{" "}
                       <span className="text-muted-foreground tabular-nums">{count}</span>
                     </dt>
                     <dd className="text-muted-foreground text-xs leading-snug">
-                      {MATURITY_HINTS[stage]}
+                      {STAGE_HINT[stage]}
                     </dd>
                   </div>
                 </div>
@@ -191,11 +208,10 @@ export default function StatsPage() {
           {summary.atRisk.length > 0 ? (
             <section className="mt-10">
               <h2 className="font-display text-lg font-semibold tracking-tight">
-                Cards you keep forgetting
+                {t.stats.atRiskTitle}
               </h2>
               <p className="text-muted-foreground mt-0.5 text-sm">
-                Ease has dropped below {AT_RISK_EASE.toFixed(1)} — usually a sign
-                the card is doing too much at once. Consider splitting it.
+                {t.stats.atRiskHint(AT_RISK_EASE.toFixed(1))}
               </p>
 
               <div className="mt-4 divide-y rounded-xl border">
@@ -221,7 +237,7 @@ export default function StatsPage() {
                           />
                         </div>
                         <p className="text-muted-foreground mt-1 text-right text-[11px] tabular-nums">
-                          ease {(card.log?.easeFactor ?? 0).toFixed(2)}
+                          {t.stats.ease((card.log?.easeFactor ?? 0).toFixed(2))}
                         </p>
                       </div>
                     </Link>
@@ -254,7 +270,7 @@ function StatTile({
   );
 }
 
-function ForecastChart({ forecast }: { forecast: ForecastDay[] }) {
+function ForecastChart({ forecast, t }: { forecast: ForecastDay[]; t: Messages }) {
   const max = Math.max(1, ...forecast.map((d) => d.count));
 
   return (
@@ -274,7 +290,9 @@ function ForecastChart({ forecast }: { forecast: ForecastDay[] }) {
               >
                 <div className="font-medium tabular-nums">{day.count}</div>
                 <div className="text-muted-foreground whitespace-nowrap">
-                  {day.isOverdue ? "overdue" : formatDay(day.date)}
+                  {day.isOverdue
+                    ? t.stats.overdue
+                    : formatDay(day.date, t.common.dateLocale)}
                 </div>
               </div>
 
@@ -307,11 +325,11 @@ function ForecastChart({ forecast }: { forecast: ForecastDay[] }) {
         {forecast.map((day, index) => (
           <div key={day.key} className="flex-1 text-center">
             {day.isOverdue ? (
-              <span className="text-destructive font-medium">late</span>
+              <span className="text-destructive font-medium">{t.stats.late}</span>
             ) : day.isToday ? (
-              <span className="text-foreground font-medium">today</span>
+              <span className="text-foreground font-medium">{t.stats.today}</span>
             ) : index === forecast.length - 1 ? (
-              formatDay(day.date)
+              formatDay(day.date, t.common.dateLocale)
             ) : (
               ""
             )}
@@ -322,18 +340,18 @@ function ForecastChart({ forecast }: { forecast: ForecastDay[] }) {
   );
 }
 
-function ForecastTable({ forecast }: { forecast: ForecastDay[] }) {
+function ForecastTable({ forecast, t }: { forecast: ForecastDay[]; t: Messages }) {
   return (
     <div className="mt-4 overflow-x-auto rounded-xl border">
       <table className="w-full text-sm">
-        <caption className="sr-only">Cards due per day for the next two weeks</caption>
+        <caption className="sr-only">{t.stats.tableCaption}</caption>
         <thead className="bg-secondary/50 text-muted-foreground">
           <tr>
             <th scope="col" className="px-4 py-2 text-left font-medium">
-              Day
+              {t.stats.day}
             </th>
             <th scope="col" className="px-4 py-2 text-right font-medium">
-              Cards due
+              {t.stats.cardsDue}
             </th>
           </tr>
         </thead>
@@ -342,11 +360,13 @@ function ForecastTable({ forecast }: { forecast: ForecastDay[] }) {
             <tr key={day.key}>
               <td className="px-4 py-2">
                 {day.isOverdue ? (
-                  <span className="text-destructive font-medium">Overdue</span>
+                  <span className="text-destructive font-medium">
+                    {t.stats.overdueRow}
+                  </span>
                 ) : day.isToday ? (
-                  <span className="font-medium">Today</span>
+                  <span className="font-medium">{t.stats.todayRow}</span>
                 ) : (
-                  formatDay(day.date)
+                  formatDay(day.date, t.common.dateLocale)
                 )}
               </td>
               <td className="px-4 py-2 text-right tabular-nums">{day.count}</td>
@@ -358,25 +378,24 @@ function ForecastTable({ forecast }: { forecast: ForecastDay[] }) {
   );
 }
 
-function NothingYet({ hasCards }: { hasCards: boolean }) {
+function NothingYet({ hasCards, t }: { hasCards: boolean; t: Messages }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed py-14 text-center">
       <PaperCreature state="idle" className="mx-auto size-28" />
       <h2 className="font-display mt-2 text-lg font-semibold tracking-tight">
-        No review history yet
+        {t.stats.noHistory}
       </h2>
       <p className="text-muted-foreground mx-auto mt-1.5 max-w-xs text-sm leading-relaxed">
-        Review a few cards and this fills in — what you are about to forget, and
-        how heavy the week ahead looks.
+        {t.stats.noHistoryHint}
       </p>
       <Button className="mt-6" render={<Link href={hasCards ? "/app/review" : "/app/notes/new"} />}>
-        {hasCards ? "Start reviewing" : "Make a study set"}
+        {hasCards ? t.stats.startReviewing : t.stats.makeASet}
       </Button>
     </div>
   );
 }
 
-function Upsell() {
+function Upsell({ t }: { t: Messages }) {
   const upgrade = PLANS[UPGRADE_TARGET];
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-md place-items-center px-6 text-center">
@@ -385,22 +404,21 @@ function Upsell() {
           <Lock className="text-muted-foreground size-5" />
         </div>
         <h1 className="font-display mt-5 text-2xl font-semibold tracking-tight">
-          Retention stats are part of {upgrade.name}
+          {t.stats.lockedTitle(upgrade.name)}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-          See which cards you keep forgetting and how heavy the week ahead looks,
-          from ₱{upgrade.phpMonthly} a month.
+          {t.stats.lockedBody(upgrade.phpMonthly)}
         </p>
         <Button className="mt-6" render={<Link href="/app/settings" />}>
-          See plans
+          {t.stats.seePlans}
         </Button>
       </div>
     </main>
   );
 }
 
-function formatDay(date: Date): string {
-  return new Intl.DateTimeFormat("en-PH", {
+function formatDay(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     weekday: "short",
     day: "numeric",
     timeZone: "Asia/Manila",

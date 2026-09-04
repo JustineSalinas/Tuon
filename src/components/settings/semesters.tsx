@@ -20,6 +20,8 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import {
   MAX_SEMESTERS,
   MAX_SEMESTER_NAME,
@@ -40,6 +42,7 @@ import { cn } from "@/lib/utils";
 
 export function Semesters() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
   const semesters = useMemo(
@@ -65,24 +68,27 @@ export function Semesters() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not save that change.");
+      toast.error(t.settingsPage.changeFailed);
     }
     setBusy(false);
   }
 
   /** First use: fold whatever subjects the account already has into term one. */
   async function begin() {
-    await save([seedFromCourses(profile?.courses ?? [])], null);
+    await save(
+      [seedFromCourses(profile?.courses ?? [], t.semesters.ordinal)],
+      null,
+    );
   }
 
   async function addSemester() {
     if (semesters.length >= MAX_SEMESTERS) {
-      toast.info(`${MAX_SEMESTERS} semesters is the most Tuón keeps.`);
+      toast.info(t.semesters.atMost(MAX_SEMESTERS));
       return;
     }
     const created: Semester = {
       id: newSemesterId(),
-      name: defaultSemesterName(semesters.length),
+      name: defaultSemesterName(semesters.length, t.semesters.ordinal),
       subjects: [],
     };
     await save([...semesters, created], created.id);
@@ -91,15 +97,13 @@ export function Semesters() {
   if (semesters.length === 0) {
     return (
       <div id="semesters" className="scroll-mt-20">
-        <Heading />
+        <Heading t={t} />
         <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
-          Right now your subjects are one flat list. Split them into terms and
-          Tuón shows you the ones you are taking now, while last term&rsquo;s
-          notes and cards stay exactly where they are.
+          {t.semesters.firstRun}
         </p>
         <Button className="mt-3" variant="outline" size="sm" onClick={begin} disabled={busy}>
           {busy ? <Loader2 className="animate-spin" /> : <GraduationCap />}
-          Set up semesters
+          {t.semesters.setUp}
         </Button>
       </div>
     );
@@ -107,10 +111,9 @@ export function Semesters() {
 
   return (
     <div id="semesters" className="scroll-mt-20">
-      <Heading />
+      <Heading t={t} />
       <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
-        The term you mark as current decides which subjects appear when you tag
-        a note or a study set. Older terms keep everything in them.
+        {t.semesters.hint}
       </p>
 
       <div className="mt-3 space-y-3">
@@ -120,6 +123,7 @@ export function Semesters() {
             semester={semester}
             isActive={semester.id === active?.id}
             busy={busy}
+            t={t}
             onMakeActive={() => save(semesters, semester.id)}
             onRename={(name) =>
               save(
@@ -149,17 +153,17 @@ export function Semesters() {
         disabled={busy || semesters.length >= MAX_SEMESTERS}
       >
         <Plus />
-        Add a semester
+        {t.semesters.addSemester}
       </Button>
     </div>
   );
 }
 
-function Heading() {
+function Heading({ t }: { t: Messages }) {
   return (
     <p className="flex items-center gap-2 text-sm font-medium">
       <GraduationCap className="text-muted-foreground size-4" />
-      Semesters
+      {t.semesters.title}
     </p>
   );
 }
@@ -172,10 +176,12 @@ function SemesterCard({
   onRename,
   onSubjects,
   onDelete,
+  t,
 }: {
   semester: Semester;
   isActive: boolean;
   busy: boolean;
+  t: Messages;
   onMakeActive: () => void;
   onRename: (name: string) => void;
   onSubjects: (subjects: string[]) => void;
@@ -191,7 +197,7 @@ function SemesterCard({
       // Either blank, a duplicate, or the term is full — all three are better
       // said than silently ignored.
       if (semester.subjects.length >= MAX_SUBJECTS_PER_SEMESTER) {
-        toast.info(`That term already has ${MAX_SUBJECTS_PER_SEMESTER} subjects.`);
+        toast.info(t.semesters.termFull(MAX_SUBJECTS_PER_SEMESTER));
       }
       setDraft("");
       return;
@@ -239,7 +245,7 @@ function SemesterCard({
             </Button>
             <button
               type="button"
-              aria-label="Cancel"
+              aria-label={t.common.cancel}
               onClick={() => {
                 setName(semester.name);
                 setRenaming(false);
@@ -260,16 +266,16 @@ function SemesterCard({
             </button>
             {isActive ? (
               <Badge variant="secondary" className="text-primary">
-                Current
+                {t.semesters.current}
               </Badge>
             ) : (
               <Button variant="ghost" size="sm" onClick={onMakeActive} disabled={busy}>
-                Make current
+                {t.semesters.makeCurrent}
               </Button>
             )}
             <button
               type="button"
-              aria-label={`Delete ${semester.name}`}
+              aria-label={t.semesters.deleteTerm(semester.name)}
               onClick={onDelete}
               disabled={busy}
               className="text-muted-foreground hover:text-destructive ml-auto grid size-7 place-items-center rounded-md transition-colors"
@@ -289,7 +295,7 @@ function SemesterCard({
             {subject}
             <button
               type="button"
-              aria-label={`Remove ${subject}`}
+              aria-label={t.semesters.removeSubject(subject)}
               onClick={() =>
                 onSubjects(semester.subjects.filter((s) => s !== subject))
               }
@@ -301,7 +307,9 @@ function SemesterCard({
           </span>
         ))}
         {semester.subjects.length === 0 ? (
-          <span className="text-muted-foreground text-xs">No subjects yet.</span>
+          <span className="text-muted-foreground text-xs">
+            {t.semesters.noSubjectsYet}
+          </span>
         ) : null}
       </div>
 
@@ -315,22 +323,21 @@ function SemesterCard({
               addSubject();
             }
           }}
-          placeholder="Add a subject"
-          aria-label={`Add a subject to ${semester.name}`}
+          placeholder={t.semesters.addASubject}
+          aria-label={t.semesters.addSubjectTo(semester.name)}
           maxLength={80}
           className="h-8 max-w-56"
         />
         <Button size="sm" variant="outline" onClick={addSubject} disabled={!draft.trim() || busy}>
           <Plus />
-          Add
+          {t.common.add}
         </Button>
       </div>
 
       {/* Said once per card, because removing a subject looks destructive and
           is not. */}
       <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
-        Removing a subject here only takes it off this term&rsquo;s list. Notes
-        and study sets tagged with it are untouched.
+        {t.semesters.removalNote}
       </p>
     </div>
   );

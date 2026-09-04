@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { useNow } from "@/lib/hooks/use-now";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import {
@@ -16,16 +18,16 @@ import {
   type ReviewCard,
 } from "@/lib/hooks/use-review-cards";
 import { Organiser } from "@/components/organiser/organiser";
+import { StudyHeatmap } from "@/components/app/study-heatmap";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-
 export default function CalendarPage() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { cards, loading } = useReviewCards(user?.uid);
   const { timeZone } = usePreferences();
   const now = useNow(60_000);
@@ -39,8 +41,8 @@ export default function CalendarPage() {
   const waiting = buckets.due.length + buckets.fresh.length;
 
   const month = useMemo(
-    () => buildMonth(now, monthOffset, timeZone),
-    [now, monthOffset, timeZone],
+    () => buildMonth(now, monthOffset, timeZone, t.common.dateLocale),
+    [now, monthOffset, timeZone, t.common.dateLocale],
   );
 
   const selectedCards = selected ? (forecast.get(selected) ?? []) : [];
@@ -50,16 +52,15 @@ export default function CalendarPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
-            Calendar
+            {t.calendar.title}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm">
-            When each card comes back. Spaced repetition decides the dates — you
-            just show up.
+            {t.calendar.subtitle}
           </p>
         </div>
         {waiting > 0 ? (
           <Button size="lg" render={<Link href="/app/review" />}>
-            Review {waiting} now
+            {t.calendar.reviewNow(waiting)}
           </Button>
         ) : null}
       </header>
@@ -67,7 +68,7 @@ export default function CalendarPage() {
       {loading ? (
         <Skeleton className="mt-8 h-96 w-full rounded-2xl" />
       ) : cards.length === 0 ? (
-        <EmptyCalendar />
+        <EmptyCalendar t={t} />
       ) : (
         <>
           {/* Month navigation */}
@@ -79,20 +80,20 @@ export default function CalendarPage() {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Previous month"
+                aria-label={t.calendar.previousMonth}
                 onClick={() => setMonthOffset((m) => m - 1)}
               >
                 <ChevronLeft />
               </Button>
               {monthOffset !== 0 ? (
                 <Button variant="ghost" size="sm" onClick={() => setMonthOffset(0)}>
-                  Today
+                  {t.common.today}
                 </Button>
               ) : null}
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Next month"
+                aria-label={t.calendar.nextMonth}
                 onClick={() => setMonthOffset((m) => m + 1)}
               >
                 <ChevronRight />
@@ -103,7 +104,7 @@ export default function CalendarPage() {
           {/* Grid */}
           <div className="bg-card mt-4 overflow-hidden rounded-2xl border">
             <div className="text-muted-foreground grid grid-cols-7 border-b text-center text-xs">
-              {WEEKDAYS.map((day) => (
+              {t.common.weekdaysNarrow.map((day) => (
                 <div key={day} className="py-2 font-medium">
                   {day}
                 </div>
@@ -160,7 +161,7 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <Legend />
+          <Legend t={t} />
 
           {/* Selected day */}
           {selected ? (
@@ -168,6 +169,7 @@ export default function CalendarPage() {
               dayKeyValue={selected}
               cards={selectedCards}
               isPast={selected < todayKey}
+              t={t}
             />
           ) : null}
         </>
@@ -178,22 +180,34 @@ export default function CalendarPage() {
           hiding their timetable until they have generated a study set would
           be backwards. */}
       <Organiser todayKey={todayKey} />
+
+      {/* The year, moved off the dashboard. It belongs with the rest of "your
+          time" rather than under today's plan, and this is where the
+          dashboard's own link has always pointed. */}
+      <section className="mt-10">
+        <h2 className="font-display text-lg font-semibold tracking-tight">
+          {t.dashboard.yearOfStudy}
+        </h2>
+        <div className="mt-3">
+          <StudyHeatmap />
+        </div>
+      </section>
     </main>
   );
 }
 
-function Legend() {
+function Legend({ t }: { t: Messages }) {
   return (
     <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-4 text-xs">
       <span className="flex items-center gap-1.5">
         <span className="bg-primary size-2.5 rounded-full" />
-        Scheduled
+        {t.calendar.scheduled}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="bg-destructive size-2.5 rounded-full" />
-        Overdue
+        {t.calendar.overdue}
       </span>
-      <span>Tap a day to see which cards.</span>
+      <span>{t.calendar.tapADay}</span>
     </div>
   );
 }
@@ -202,10 +216,12 @@ function DayDetail({
   dayKeyValue,
   cards,
   isPast,
+  t,
 }: {
   dayKeyValue: string;
   cards: ReviewCard[];
   isPast: boolean;
+  t: Messages;
 }) {
   const bySet = useMemo(() => {
     const map = new Map<string, { title: string; count: number }>();
@@ -225,16 +241,16 @@ function DayDetail({
       className="mt-6"
     >
       <h2 className="font-display text-lg font-semibold tracking-tight">
-        {formatDayLabel(dayKeyValue)}
+        {formatDayLabel(dayKeyValue, t.common.dateLocale)}
       </h2>
 
       {cards.length === 0 ? (
-        <p className="text-muted-foreground mt-2 text-sm">Nothing scheduled.</p>
+        <p className="text-muted-foreground mt-2 text-sm">{t.calendar.nothingScheduled}</p>
       ) : (
         <>
           <p className="text-muted-foreground mt-1 text-sm">
-            {cards.length} {cards.length === 1 ? "card" : "cards"}
-            {isPast ? " — overdue" : ""}
+            {t.common.cards(cards.length)}
+            {isPast ? t.calendar.overdueSuffix : ""}
           </p>
           <div className="mt-3 grid gap-2">
             {bySet.map(([setId, entry]) => (
@@ -258,20 +274,19 @@ function DayDetail({
   );
 }
 
-function EmptyCalendar() {
+function EmptyCalendar({ t }: { t: Messages }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed py-14 text-center">
       <PaperCreature state="asleep" className="mx-auto size-28" />
       <h2 className="font-display mt-2 text-lg font-semibold tracking-tight">
-        Nothing scheduled yet
+        {t.calendar.noneYet}
       </h2>
       <p className="text-muted-foreground mx-auto mt-1.5 max-w-xs text-sm leading-relaxed">
-        Once you review a card for the first time, it lands on this calendar —
-        and comes back right before you would have forgotten it.
+        {t.calendar.noneYetHint}
       </p>
       <Button className="mt-6" render={<Link href="/app/notes/new" />}>
         <CalendarDays />
-        Make a study set
+        {t.calendar.makeASet}
       </Button>
     </div>
   );
@@ -288,11 +303,12 @@ function buildMonth(
   now: number,
   offset: number,
   timeZone: string,
+  locale: string,
 ): { label: string; days: MonthDay[] } {
   const base = new Date(now);
   const first = new Date(base.getFullYear(), base.getMonth() + offset, 1);
 
-  const label = new Intl.DateTimeFormat("en-PH", {
+  const label = new Intl.DateTimeFormat(locale, {
     month: "long",
     year: "numeric",
   }).format(first);
@@ -313,9 +329,9 @@ function buildMonth(
   return { label, days };
 }
 
-function formatDayLabel(key: string): string {
+function formatDayLabel(key: string, locale: string): string {
   const [year, month, day] = key.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-PH", {
+  return new Intl.DateTimeFormat(locale, {
     weekday: "long",
     month: "long",
     day: "numeric",

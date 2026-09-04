@@ -19,6 +19,8 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import { renderGroupError } from "@/lib/i18n/format";
 import { callGroups } from "@/lib/groups/client";
 import { MAX_GROUP_NAME, normaliseInviteCode } from "@/lib/groups/invite";
 import type { StudyGroup } from "@/lib/types";
@@ -31,17 +33,18 @@ import { PaperCreature } from "@/components/brand/paper-creature";
 
 export default function GroupsPage() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const groupIds = useMemo(() => profile?.groupIds ?? [], [profile?.groupIds]);
   const { groups, loading } = useMyGroups(groupIds);
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 md:px-8 md:py-10">
       <header>
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Study groups</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">
+          {t.groups.title}
+        </h1>
         <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
-          Small, invite-only, and private. There is no directory and no way to
-          find a group you were not invited to — these are for people who
-          already study together.
+          {t.groups.subtitle}
         </p>
       </header>
 
@@ -56,8 +59,7 @@ export default function GroupsPage() {
         <div className="mt-10 rounded-2xl border border-dashed py-12 text-center">
           <PaperCreature state="idle" className="mx-auto size-24" />
           <p className="text-muted-foreground mx-auto mt-3 max-w-sm text-sm leading-relaxed">
-            No groups yet. Make one for your class or review batch, or paste a
-            code someone sent you.
+            {t.groups.noneYet}
           </p>
         </div>
       ) : (
@@ -72,7 +74,7 @@ export default function GroupsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{group.name}</p>
                   <p className="text-muted-foreground mt-0.5 text-sm">
-                    {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
+                    {t.common.members(group.memberCount)}
                   </p>
                 </div>
                 {group.courseTag ? (
@@ -135,6 +137,7 @@ function useMyGroups(groupIds: string[]) {
 }
 
 function CreateGroup({ disabled }: { disabled: boolean }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -151,7 +154,7 @@ function CreateGroup({ disabled }: { disabled: boolean }) {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error(result.error ?? "Could not create that group.");
+      toast.error(renderGroupError(result, t));
       return;
     }
     // Shown here and nowhere else, ever. Invite codes are not readable from a
@@ -175,9 +178,9 @@ function CreateGroup({ disabled }: { disabled: boolean }) {
         className="hover:border-primary/40 hover:bg-accent/20 rounded-2xl border p-5 text-left transition-colors disabled:opacity-60"
       >
         <Plus className="text-muted-foreground size-5" />
-        <div className="mt-3 font-medium">Start a group</div>
+        <div className="mt-3 font-medium">{t.groups.startAGroup}</div>
         <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-          For a class, a barkada, or a review batch
+          {t.groups.startAGroupHint}
         </p>
       </button>
     );
@@ -186,7 +189,7 @@ function CreateGroup({ disabled }: { disabled: boolean }) {
   return (
     <div className="bg-card rounded-2xl border p-5">
       <Label htmlFor="group-name" className="text-sm font-medium">
-        Group name
+        {t.groups.groupName}
       </Label>
       <Input
         id="group-name"
@@ -195,7 +198,7 @@ function CreateGroup({ disabled }: { disabled: boolean }) {
         onKeyDown={(e) => {
           if (e.key === "Enter") void submit();
         }}
-        placeholder="STEM 12-A Biology"
+        placeholder={t.groups.groupNamePlaceholder}
         maxLength={MAX_GROUP_NAME}
         autoFocus
         className="mt-2"
@@ -203,10 +206,10 @@ function CreateGroup({ disabled }: { disabled: boolean }) {
       <div className="mt-3 flex gap-2">
         <Button onClick={submit} disabled={!name.trim() || busy}>
           {busy ? <Loader2 className="animate-spin" /> : <Plus />}
-          Create
+          {t.groups.create}
         </Button>
         <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
-          Cancel
+          {t.common.cancel}
         </Button>
       </div>
     </div>
@@ -226,14 +229,14 @@ function NewGroupCode({
   created: { name: string; code: string };
   onDone: () => void;
 }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
   return (
     <div className="border-primary/40 bg-accent/40 rounded-2xl border p-5">
-      <p className="text-sm font-medium">{created.name} is ready</p>
+      <p className="text-sm font-medium">{t.groups.isReady(created.name)}</p>
       <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-        Send this code to the people you want in. It is only shown now, and it
-        stops working after two weeks.
+        {t.groups.codeOnce}
       </p>
       <p className="font-display mt-3 text-3xl font-semibold tracking-[0.2em] tabular-nums">
         {created.code}
@@ -248,15 +251,15 @@ function NewGroupCode({
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             } catch {
-              toast.error("Could not copy that. Write it down instead.");
+              toast.error(t.groups.copyFailed);
             }
           }}
         >
           {copied ? <Check /> : <Copy />}
-          {copied ? "Copied" : "Copy code"}
+          {copied ? t.groups.copied : t.groups.copyCode}
         </Button>
         <Button variant="ghost" size="sm" onClick={onDone}>
-          I have saved it
+          {t.groups.savedIt}
         </Button>
       </div>
     </div>
@@ -264,6 +267,7 @@ function NewGroupCode({
 }
 
 function JoinGroup({ disabled }: { disabled: boolean }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -276,10 +280,10 @@ function JoinGroup({ disabled }: { disabled: boolean }) {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error(result.error ?? "Could not join that group.");
+      toast.error(renderGroupError(result, t));
       return;
     }
-    toast.success("You are in.");
+    toast.success(t.groups.joined);
     setCode("");
     setOpen(false);
   }
@@ -293,9 +297,9 @@ function JoinGroup({ disabled }: { disabled: boolean }) {
         className="hover:border-primary/40 hover:bg-accent/20 rounded-2xl border p-5 text-left transition-colors disabled:opacity-60"
       >
         <UserPlus className="text-muted-foreground size-5" />
-        <div className="mt-3 font-medium">Join with a code</div>
+        <div className="mt-3 font-medium">{t.groups.joinWithCode}</div>
         <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-          Someone in the group has to send you one
+          {t.groups.joinHint}
         </p>
       </button>
     );
@@ -304,7 +308,7 @@ function JoinGroup({ disabled }: { disabled: boolean }) {
   return (
     <div className="bg-card rounded-2xl border p-5">
       <Label htmlFor="invite-code" className="text-sm font-medium">
-        Invite code
+        {t.groups.inviteCode}
       </Label>
       <Input
         id="invite-code"
@@ -322,10 +326,10 @@ function JoinGroup({ disabled }: { disabled: boolean }) {
       <div className="mt-3 flex gap-2">
         <Button onClick={submit} disabled={!code.trim() || busy}>
           {busy ? <Loader2 className="animate-spin" /> : <UserPlus />}
-          Join
+          {t.groups.join}
         </Button>
         <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
-          Cancel
+          {t.common.cancel}
         </Button>
       </div>
     </div>

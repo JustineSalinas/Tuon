@@ -112,7 +112,7 @@ console.log("\nFiles that cannot become notes");
 check("an empty file is reported, not imported", () => {
   const result = parseMarkdown("empty.md", "   \n\n  ");
   assert.ok(result.problem);
-  assert.match(result.problem.reason, /empty/i);
+  assert.equal(result.problem.reason, "empty");
 });
 
 check("a file with only front matter is reported", () => {
@@ -121,10 +121,12 @@ check("a file with only front matter is reported", () => {
 });
 
 check("an oversized file is reported with its size", () => {
-  // One bad file must not fail an import of forty.
+  // One bad file must not fail an import of forty. The reason is a key and
+  // the size travels beside it, so the view can say it in any language.
   const result = parseMarkdown("big.md", "x".repeat(MAX_CONTENT_CHARS + 1));
   assert.ok(result.problem);
-  assert.match(result.problem.reason, /Too long/);
+  assert.equal(result.problem.reason, "tooLong");
+  assert.equal(result.problem.length, MAX_CONTENT_CHARS + 1);
 });
 
 check("a very long title is trimmed rather than rejected", () => {

@@ -136,18 +136,20 @@ check("a missing ease factor is treated as healthy, not as shaky", () => {
   assert.equal(report.percent, 100);
 });
 
-console.log("\nThe sentence worth acting on");
+console.log("\nThe thing worth acting on");
 
 check("shaky cards are named before unreviewed ones", () => {
   // A card you keep failing is already costing review time; one you have never
   // seen has cost nothing yet.
   const report = buildMastery([shakyCard(10), null, null, null]);
-  assert.match(report.nextStep, /tripping you up/);
+  assert.equal(report.nextStep.kind, "shaky");
+  assert.equal(report.nextStep.count, 1);
 });
 
 check("unreviewed cards are named when nothing is shaky", () => {
   const report = buildMastery([card(30), null, null]);
-  assert.match(report.nextStep, /never been reviewed/);
+  assert.equal(report.nextStep.kind, "untouched");
+  assert.equal(report.nextStep.count, 2);
 });
 
 check("a set with nothing to fix says nothing", () => {
@@ -155,9 +157,12 @@ check("a set with nothing to fix says nothing", () => {
   assert.equal(buildMastery(repeat(card(60), 3)).nextStep, null);
 });
 
-check("the sentence is singular for one card", () => {
-  assert.match(buildMastery([shakyCard(5)]).nextStep, /1 card keeps/);
-  assert.match(buildMastery([null, card(60)]).nextStep, /1 card has/);
+check("the step is a key and a count, never a sentence", () => {
+  // The module is pure and cannot know what language the student reads, so
+  // the words are the view's job.
+  const step = buildMastery([shakyCard(5)]).nextStep;
+  assert.equal(typeof step.kind, "string");
+  assert.equal(typeof step.count, "number");
 });
 
 console.log(`\n${passed} checks passed.\n`);

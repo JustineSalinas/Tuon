@@ -23,11 +23,26 @@ export interface PdfExtractResult {
   title: string | null;
 }
 
+/**
+ * Why a PDF could not be read, as a key rather than a sentence.
+ *
+ * This module runs in the browser but knows nothing about locales, so it
+ * names the failure and leaves the wording to whoever is showing it — the
+ * same split `plan.ts` and `mastery.ts` make.
+ */
+export type PdfErrorCode =
+  | "tooLarge"
+  | "readerFailed"
+  | "passwordProtected"
+  | "unreadable"
+  | "noTextLayer";
+
 export class PdfExtractError extends Error {
   constructor(
     message: string,
-    /** Shown to the student verbatim. */
-    public readonly userMessage: string,
+    public readonly code: PdfErrorCode,
+    /** Only for "tooLarge": the file's size in MB, already rounded. */
+    public readonly sizeMb?: string,
   ) {
     super(message);
     this.name = "PdfExtractError";
@@ -55,9 +70,8 @@ export async function extractPdfText(
   if (file.size > MAX_PDF_BYTES) {
     throw new PdfExtractError(
       "file too large",
-      `That PDF is ${(file.size / 1024 / 1024).toFixed(1)}MB. The limit is ${
-        MAX_PDF_BYTES / 1024 / 1024
-      }MB — try splitting it into chapters.`,
+      "tooLarge",
+      (file.size / 1024 / 1024).toFixed(1),
     );
   }
 
@@ -67,7 +81,7 @@ export async function extractPdfText(
   } catch (error) {
     throw new PdfExtractError(
       `pdfjs failed to load: ${String(error)}`,
-      "Could not start the PDF reader. Please refresh and try again.",
+      "readerFailed",
     );
   }
 
@@ -89,12 +103,12 @@ export async function extractPdfText(
     if (message.includes("PasswordException") || message.includes("password")) {
       throw new PdfExtractError(
         "password protected",
-        "That PDF is password-protected. Remove the password and try again.",
+        "passwordProtected",
       );
     }
     throw new PdfExtractError(
       `getDocument failed: ${message}`,
-      "That file could not be read as a PDF. It may be corrupted.",
+      "unreadable",
     );
   }
 
@@ -133,7 +147,7 @@ export async function extractPdfText(
   if (text.length < 80) {
     throw new PdfExtractError(
       "no text layer",
-      "No readable text found. This looks like a scanned PDF or images of pages — Tuón cannot read those yet. Try a PDF exported from a document.",
+      "noTextLayer",
     );
   }
 

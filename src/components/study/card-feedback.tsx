@@ -6,6 +6,7 @@ import { ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,6 +38,7 @@ export function CardFeedback({
   flashcardId: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const [flagged, setFlagged] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -52,10 +54,10 @@ export function CardFeedback({
         flashcardId,
         reportedAt: serverTimestamp(),
       });
-      toast.success("Thanks — we'll look at this card.");
+      toast.success(t.cardFeedback.thanks);
     } catch {
       setFlagged(false);
-      toast.error("Could not send that just now.");
+      toast.error(t.cardFeedback.failed);
     }
     setSaving(false);
   }
@@ -65,7 +67,7 @@ export function CardFeedback({
       type="button"
       onClick={() => void flag()}
       disabled={flagged || saving}
-      aria-label={flagged ? "Reported as a bad card" : "Report this card as wrong"}
+      aria-label={flagged ? t.cardFeedback.reported : t.cardFeedback.report}
       aria-pressed={flagged}
       className={cn(
         "grid size-8 place-items-center rounded-lg transition-colors",
@@ -75,7 +77,9 @@ export function CardFeedback({
           : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted",
         className,
       )}
-      title={flagged ? "Reported" : "Something wrong with this card?"}
+      title={
+        flagged ? t.cardFeedback.reportedShort : t.cardFeedback.somethingWrong
+      }
     >
       <ThumbsDown className="size-4" aria-hidden="true" />
     </button>

@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, MailCheck } from "lucide-react";
 
 import { auth } from "@/lib/firebase/client";
 import { Wordmark } from "@/components/brand/logo";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
  * no route of ours to protect and no token for us to get wrong.
  */
 export function ResetPasswordForm() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
@@ -48,13 +50,13 @@ export function ResetPasswordForm() {
       if (code === "auth/user-not-found") {
         setSent(true);
       } else if (code === "auth/invalid-email") {
-        setError("That does not look like a valid email address.");
+        setError(t.auth.error.invalidEmail);
       } else if (code === "auth/too-many-requests") {
-        setError("Too many attempts. Please wait a few minutes and try again.");
+        setError(t.auth.error.tooManyResets);
       } else if (code === "auth/network-request-failed") {
-        setError("Cannot reach the network. Check your connection and try again.");
+        setError(t.auth.error.network);
       } else {
-        setError("Could not send the email just now. Please try again.");
+        setError(t.auth.error.resetFailed);
       }
       setPending(false);
     }
@@ -77,21 +79,20 @@ export function ResetPasswordForm() {
               <MailCheck className="size-5" />
             </div>
             <h1 className="font-display mt-5 text-3xl font-semibold tracking-tight">
-              Check your email
+              {t.auth.reset.sentHeading}
             </h1>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-              If an account exists for{" "}
-              <span className="text-foreground font-medium">{email.trim()}</span>,
-              a link to set a new password is on its way. It expires in an hour.
+              {t.auth.reset.sentBodyBefore}{" "}
+              <span className="text-foreground font-medium">{email.trim()}</span>
+              {t.auth.reset.sentBodyAfter}
             </p>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-              Nothing after a few minutes? Check spam, and make sure you typed
-              the address you signed up with.
+              {t.auth.reset.sentSpam}
             </p>
 
             <div className="mt-8 flex flex-col gap-3">
               <Button size="lg" render={<Link href="/login" />}>
-                Back to sign in
+                {t.auth.reset.backToSignIn}
               </Button>
               <Button
                 variant="ghost"
@@ -100,18 +101,17 @@ export function ResetPasswordForm() {
                   setPending(false);
                 }}
               >
-                Use a different address
+                {t.auth.reset.differentAddress}
               </Button>
             </div>
           </>
         ) : (
           <>
             <h1 className="font-display mt-8 text-3xl font-semibold tracking-tight">
-              Forgot your password?
+              {t.auth.reset.heading}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-              Type the email you signed up with and we will send you a link to
-              set a new one.
+              {t.auth.reset.body}
             </p>
 
             {error ? (
@@ -122,7 +122,7 @@ export function ResetPasswordForm() {
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
+                <Label htmlFor="reset-email">{t.auth.email}</Label>
                 <Input
                   id="reset-email"
                   type="email"
@@ -130,7 +130,7 @@ export function ResetPasswordForm() {
                   autoComplete="email"
                   required
                   autoFocus
-                  placeholder="juan@example.com"
+                  placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={pending}
@@ -141,10 +141,10 @@ export function ResetPasswordForm() {
                 {pending ? (
                   <>
                     <Loader2 className="animate-spin" />
-                    Sending…
+                    {t.auth.reset.sending}
                   </>
                 ) : (
-                  "Send the reset link"
+                  t.auth.reset.send
                 )}
               </Button>
             </form>
@@ -155,7 +155,7 @@ export function ResetPasswordForm() {
               render={<Link href="/login" />}
             >
               <ArrowLeft />
-              Back to sign in
+              {t.auth.reset.backToSignIn}
             </Button>
           </>
         )}

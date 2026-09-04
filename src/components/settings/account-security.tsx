@@ -16,6 +16,8 @@ import { requestVerificationEmail } from "@/lib/email/request-verification";
 
 import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -33,6 +35,7 @@ import { Separator } from "@/components/ui/separator";
  */
 export function AccountSecurity() {
   const { user } = useAuth();
+  const { t } = useI18n();
   if (!user) return null;
 
   const usesPassword = user.providerData.some((p) => p.providerId === "password");
@@ -40,7 +43,7 @@ export function AccountSecurity() {
   return (
     <section className="mt-8">
       <h2 className="font-display text-lg font-semibold tracking-tight">
-        Account &amp; security
+        {t.security.title}
       </h2>
 
       <div className="mt-4 space-y-6">
@@ -65,6 +68,7 @@ export function AccountSecurity() {
 
 function EmailRow() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [changing, setChanging] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,11 +84,11 @@ function EmailRow() {
     const outcome = await requestVerificationEmail(auth.currentUser);
     setBusy(false);
     if (outcome === "failed") {
-      toast.error("Could not send that email. Please try again in a minute.");
+      toast.error(t.security.verificationFailed);
     } else if (outcome === "already-verified") {
-      toast.success("This address is already verified.");
+      toast.success(t.security.alreadyVerified);
     } else {
-      toast.success("Verification email sent. Check your inbox and spam folder.");
+      toast.success(t.security.verificationSent);
     }
   }
 
@@ -95,7 +99,7 @@ function EmailRow() {
     setError(null);
     try {
       if (usesPassword) {
-        if (!current.email) throw new Error("This account has no email address.");
+        if (!current.email) throw new Error(t.security.noEmail);
         await reauthenticateWithCredential(
           current,
           EmailAuthProvider.credential(current.email, password),
@@ -112,11 +116,9 @@ function EmailRow() {
       setChanging(false);
       setNewEmail("");
       setPassword("");
-      toast.success(
-        "Check your new address for a confirmation link. Your email changes once you click it.",
-      );
+      toast.success(t.security.confirmationSent);
     } catch (err) {
-      setError(friendly(err));
+      setError(friendly(err, t));
     }
     setBusy(false);
   }
@@ -125,17 +127,17 @@ function EmailRow() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-medium">Email address</p>
+          <p className="text-sm font-medium">{t.security.emailAddress}</p>
           <p className="text-muted-foreground mt-0.5 truncate text-sm">{user?.email}</p>
           <div className="mt-1.5">
             {user?.emailVerified ? (
               <Badge variant="secondary" className="gap-1">
                 <ShieldCheck className="size-3" />
-                Verified
+                {t.security.verified}
               </Badge>
             ) : (
               <Badge variant="secondary" className="text-warning-text gap-1">
-                Not verified
+                {t.security.notVerified}
               </Badge>
             )}
           </div>
@@ -144,11 +146,11 @@ function EmailRow() {
           {!user?.emailVerified ? (
             <Button variant="outline" size="sm" onClick={resendVerification} disabled={busy}>
               {busy ? <Loader2 className="animate-spin" /> : <Mail />}
-              Resend
+              {t.security.resend}
             </Button>
           ) : null}
           <Button variant="outline" size="sm" onClick={() => setChanging((v) => !v)}>
-            Change
+            {t.security.change}
           </Button>
         </div>
       </div>
@@ -156,20 +158,20 @@ function EmailRow() {
       {changing ? (
         <div className="mt-4 space-y-3 rounded-xl border p-4">
           <div className="space-y-2">
-            <Label htmlFor="new-email">New email address</Label>
+            <Label htmlFor="new-email">{t.security.newEmail}</Label>
             <Input
               id="new-email"
               type="email"
               inputMode="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="juan@example.com"
+              placeholder={t.security.emailPlaceholder}
             />
           </div>
 
           {usesPassword ? (
             <div className="space-y-2">
-              <Label htmlFor="email-password">Your current password</Label>
+              <Label htmlFor="email-password">{t.security.currentPassword}</Label>
               <PasswordInput
                 id="email-password"
                 autoComplete="current-password"
@@ -179,7 +181,7 @@ function EmailRow() {
             </div>
           ) : (
             <p className="text-muted-foreground text-sm">
-              You&rsquo;ll be asked to sign in with Google once more to confirm.
+              {t.security.googleReauth}
             </p>
           )}
 
@@ -190,8 +192,7 @@ function EmailRow() {
           ) : null}
 
           <p className="text-muted-foreground text-xs leading-relaxed">
-            We send a link to the new address first. Your email only changes
-            once you click it, so a typo cannot lock you out.
+            {t.security.emailChangeNote}
           </p>
 
           <Button
@@ -200,7 +201,7 @@ function EmailRow() {
             disabled={busy || !newEmail.trim() || (usesPassword && !password)}
           >
             {busy ? <Loader2 className="animate-spin" /> : <Check />}
-            Send confirmation
+            {t.security.sendConfirmation}
           </Button>
         </div>
       ) : null}
@@ -209,6 +210,7 @@ function EmailRow() {
 }
 
 function PasswordRow() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -220,7 +222,7 @@ function PasswordRow() {
     if (!user?.email) return;
 
     if (next.length < 6) {
-      setError("Please use a password of at least 6 characters.");
+      setError(t.security.error.weakPassword);
       return;
     }
 
@@ -236,9 +238,9 @@ function PasswordRow() {
       setOpen(false);
       setCurrent("");
       setNext("");
-      toast.success("Password changed.");
+      toast.success(t.security.passwordChanged);
     } catch (err) {
-      setError(friendly(err));
+      setError(friendly(err, t));
     }
     setBusy(false);
   }
@@ -247,21 +249,21 @@ function PasswordRow() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium">Password</p>
+          <p className="text-sm font-medium">{t.security.password}</p>
           <p className="text-muted-foreground text-sm">
-            Change it if you think someone else knows it.
+            {t.security.passwordHint}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => setOpen((v) => !v)}>
           <KeyRound />
-          Change
+          {t.security.change}
         </Button>
       </div>
 
       {open ? (
         <div className="mt-4 space-y-3 rounded-xl border p-4">
           <div className="space-y-2">
-            <Label htmlFor="current-password">Current password</Label>
+            <Label htmlFor="current-password">{t.security.currentPasswordLabel}</Label>
             <PasswordInput
               id="current-password"
               autoComplete="current-password"
@@ -270,11 +272,11 @@ function PasswordRow() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="next-password">New password</Label>
+            <Label htmlFor="next-password">{t.security.newPassword}</Label>
             <PasswordInput
               id="next-password"
               autoComplete="new-password"
-              placeholder="At least 6 characters"
+              placeholder={t.security.passwordPlaceholder}
               value={next}
               onChange={(e) => setNext(e.target.value)}
             />
@@ -288,7 +290,7 @@ function PasswordRow() {
 
           <Button size="sm" onClick={submit} disabled={busy || !current || !next}>
             {busy ? <Loader2 className="animate-spin" /> : <Check />}
-            Update password
+            {t.security.updatePassword}
           </Button>
         </div>
       ) : null}
@@ -297,19 +299,19 @@ function PasswordRow() {
 }
 
 function GoogleOnlyNote() {
+  const { t } = useI18n();
+
   return (
     <div>
-      <p className="text-sm font-medium">Password</p>
-      <p className="text-muted-foreground text-sm">
-        You sign in with Google, so there is no Tuón password to change. Manage
-        it in your Google Account.
-      </p>
+      <p className="text-sm font-medium">{t.security.password}</p>
+      <p className="text-muted-foreground text-sm">{t.security.googleOnly}</p>
     </div>
   );
 }
 
 function SessionsRow() {
   const { authedFetch, signOut } = useAuth();
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
   async function revoke() {
@@ -318,12 +320,12 @@ function SessionsRow() {
       const response = await authedFetch("/api/account/sessions", { method: "POST" });
       if (!response.ok) throw new Error("failed");
 
-      toast.success("Signed out everywhere. Signing you out here too.");
+      toast.success(t.security.signedOutEverywhere);
       // This device's refresh token was revoked as well, so staying signed in
       // here would just fail on the next token refresh.
       await signOut();
     } catch {
-      toast.error("Could not sign out your other devices. Please try again.");
+      toast.error(t.security.signOutFailed);
       setBusy(false);
     }
   }
@@ -331,21 +333,28 @@ function SessionsRow() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-sm font-medium">Sign out everywhere</p>
+        <p className="text-sm font-medium">{t.security.signOutEverywhere}</p>
         <p className="text-muted-foreground text-sm">
-          Ends every session, including any computer lab you forgot to sign out
-          of. You will be signed out here too.
+          {t.security.signOutEverywhereHint}
         </p>
       </div>
       <Button variant="outline" size="sm" onClick={revoke} disabled={busy}>
         {busy ? <Loader2 className="animate-spin" /> : <LogOut />}
-        Sign out everywhere
+        {t.security.signOutEverywhere}
       </Button>
     </div>
   );
 }
 
-function friendly(error: unknown): string {
+/**
+ * A Firebase auth code, said in the reader\'s language.
+ *
+ * Re-authentication has its own wording rather than reusing the sign-in
+ * form\'s: "that email and password do not match an account" is the right
+ * thing to say at a login screen and the wrong thing to say to someone who is
+ * already signed in and is being asked to prove it.
+ */
+function friendly(error: unknown, t: Messages): string {
   const code =
     error && typeof error === "object" && "code" in error
       ? String((error as { code?: unknown }).code)
@@ -354,21 +363,21 @@ function friendly(error: unknown): string {
   switch (code) {
     case "auth/wrong-password":
     case "auth/invalid-credential":
-      return "That password is not correct.";
+      return t.security.error.wrongPassword;
     case "auth/email-already-in-use":
-      return "Another account already uses that email address.";
+      return t.security.error.emailInUse;
     case "auth/invalid-email":
-      return "That does not look like a valid email address.";
+      return t.security.error.invalidEmail;
     case "auth/weak-password":
-      return "Please use a password of at least 6 characters.";
+      return t.security.error.weakPassword;
     case "auth/requires-recent-login":
-      return "Please sign in again, then retry.";
+      return t.security.error.recentLogin;
     case "auth/too-many-requests":
-      return "Too many attempts. Please wait a moment and try again.";
+      return t.security.error.tooManyRequests;
     case "auth/popup-closed-by-user":
     case "auth/cancelled-popup-request":
-      return "Sign-in was cancelled.";
+      return t.security.error.cancelled;
     default:
-      return error instanceof Error ? error.message : "Something went wrong.";
+      return error instanceof Error ? error.message : t.security.error.unknown;
   }
 }

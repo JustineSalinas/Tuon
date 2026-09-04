@@ -4,11 +4,15 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
+  ArrowRight,
   CalendarClock,
   FileText,
+  LifeBuoy,
 } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import {
@@ -26,8 +30,10 @@ import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { FirstRun } from "@/components/app/first-run";
 import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
 import { TodaysPlan } from "@/components/app/todays-plan";
-import { StudyHeatmap } from "@/components/app/study-heatmap";
+import { WeekStudy } from "@/components/app/week-study";
+import { Upcoming } from "@/components/app/upcoming";
 import { buildReadiness } from "@/lib/stats/readiness";
+import { Button } from "@/components/ui/button";
 import { buildPlan } from "@/lib/stats/plan";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +41,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { data: sets, loading: setsLoading } = useStudySets(user?.uid);
   const { data: notes, loading: notesLoading } = useNotes(user?.uid);
   const { logs, loading: logsLoading } = useReviewLogs(user?.uid);
@@ -139,7 +146,7 @@ export default function DashboardPage() {
             thing the student actually opened the app for — most of a screen
             down on a laptop. */}
         <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {greeting()}, {firstName}
+          {greeting(t)}, {firstName}
         </h1>
         <ExamCountdown
           examDate={profile?.examDate}
@@ -215,9 +222,9 @@ export default function DashboardPage() {
             {plan.steps.length > 0 ? (
               <section className="min-w-0">
                 <SectionHeading
-                  title="Today's plan"
+                  title={t.dashboard.todaysPlan}
                   href="/app/sets"
-                  linkLabel="All sets"
+                  linkLabel={t.dashboard.allSets}
                 />
                 <div className="mt-3">
                   <TodaysPlan plan={plan} />
@@ -227,7 +234,7 @@ export default function DashboardPage() {
 
             {notes.length > 0 ? (
               <section className="min-w-0">
-                <SectionHeading title="Recent notes" href="/app/notes" linkLabel="All notes" />
+                <SectionHeading title={t.dashboard.recentNotes} href="/app/notes" linkLabel={t.dashboard.allNotes} />
                 <div className="mt-3 grid gap-2">
                   {notes.slice(0, 4).map((note) => (
                     <Link
@@ -251,19 +258,36 @@ export default function DashboardPage() {
             ) : null}
           </div>
 
-          {/* The habit, under the material. Everything above answers a
-              question about the cards; this is the only thing that answers
-              "have I actually been doing this?" */}
-          <section className="mt-10">
-            <SectionHeading
-              title="Study time"
-              href="/app/calendar"
-              linkLabel="Full log"
-            />
-            <div className="mt-3">
-              <StudyHeatmap />
-            </div>
-          </section>
+          {/* The habit and the horizon, side by side. Everything above
+              answers a question about the cards; these two answer "have I
+              actually been doing this" and "for what" — and neither is much
+              use alone. An empty week is only alarming next to a deadline,
+              and a deadline is only reassuring next to a week of work. */}
+          <div className="mt-10 grid items-start gap-8 lg:grid-cols-2">
+            <section className="min-w-0">
+              <SectionHeading
+                title={t.dashboard.thisWeek}
+                href="/app/calendar"
+                linkLabel={t.dashboard.fullYear}
+              />
+              <div className="mt-3">
+                <WeekStudy />
+              </div>
+            </section>
+
+            <section className="min-w-0">
+              <SectionHeading
+                title={t.dashboard.comingUp}
+                href="/app/calendar"
+                linkLabel={t.dashboard.allDeadlines}
+              />
+              <div className="mt-3">
+                <Upcoming />
+              </div>
+            </section>
+          </div>
+
+          <HelpCard t={t} />
 
           <div className="mt-8 md:hidden">
             <QuotaIndicator />
@@ -271,6 +295,36 @@ export default function DashboardPage() {
         </>
       )}
     </main>
+  );
+}
+
+/**
+ * The way into the help page, at the foot of the dashboard.
+ *
+ * Below everything, and deliberately quiet: a student who knows how the app
+ * works scrolls past it every day, and it has to cost them nothing. It sits
+ * here rather than in the sidebar rail because the rail is for places you go
+ * daily, and this is a place you go twice.
+ */
+function HelpCard({ t }: { t: Messages }) {
+  return (
+    <section className="mt-10">
+      <div className="bg-card flex flex-wrap items-center gap-4 rounded-2xl border border-dashed p-5">
+        <span className="bg-secondary text-muted-foreground grid size-9 shrink-0 place-items-center rounded-xl">
+          <LifeBuoy className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{t.dashboardHelp.title}</p>
+          <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+            {t.dashboardHelp.body}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" render={<Link href="/app/help" />}>
+          {t.dashboardHelp.action}
+          <ArrowRight />
+        </Button>
+      </div>
+    </section>
   );
 }
 
@@ -296,7 +350,13 @@ function SectionHeading({
   );
 }
 
-function greeting(): string {
+/**
+ * Takes the greetings rather than returning English.
+ *
+ * The hour still comes from Manila regardless of locale: it decides which
+ * greeting is TRUE, and that is a fact about the clock, not about language.
+ */
+function greeting(t: Messages): string {
   const hour = Number(
     new Intl.DateTimeFormat("en-PH", {
       hour: "numeric",
@@ -304,9 +364,9 @@ function greeting(): string {
       timeZone: "Asia/Manila",
     }).format(new Date()),
   );
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return t.dashboard.goodMorning;
+  if (hour < 18) return t.dashboard.goodAfternoon;
+  return t.dashboard.goodEvening;
 }
 
 /**

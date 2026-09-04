@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { CloudOff } from "lucide-react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
+
 /**
  * Tells the student the network is gone, and that it does not matter.
  *
@@ -35,6 +37,7 @@ const getSnapshot = () => navigator.onLine;
 const getServerSnapshot = () => true;
 
 export function OfflineIndicator() {
+  const { t } = useI18n();
   const online = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const offline = !online;
 
@@ -47,10 +50,8 @@ export function OfflineIndicator() {
     >
       <CloudOff className="text-muted-foreground size-4 shrink-0" />
       <p className="min-w-0">
-        No connection — you can keep reviewing.{" "}
-        <span className="text-muted-foreground">
-          Your ratings are saved on this device and sync when you are back.
-        </span>
+        {t.banners.offline}{" "}
+        <span className="text-muted-foreground">{t.banners.offlineRest}</span>
       </p>
     </div>
   );

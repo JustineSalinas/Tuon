@@ -31,10 +31,11 @@ import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { useStudySessions } from "@/lib/hooks/use-firestore";
 import {
   MAX_SESSION_MINUTES,
-  SOURCE_LABELS,
+  UNTAGGED,
   clampMinutes,
   formatMinutes,
   minutesByDay,
@@ -43,7 +44,7 @@ import {
   totalMinutes,
   weekDayKeys,
 } from "@/lib/organiser/sessions";
-import { WEEKDAY_SHORT, formatDayKey } from "@/lib/organiser/plan-items";
+import { formatDayKey } from "@/lib/organiser/plan-items";
 import type { StudySession } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,11 @@ import { cn } from "@/lib/utils";
 
 export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: string[] }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { sessions, loading } = useStudySessions(user?.uid);
+
+  // Every date on this screen is written in the reader's language.
+  const locale = t.common.dateLocale;
 
   const [weekOffset, setWeekOffset] = useState(0);
   const days = useMemo(() => weekDayKeys(todayKey, weekOffset), [todayKey, weekOffset]);
@@ -77,7 +82,9 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
             {formatMinutes(total)}
           </p>
           <p className="text-muted-foreground text-xs">
-            {weekOffset === 0 ? "This week" : `${formatDayKey(days[0])} – ${formatDayKey(days[6])}`}
+            {weekOffset === 0
+              ? t.studyLog.thisWeek
+              : `${formatDayKey(days[0], locale)} – ${formatDayKey(days[6], locale)}`}
           </p>
         </div>
 
@@ -85,20 +92,20 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Previous week"
+            aria-label={t.studyLog.previousWeek}
             onClick={() => setWeekOffset((w) => w - 1)}
           >
             <ChevronLeft />
           </Button>
           {weekOffset !== 0 ? (
             <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)}>
-              This week
+              {t.studyLog.thisWeek}
             </Button>
           ) : null}
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Next week"
+            aria-label={t.studyLog.nextWeek}
             disabled={weekOffset >= 0}
             onClick={() => setWeekOffset((w) => Math.min(0, w + 1))}
           >
@@ -123,7 +130,7 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
                     isToday && minutes > 0 && "bg-primary",
                   )}
                   style={{ height: `${Math.max(minutes > 0 ? 6 : 2, (minutes / peak) * 100)}%` }}
-                  title={`${formatDayKey(day)} — ${formatMinutes(minutes)}`}
+                  title={`${formatDayKey(day, locale)} — ${formatMinutes(minutes)}`}
                 />
               </div>
               <span
@@ -132,7 +139,7 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
                   isToday ? "text-foreground font-medium" : "text-muted-foreground",
                 )}
               >
-                {WEEKDAY_SHORT[index]}
+                {t.common.weekdaysShort[index]}
               </span>
             </div>
           );
@@ -143,7 +150,8 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
         <div className="flex flex-wrap gap-2">
           {bySubject.map((row) => (
             <Badge key={row.subject} variant="secondary" className="tabular-nums">
-              {row.subject} · {formatMinutes(row.minutes)}
+              {row.subject === UNTAGGED ? t.organiser.noSubject : row.subject} ·{" "}
+              {formatMinutes(row.minutes)}
             </Badge>
           ))}
         </div>
@@ -153,9 +161,7 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
 
       {week.length === 0 ? (
         <p className="text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-center text-sm leading-relaxed">
-          Nothing logged this week. The timer above fills this in, and anything
-          you did away from Tuón can be added by hand — a week that says zero
-          when you studied is worse than no log at all.
+          {t.studyLog.nothingLogged}
         </p>
       ) : (
         <ul className="divide-y rounded-xl border">
@@ -170,7 +176,15 @@ export function StudyLog({ todayKey, subjects }: { todayKey: string; subjects: s
 
 function SessionRow({ session }: { session: StudySession }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
+
+  const day = formatDayKey(session.day, t.common.dateLocale);
+  const SOURCES = {
+    pomodoro: t.studyLog.sourcePomodoro,
+    review: t.studyLog.sourceReview,
+    manual: t.studyLog.sourceManual,
+  } as const;
   const [minutes, setMinutes] = useState(String(session.minutes));
 
   async function save() {
@@ -187,7 +201,7 @@ function SessionRow({ session }: { session: StudySession }) {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      toast.error("Could not save that change.");
+      toast.error(t.organiser.changeFailed);
       setMinutes(String(session.minutes));
     }
   }
@@ -197,14 +211,14 @@ function SessionRow({ session }: { session: StudySession }) {
     try {
       await deleteDoc(doc(db, "users", user.uid, "studySessions", session.id));
     } catch {
-      toast.error("Could not delete that.");
+      toast.error(t.organiser.deleteFailed);
     }
   }
 
   return (
     <li className="flex items-center gap-3 p-3.5">
       <span className="text-muted-foreground w-16 shrink-0 text-xs tabular-nums">
-        {formatDayKey(session.day)}
+        {day}
       </span>
 
       {editing ? (
@@ -224,15 +238,15 @@ function SessionRow({ session }: { session: StudySession }) {
               }
             }}
             className="w-24 tabular-nums"
-            aria-label="Minutes studied"
+            aria-label={t.studyLog.minutesStudied}
           />
-          <span className="text-muted-foreground text-xs">minutes</span>
+          <span className="text-muted-foreground text-xs">{t.studyLog.minutes}</span>
           <Button size="sm" onClick={save}>
-            Save
+            {t.common.save}
           </Button>
           <button
             type="button"
-            aria-label="Cancel"
+            aria-label={t.common.cancel}
             onClick={() => {
               setMinutes(String(session.minutes));
               setEditing(false);
@@ -248,8 +262,10 @@ function SessionRow({ session }: { session: StudySession }) {
             {formatMinutes(session.minutes)}
           </span>
           <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
-            {SOURCE_LABELS[session.source]}
-            {session.cardsReviewed ? ` · ${session.cardsReviewed} cards` : ""}
+            {SOURCES[session.source]}
+            {session.cardsReviewed
+              ? ` · ${t.studyLog.cardsReviewed(session.cardsReviewed)}`
+              : ""}
           </span>
           {session.courseTag ? (
             <Badge variant="secondary" className="hidden shrink-0 sm:inline-flex">
@@ -258,7 +274,7 @@ function SessionRow({ session }: { session: StudySession }) {
           ) : null}
           <button
             type="button"
-            aria-label={`Edit ${formatDayKey(session.day)} session`}
+            aria-label={t.studyLog.editSession(day)}
             onClick={() => setEditing(true)}
             className="text-muted-foreground hover:text-foreground focus-visible:ring-ring grid size-7 shrink-0 place-items-center rounded-md transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
           >
@@ -269,7 +285,7 @@ function SessionRow({ session }: { session: StudySession }) {
 
       <button
         type="button"
-        aria-label={`Delete ${formatDayKey(session.day)} session`}
+        aria-label={t.studyLog.deleteSession(day)}
         onClick={remove}
         className="text-muted-foreground hover:text-destructive focus-visible:ring-ring grid size-7 shrink-0 place-items-center rounded-md transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
       >
@@ -281,6 +297,7 @@ function SessionRow({ session }: { session: StudySession }) {
 
 function AddSession({ todayKey, subjects }: { todayKey: string; subjects: string[] }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [day, setDay] = useState(todayKey);
   const [minutes, setMinutes] = useState("30");
@@ -304,7 +321,7 @@ function AddSession({ todayKey, subjects }: { todayKey: string; subjects: string
       setOpen(false);
       setMinutes("30");
     } catch {
-      toast.error("Could not save that session.");
+      toast.error(t.studyLog.saveSessionFailed);
     }
     setSaving(false);
   }
@@ -313,7 +330,7 @@ function AddSession({ todayKey, subjects }: { todayKey: string; subjects: string
     return (
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Add time you studied elsewhere
+        {t.studyLog.addElsewhere}
       </Button>
     );
   }
@@ -325,7 +342,7 @@ function AddSession({ todayKey, subjects }: { todayKey: string; subjects: string
         value={day}
         max={todayKey}
         onChange={(e) => setDay(e.target.value)}
-        aria-label="Day"
+        aria-label={t.studyLog.day}
         className="w-40"
       />
       <Input
@@ -334,18 +351,18 @@ function AddSession({ todayKey, subjects }: { todayKey: string; subjects: string
         max={MAX_SESSION_MINUTES}
         value={minutes}
         onChange={(e) => setMinutes(e.target.value)}
-        aria-label="Minutes studied"
+        aria-label={t.studyLog.minutesStudied}
         className="w-24 tabular-nums"
       />
-      <span className="text-muted-foreground pb-2 text-xs">minutes</span>
+      <span className="text-muted-foreground pb-2 text-xs">{t.studyLog.minutes}</span>
       {subjects.length > 0 ? (
         <select
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          aria-label="Subject"
+          aria-label={t.organiser.subject}
           className="border-input bg-background focus-visible:ring-ring h-9 max-w-44 rounded-md border px-3 text-sm focus-visible:ring-[3px] focus-visible:outline-none"
         >
-          <option value="">No subject</option>
+          <option value="">{t.organiser.noSubject}</option>
           {subjects.map((name) => (
             <option key={name} value={name}>
               {name}
@@ -355,10 +372,10 @@ function AddSession({ todayKey, subjects }: { todayKey: string; subjects: string
       ) : null}
       <Button onClick={save} disabled={saving || value <= 0}>
         {saving ? <Loader2 className="animate-spin" /> : <Plus />}
-        Add
+        {t.common.add}
       </Button>
       <Button variant="ghost" onClick={() => setOpen(false)}>
-        Cancel
+        {t.common.cancel}
       </Button>
     </div>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { formatResetDate, readQuota } from "@/lib/quota";
 import { PLANS, UPGRADE_TARGET } from "@/lib/ai/config";
 import { Progress } from "@/components/ui/progress";
@@ -27,6 +28,7 @@ export function useQuota() {
 }
 
 export function QuotaIndicator({ className }: { className?: string }) {
+  const { t } = useI18n();
   const quota = useQuota();
   if (!quota) return null;
 
@@ -36,7 +38,7 @@ export function QuotaIndicator({ className }: { className?: string }) {
   return (
     <div className={cn("rounded-xl border p-3", className)}>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-medium">Study sets</span>
+        <span className="text-sm font-medium">{t.banners.quotaTitle}</span>
         <span
           className={cn(
             "text-sm tabular-nums",
@@ -61,14 +63,12 @@ export function QuotaIndicator({ className }: { className?: string }) {
       />
 
       <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
-        {quota.exhausted ? (
-          <>Used up. Resets {formatResetDate(quota.resetsAt)}.</>
-        ) : (
-          <>
-            {quota.remaining} left this month · resets{" "}
-            {formatResetDate(quota.resetsAt)}
-          </>
-        )}
+        {quota.exhausted
+          ? t.banners.quotaUsedUp(formatResetDate(quota.resetsAt))
+          : t.banners.quotaLeft(
+              quota.remaining,
+              formatResetDate(quota.resetsAt),
+            )}
       </p>
 
       {isFree && (quota.exhausted || quota.runningLow) ? (
@@ -77,8 +77,10 @@ export function QuotaIndicator({ className }: { className?: string }) {
           className="text-primary mt-2 inline-flex items-center gap-1 text-xs font-medium underline underline-offset-4"
         >
           <Sparkles className="size-3" />
-          Get {PLANS[UPGRADE_TARGET].monthlyGenerations} a month for ₱
-          {PLANS[UPGRADE_TARGET].phpMonthly}
+          {t.banners.quotaUpgrade(
+            PLANS[UPGRADE_TARGET].monthlyGenerations,
+            PLANS[UPGRADE_TARGET].phpMonthly,
+          )}
         </Link>
       ) : null}
     </div>

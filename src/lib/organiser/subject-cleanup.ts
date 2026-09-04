@@ -129,30 +129,30 @@ export function chunk<T>(items: T[], size = MAX_BATCH_WRITES): T[][] {
 }
 
 /**
- * The sentence shown before the student agrees.
+ * Which kinds of thing a subject holds, in the order they are listed.
  *
- * Written as a plain list of what exists rather than a warning, because the
- * honest message here is reassuring: none of it is going anywhere. A dialog
- * that shouts about deletion when nothing is deleted teaches people to ignore
- * the next dialog.
+ * The words and the commas belong to the view — see `renderContents` in
+ * lib/i18n/format. This module only decides WHICH parts a subject has and in
+ * what order, which is the part that is the same in every language.
+ *
+ * The list is deliberately a list of what exists rather than a warning,
+ * because the honest message here is reassuring: none of it is going
+ * anywhere. A dialog that shouts about deletion when nothing is deleted
+ * teaches people to ignore the next dialog.
  */
-export function describeContents(summary: SubjectSummary): string {
-  const parts: string[] = [];
-  if (summary.notes) parts.push(`${summary.notes} ${summary.notes === 1 ? "note" : "notes"}`);
-  if (summary.sets) {
-    const sets = `${summary.sets} study ${summary.sets === 1 ? "set" : "sets"}`;
-    parts.push(summary.cards ? `${sets} (${summary.cards} cards)` : sets);
-  }
-  if (summary.planItems) {
-    parts.push(`${summary.planItems} ${summary.planItems === 1 ? "item" : "items"} in your week`);
-  }
-  if (summary.sessions) {
-    parts.push(
-      `${summary.sessions} logged ${summary.sessions === 1 ? "session" : "sessions"}`,
-    );
-  }
+export type ContentPart =
+  | { kind: "notes"; count: number }
+  | { kind: "sets"; count: number; cards: number }
+  | { kind: "planItems"; count: number }
+  | { kind: "sessions"; count: number };
 
-  if (parts.length === 0) return "Nothing is tagged with this subject.";
-  if (parts.length === 1) return parts[0];
-  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+export function contentParts(summary: SubjectSummary): ContentPart[] {
+  const parts: ContentPart[] = [];
+  if (summary.notes) parts.push({ kind: "notes", count: summary.notes });
+  if (summary.sets) {
+    parts.push({ kind: "sets", count: summary.sets, cards: summary.cards });
+  }
+  if (summary.planItems) parts.push({ kind: "planItems", count: summary.planItems });
+  if (summary.sessions) parts.push({ kind: "sessions", count: summary.sessions });
+  return parts;
 }

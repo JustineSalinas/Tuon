@@ -19,6 +19,7 @@ import { Trophy } from "lucide-react";
 
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { useReviewLogs } from "@/lib/hooks/use-firestore";
 import { isUsableAvatar } from "@/lib/profile/avatar";
 import {
@@ -33,6 +34,7 @@ import { useState } from "react";
 
 export function GroupStandings({ groupId }: { groupId: string }) {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { logs } = useReviewLogs(user?.uid);
   const [rows, setRows] = useState<ScoreRow[]>([]);
 
@@ -65,7 +67,7 @@ export function GroupStandings({ groupId }: { groupId: string }) {
     void setDoc(
       doc(db, "studyGroups", groupId, "scores", user.uid),
       {
-        displayName: profile?.displayName?.trim() || "A classmate",
+        displayName: profile?.displayName?.trim() || t.groups.aClassmate,
         photoURL: isUsableAvatar(profile?.photoURL) ? profile.photoURL : null,
         xp: mine.xp,
         recalls: mine.recalls,
@@ -77,7 +79,16 @@ export function GroupStandings({ groupId }: { groupId: string }) {
     ).catch(() => {
       // A group they have since left. Not worth interrupting anything for.
     });
-  }, [user, groupId, mine, rows, logs.length, profile?.displayName, profile?.photoURL]);
+  }, [
+    user,
+    groupId,
+    mine,
+    rows,
+    logs.length,
+    profile?.displayName,
+    profile?.photoURL,
+    t.groups.aClassmate,
+  ]);
 
   const ranked = useMemo(() => rankMembers(rows), [rows]);
 
@@ -85,17 +96,15 @@ export function GroupStandings({ groupId }: { groupId: string }) {
     <section className="mt-8">
       <h2 className="font-display flex items-center gap-2 text-lg font-semibold tracking-tight">
         <Trophy className="text-muted-foreground size-4" />
-        Standings
+        {t.groups.standings}
       </h2>
       <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-        XP comes from cards you actually remembered when they came back — not
-        from hours logged, so leaving a timer running earns nothing. A card that
-        holds for a month is worth ten recalls.
+        {t.groups.standingsHint}
       </p>
 
       {ranked.length === 0 ? (
         <p className="text-muted-foreground mt-3 rounded-xl border border-dashed px-4 py-5 text-center text-sm">
-          Nothing yet. Review some cards and your first XP appears here.
+          {t.groups.noStandings}
         </p>
       ) : (
         <ol className="mt-3 divide-y rounded-xl border">
@@ -129,15 +138,17 @@ export function GroupStandings({ groupId }: { groupId: string }) {
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {member.displayName}
                   {isMe ? (
-                    <span className="text-muted-foreground ml-1.5 text-xs">you</span>
+                    <span className="text-muted-foreground ml-1.5 text-xs">
+                      {t.groups.you}
+                    </span>
                   ) : null}
                 </span>
 
                 <span className="text-muted-foreground hidden shrink-0 text-xs tabular-nums sm:inline">
-                  {member.mastered} mastered
+                  {t.groups.masteredCount(member.mastered)}
                 </span>
                 <span className="font-display shrink-0 text-sm font-semibold tabular-nums">
-                  {member.xp.toLocaleString()} XP
+                  {t.groups.xp(member.xp.toLocaleString())}
                 </span>
               </li>
             );
@@ -146,8 +157,7 @@ export function GroupStandings({ groupId }: { groupId: string }) {
       )}
 
       <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
-        Only these figures are shared with the group — never your notes, your
-        cards, or which subjects you are behind on.
+        {t.groups.standingsPrivacy}
       </p>
     </section>
   );

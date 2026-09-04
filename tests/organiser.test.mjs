@@ -8,11 +8,15 @@
  */
 import assert from "node:assert/strict";
 
+import { en } from "../src/lib/i18n/en.ts";
+import { renderContents } from "../src/lib/i18n/format.ts";
+
 import {
   DEADLINE_GRACE_DAYS,
   classesOn,
   daysBetween,
   describeDueDate,
+  formatDayKey,
   formatMinute,
   isDayKey,
   isUsableTitle,
@@ -31,6 +35,7 @@ import {
   isComplete,
   loggableMinutes,
   nextPhase,
+  setSubject,
   pause,
   phaseDurationMs,
   readStoredState,
@@ -45,10 +50,12 @@ import {
 } from "../src/lib/organiser/pomodoro.ts";
 import {
   MAX_SESSION_MINUTES,
+  UNTAGGED,
   clampMinutes,
   formatMinutes,
   minutesByDay,
   minutesBySubject,
+  sessionsSince,
   sessionsInWeek,
   totalMinutes,
   weekDayKeys,
@@ -56,7 +63,7 @@ import {
 import {
   MAX_BATCH_WRITES,
   chunk,
-  describeContents,
+  contentParts,
   planRetag,
   summariseSubject,
   tagMatches,
@@ -106,22 +113,28 @@ check("a month boundary does not confuse the count", () => {
 });
 
 check("a deadline is described by distance, not by date, when it is near", () => {
+  // A shape rather than a sentence: the words are the view's, because this
+  // module cannot know what language the student reads.
   const today = "2026-08-30";
-  assert.equal(describeDueDate("2026-08-30", today), "Today");
-  assert.equal(describeDueDate("2026-08-31", today), "Tomorrow");
-  assert.equal(describeDueDate("2026-09-02", today), "In 3 days");
+  assert.deepEqual(describeDueDate("2026-08-30", today), { kind: "today" });
+  assert.deepEqual(describeDueDate("2026-08-31", today), { kind: "tomorrow" });
+  assert.deepEqual(describeDueDate("2026-09-02", today), { kind: "inDays", days: 3 });
 });
 
 check("an overdue deadline says how late it is", () => {
-  // The one that has to shout. "Aug 28" does not read as a problem.
+  // The one that has to shout. A bare date does not read as a problem.
   const today = "2026-08-30";
-  assert.equal(describeDueDate("2026-08-29", today), "Yesterday");
-  assert.equal(describeDueDate("2026-08-28", today), "2 days ago");
+  assert.deepEqual(describeDueDate("2026-08-29", today), { kind: "yesterday" });
+  assert.deepEqual(describeDueDate("2026-08-28", today), { kind: "daysAgo", days: 2 });
 });
 
 check("a distant deadline shows its date instead", () => {
   // "In 23 days" means nothing to anyone.
-  assert.match(describeDueDate("2026-09-30", "2026-08-30"), /Sep/);
+  assert.deepEqual(describeDueDate("2026-09-30", "2026-08-30"), {
+    kind: "date",
+    dayKey: "2026-09-30",
+  });
+  assert.match(formatDayKey("2026-09-30"), /Sep/);
 });
 
 console.log("\nTimetable times");
@@ -485,8 +498,52 @@ check("the countdown is always mm:ss", () => {
 console.log("\nResuming a stored timer");
 
 check("a stored timer is restored", () => {
-  const stored = { phase: "focus", startedAt: 1000, elapsedMs: 500, completedFocus: 2 };
+  const stored = {
+    phase: "focus",
+    startedAt: 1000,
+    elapsedMs: 500,
+    completedFocus: 2,
+    subject: "General Biology 1",
+  };
   assert.deepEqual(readStoredState(stored), stored);
+});
+
+check("a reload mid-block does not lose what was being studied", () => {
+  // The failure this closes: the subject used to live in the dock's own
+  // state, so a refresh left a running timer that no longer knew what it was
+  // counting — and the whole block landed in the log untagged.
+  const restored = readStoredState({
+    phase: "focus",
+    startedAt: 1000,
+    elapsedMs: 0,
+    completedFocus: 0,
+    subject: "  Statistics  ",
+  });
+  assert.equal(restored.subject, "Statistics");
+});
+
+check("a stored subject that is not usable reads as untagged", () => {
+  // Not as a reason to throw the whole timer away.
+  assert.equal(readStoredState({ phase: "focus", subject: 42 }).subject, null);
+  assert.equal(readStoredState({ phase: "focus", subject: "   " }).subject, null);
+  assert.equal(readStoredState({ phase: "focus" }).subject, null);
+});
+
+check("the subject survives a break and the block after it", () => {
+  // A break does not change what you came back to. Clearing it here would
+  // silently untag every block after the first.
+  const focused = setSubject(initialPomodoro(), "Chemistry");
+  const onBreak = nextPhase(focused);
+  assert.equal(onBreak.phase, "shortBreak");
+  assert.equal(onBreak.subject, "Chemistry");
+  assert.equal(nextPhase(onBreak).subject, "Chemistry");
+});
+
+check("a blank subject is stored as untagged, not as an empty string", () => {
+  // Untagged is a real answer; "" would sort as its own subject in every
+  // breakdown built on this.
+  assert.equal(setSubject(initialPomodoro(), "   ").subject, null);
+  assert.equal(setSubject(initialPomodoro(), null).subject, null);
 });
 
 check("junk in storage does not take the screen down", () => {
@@ -554,6 +611,31 @@ check("subjects are ordered by time spent", () => {
     { day: "d", minutes: 40, courseTag: "Biology" },
   ]);
   assert.equal(rows[0].subject, "Biology");
+});
+
+check("untagged time is keyed by a sentinel, never by a printable word", () => {
+  // The breakdown says "No subject" in whichever language the student reads,
+  // so the key it groups on must not be an English label — otherwise a real
+  // subject actually called "No subject" would merge into it.
+  const rows = minutesBySubject([{ day: "d", minutes: 20, courseTag: null }]);
+  assert.equal(rows[0].subject, UNTAGGED);
+  assert.notEqual(UNTAGGED, "No subject");
+});
+
+check("a window keeps the days on its boundary", () => {
+  // Day keys sort as strings, so this is an inclusive string comparison —
+  // dropping the first day would quietly shorten every breakdown by one.
+  const sessions = [
+    { day: "2026-08-29", minutes: 10 },
+    { day: "2026-08-30", minutes: 20 },
+    { day: "2026-09-05", minutes: 30 },
+  ];
+  const kept = sessionsSince(sessions, "2026-08-30");
+  assert.deepEqual(kept.map((s) => s.day), ["2026-08-30", "2026-09-05"]);
+});
+
+check("a session with no day is excluded rather than counted as ancient", () => {
+  assert.deepEqual(sessionsSince([{ minutes: 10 }], "2026-08-30"), []);
 });
 
 check("a week is seven days starting on Sunday", () => {
@@ -691,26 +773,40 @@ check("chunking an empty list produces no batches", () => {
 });
 
 check("the confirmation says what exists, in words", () => {
+  // The parts are data; `renderContents` in lib/i18n/format turns them into a
+  // sentence, because the commas and the "and" are part of the translation.
   const summary = summariseSubject(CONTENTS, "General Biology 1");
-  const text = describeContents(summary);
+  const text = renderContents(contentParts(summary), en);
   assert.match(text, /1 note/);
   assert.match(text, /2 study sets \(20 cards\)/);
   assert.match(text, / and /);
 });
 
 check("singulars and plurals both read correctly", () => {
-  const one = describeContents(
-    summariseSubject(
-      { notes: [{ id: "a", courseTag: "X" }], sets: [], planItems: [], sessions: [] },
-      "X",
+  const one = renderContents(
+    contentParts(
+      summariseSubject(
+        { notes: [{ id: "a", courseTag: "X" }], sets: [], planItems: [], sessions: [] },
+        "X",
+      ),
     ),
+    en,
   );
   assert.equal(one, "1 note");
 });
 
 check("an empty subject says so rather than listing nothing", () => {
-  const text = describeContents(summariseSubject(CONTENTS, "Physics"));
+  const text = renderContents(
+    contentParts(summariseSubject(CONTENTS, "Physics")),
+    en,
+  );
   assert.match(text, /Nothing/);
+});
+
+check("a subject holding only one kind of thing gets no joiner", () => {
+  // "1 note and" is the classic off-by-one in a hand-rolled list.
+  const text = renderContents([{ kind: "notes", count: 3 }], en);
+  assert.equal(text, "3 notes");
 });
 
 console.log(`\n${passed} checks passed.\n`);

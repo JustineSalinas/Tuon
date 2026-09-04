@@ -5,6 +5,7 @@ import { Download, FileSpreadsheet, FileText, Layers, Lock } from "lucide-react"
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { PLANS, UPGRADE_TARGET, planCan } from "@/lib/ai/config";
 import {
   downloadText,
@@ -27,6 +28,7 @@ import {
 
 export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
   const { profile } = useAuth();
+  const { t } = useI18n();
   const plan = profile?.plan ?? "free";
   const allowed = planCan(plan, "canExport");
   const upgrade = PLANS[UPGRADE_TARGET];
@@ -40,7 +42,7 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
       toAnki(payload),
       "text/plain",
     );
-    toast.success("Anki file saved. Import it with File → Import in Anki.");
+    toast.success(t.exportSet.ankiSaved);
   }
 
   function handleCsv() {
@@ -50,13 +52,13 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
       toCsv(payload),
       "text/csv",
     );
-    toast.success("CSV saved.");
+    toast.success(t.exportSet.csvSaved);
   }
 
   function handlePdf() {
     if (!payload) return;
     printHtml(toPrintableHtml(payload));
-    toast.info("Choose “Save as PDF” in the print dialog.");
+    toast.info(t.exportSet.pdfHowTo);
   }
 
   if (!allowed) {
@@ -65,10 +67,10 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
         variant="outline"
         size="sm"
         render={<Link href="/app/settings" />}
-        title={`Exporting is part of ${upgrade.name}`}
+        title={t.exportSet.lockedTitle(upgrade.name)}
       >
         <Lock />
-        Export
+        {t.exportSet.action}
       </Button>
     );
   }
@@ -79,15 +81,15 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
         render={
           <Button variant="outline" size="sm" disabled={disabled}>
             <Download />
-            Export
+            {t.exportSet.action}
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel className="font-normal">
-          <span className="text-sm font-medium">Export this set</span>
+          <span className="text-sm font-medium">{t.exportSet.heading}</span>
           <span className="text-muted-foreground block text-xs">
-            {payload?.flashcards.length ?? 0} flashcards
+            {t.sets.flashcards(payload?.flashcards.length ?? 0)}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -95,24 +97,24 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
         <DropdownMenuItem onClick={handleAnki}>
           <Layers className="size-4" />
           <div>
-            <div>Anki deck</div>
-            <div className="text-muted-foreground text-xs">Tab-separated .txt</div>
+            <div>{t.exportSet.anki}</div>
+            <div className="text-muted-foreground text-xs">{t.exportSet.ankiHint}</div>
           </div>
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleCsv}>
           <FileSpreadsheet className="size-4" />
           <div>
-            <div>Spreadsheet</div>
-            <div className="text-muted-foreground text-xs">CSV for Excel or Sheets</div>
+            <div>{t.exportSet.spreadsheet}</div>
+            <div className="text-muted-foreground text-xs">{t.exportSet.spreadsheetHint}</div>
           </div>
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handlePdf}>
           <FileText className="size-4" />
           <div>
-            <div>Printable PDF</div>
-            <div className="text-muted-foreground text-xs">Cards and quiz with answer key</div>
+            <div>{t.exportSet.pdf}</div>
+            <div className="text-muted-foreground text-xs">{t.exportSet.pdfHint}</div>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>

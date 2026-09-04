@@ -6,6 +6,13 @@ import { motion } from "motion/react";
 import { Layers, Plus, Search, Sparkles } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
+import {
+  activeSemester,
+  readSemesters,
+} from "@/lib/profile/semesters";
+import { cn } from "@/lib/utils";
 import { usePagedStudySets, useReviewLogs } from "@/lib/hooks/use-firestore";
 import { LoadMore } from "@/components/app/load-more";
 import { useNow } from "@/lib/hooks/use-now";
@@ -15,11 +22,30 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudySetsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { t } = useI18n();
   const { data: sets, loading, hasMore, loadMore } = usePagedStudySets(user?.uid);
   const { logs } = useReviewLogs(user?.uid);
   const [search, setSearch] = useState("");
+  const [thisTermOnly, setThisTermOnly] = useState(false);
   const now = useNow(60_000);
+
+  /**
+   * The current term, and the subjects in it.
+   *
+   * This is where semesters earn their keep and where students find out they
+   * exist at all: a set belongs to a term through the subject it is tagged
+   * with, so this page is the one place the grouping is actually useful.
+   */
+  const semesters = useMemo(
+    () => readSemesters(profile?.semesters),
+    [profile?.semesters],
+  );
+  const term = activeSemester(semesters, profile?.activeSemesterId);
+  const termSubjects = useMemo(
+    () => new Set((term?.subjects ?? []).map((s) => s.trim().toLowerCase())),
+    [term],
+  );
 
   const withStats = useMemo(() => {
     const bySet = new Map<string, { due: number; reviewed: number }>();
@@ -30,13 +56,22 @@ export default function StudySetsPage() {
       bySet.set(log.studySetId, entry);
     }
 
-    const term = search.trim().toLowerCase();
+    const query = search.trim().toLowerCase();
     return sets
       .filter(
         (set) =>
-          !term ||
-          set.title.toLowerCase().includes(term) ||
-          set.courseTag?.toLowerCase().includes(term),
+          !query ||
+          set.title.toLowerCase().includes(query) ||
+          set.courseTag?.toLowerCase().includes(query),
+      )
+      // Untagged sets are never hidden by the term filter. A set with no
+      // subject belongs to no term, and dropping it would make material
+      // disappear with no way to tell why.
+      .filter(
+        (set) =>
+          !thisTermOnly ||
+          !set.courseTag ||
+          termSubjects.has(set.courseTag.trim().toLowerCase()),
       )
       .map((set) => {
         const entry = bySet.get(set.id) ?? { due: 0, reviewed: 0 };
@@ -46,15 +81,15 @@ export default function StudySetsPage() {
           fresh: Math.max(0, (set.flashcardCount ?? 0) - entry.reviewed),
         };
       });
-  }, [sets, logs, search, now]);
+  }, [sets, logs, search, now, thisTermOnly, termSubjects]);
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Study sets</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">{t.sets.title}</h1>
         <Button render={<Link href="/app/notes/new" />}>
             <Plus />
-            New note
+            {t.nav.newNote}
           </Button>
       </header>
 
@@ -64,9 +99,47 @@ export default function StudySetsPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search study sets"
+            placeholder={t.sets.search}
             className="pl-9"
           />
+        </div>
+      ) : null}
+
+      {/* Only shown when there is a term to filter by. A toggle that does
+          nothing is worse than no toggle, and this is also where a student who
+          has never opened settings finds out semesters exist. */}
+      {sets.length > 0 && term && term.subjects.length > 0 ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {[
+            { label: t.sets.allSets, value: false },
+            { label: term.name, value: true },
+          ].map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => setThisTermOnly(option.value)}
+              aria-pressed={thisTermOnly === option.value}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-[13px] transition-colors",
+                "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                thisTermOnly === option.value
+                  ? "border-primary bg-accent/60 font-medium"
+                  : "border-border hover:border-primary/50 hover:bg-accent/30",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+          <span className="text-muted-foreground text-xs">
+            {t.sets.termsLiveIn}{" "}
+            <Link
+              href="/app/settings#semesters"
+              className="text-primary underline underline-offset-4"
+            >
+              {t.sets.settingsLink}
+            </Link>
+            .
+          </span>
         </div>
       ) : null}
 
@@ -77,10 +150,10 @@ export default function StudySetsPage() {
           ))}
         </div>
       ) : sets.length === 0 ? (
-        <EmptySets />
+        <EmptySets t={t} />
       ) : withStats.length === 0 ? (
         <p className="text-muted-foreground mt-10 text-center text-sm">
-          No study sets match “{search}”.
+          {t.sets.noMatch(search)}
         </p>
       ) : (
         <div className="mt-4 grid gap-2">
@@ -99,20 +172,20 @@ export default function StudySetsPage() {
                   <h2 className="truncate font-medium">{set.title}</h2>
                   <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 text-xs">
                     {set.courseTag ? <span>{set.courseTag}</span> : null}
-                    <span>{set.flashcardCount} cards</span>
+                    <span>{t.common.cards(set.flashcardCount)}</span>
                     <span>·</span>
-                    <span>{set.quizQuestionCount} questions</span>
+                    <span>{t.sets.questions(set.quizQuestionCount)}</span>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {due > 0 ? (
                     <Badge className="bg-primary/15 text-primary border-transparent tabular-nums">
-                      {due} due
+                      {t.sets.due(due)}
                     </Badge>
                   ) : null}
                   {fresh > 0 ? (
                     <Badge variant="secondary" className="tabular-nums">
-                      {fresh} new
+                      {t.sets.fresh(fresh)}
                     </Badge>
                   ) : null}
                 </div>
@@ -128,29 +201,28 @@ export default function StudySetsPage() {
           loadMore={loadMore}
           loadedCount={sets.length}
           searching={search.trim().length > 0}
-          noun="study sets"
+          noun={t.common.nounSets}
         />
       ) : null}
     </main>
   );
 }
 
-function EmptySets() {
+function EmptySets({ t }: { t: Messages }) {
   return (
     <div className="mt-10 rounded-2xl border border-dashed py-14 text-center">
       <div className="bg-secondary mx-auto grid size-12 place-items-center rounded-full">
         <Layers className="text-muted-foreground size-5" />
       </div>
       <h2 className="font-display mt-4 text-lg font-semibold tracking-tight">
-        No study sets yet
+        {t.sets.noneYet}
       </h2>
       <p className="text-muted-foreground mx-auto mt-1.5 max-w-xs text-sm leading-relaxed">
-        Write a note, then hit Generate study set. Your flashcards and quiz will
-        show up here.
+        {t.sets.noneYetHint}
       </p>
       <Button className="mt-6" render={<Link href="/app/notes/new" />}>
           <Sparkles />
-          Start a note
+          {t.sets.startANote}
         </Button>
     </div>
   );

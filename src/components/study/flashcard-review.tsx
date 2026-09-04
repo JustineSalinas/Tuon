@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CardFeedback } from "@/components/study/card-feedback";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { useNow } from "@/lib/hooks/use-now";
 import {
@@ -54,31 +55,26 @@ const REQUEUE_GAP = 3;
 
 const RATINGS: {
   value: SrsRating;
-  label: string;
   key: string;
   className: string;
 }[] = [
   {
     value: "again",
-    label: "Again",
     key: "1",
     className: "border-destructive/40 text-destructive hover:bg-destructive/10",
   },
   {
     value: "hard",
-    label: "Hard",
     key: "2",
     className: "border-warning/50 text-warning-text hover:bg-warning/15",
   },
   {
     value: "good",
-    label: "Good",
     key: "3",
     className: "border-primary/50 text-primary hover:bg-primary/10",
   },
   {
     value: "easy",
-    label: "Easy",
     key: "4",
     className: "border-success/50 text-success hover:bg-success/10",
   },
@@ -92,6 +88,7 @@ type Mode = "loading" | "empty" | "reviewing" | "done";
  */
 export function FlashcardReview({ studySetId }: { studySetId?: string }) {
   const { user, profile } = useAuth();
+  const { t } = useI18n();
   // A fixed exam date pulls reviews forward so nothing is scheduled past it.
   const examDate = useMemo(
     () => parseExamDate(profile?.examDate),
@@ -337,7 +334,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Exit review"
+          aria-label={t.review.exitReview}
           render={<Link href={exitHref} />}
         >
           <X />
@@ -399,14 +396,14 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                 aria-label={flipped ? "Show question" : "Show answer"}
               >
                 <CardFace>
-                  <FaceLabel>Question</FaceLabel>
+                  <FaceLabel>{t.review.question}</FaceLabel>
                   <p className="font-display mt-4 text-2xl leading-snug font-medium text-balance md:text-3xl">
                     {currentCard!.front}
                   </p>
                   <p className="text-muted-foreground mt-8 text-xs">
                     {typing
-                      ? "Type what you remember, then press Enter"
-                      : "Tap the card or press Space to reveal"}
+                      ? t.review.typePrompt
+                      : t.review.tapPrompt}
                   </p>
                 </CardFace>
 
@@ -415,30 +412,29 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                   style={{ transform: reduceMotion ? undefined : "rotateY(180deg)" }}
                   hidden={reduceMotion ? !flipped : false}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <FaceLabel>Answer</FaceLabel>
-                    {/* Sits on the answer face only — judging a card before
-                        seeing its answer is judging half of it. Stops the
-                        flip, or tapping it would also rate the card. */}
-                    {user ? (
-                      <span
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                      >
-                        <CardFeedback
-                          userId={user.uid}
-                          studySetId={currentCard!.studySetId}
-                          flashcardId={currentCard!.id}
-                          className="-mt-1 -mr-1"
-                        />
-                      </span>
-                    ) : null}
-                  </div>
+                  <FaceLabel>{t.review.answer}</FaceLabel>
                   <p className="mt-4 text-lg leading-relaxed text-pretty md:text-xl">
                     {currentCard!.back}
                   </p>
                 </CardFace>
               </motion.button>
+
+              {/* Outside the card on purpose. It used to sit on the answer
+                  face, which put a <button> inside the card's own <button> —
+                  invalid HTML, and React reported a hydration error on every
+                  single review. Rendering it here keeps the original intent
+                  (it only appears once the answer is visible) without nesting
+                  anything, and it no longer needs to swallow click events to
+                  stop the card flipping underneath it. */}
+              {user && flipped ? (
+                <div className="mt-3 flex justify-end">
+                  <CardFeedback
+                    userId={user.uid}
+                    studySetId={currentCard!.studySetId}
+                    flashcardId={currentCard!.id}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -480,7 +476,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                             "ring-foreground/25 ring-2 ring-offset-1 ring-offset-background",
                         )}
                       >
-                        <span className="text-sm font-medium">{rating.label}</span>
+                        <span className="text-sm font-medium">{t.review[rating.value]}</span>
                         <span className="text-muted-foreground text-[11px] tabular-nums">
                           {intervals?.[rating.value]}
                         </span>
@@ -519,8 +515,8 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                             }}
                             value={typed}
                             onChange={(e) => setTyped(e.target.value)}
-                            placeholder="Your answer"
-                            aria-label="Your answer"
+                            placeholder={t.review.yourAnswer}
+                            aria-label={t.review.yourAnswer}
                             autoComplete="off"
                             autoCorrect="off"
                             spellCheck={false}
@@ -528,7 +524,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                           />
                           <Button size="lg" onClick={submitTyped}>
                             <CornerDownLeft />
-                            Check
+                            {t.review.check}
                           </Button>
                         </div>
                         <div className="flex items-center justify-center gap-4">
@@ -539,7 +535,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                               className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex items-center gap-1.5 rounded-md py-1 text-xs underline-offset-4 hover:underline focus-visible:ring-[3px] focus-visible:outline-none"
                             >
                               <Lightbulb className="size-3.5" />
-                              {hintLevel === 0 ? "Hint" : "More"}
+                              {hintLevel === 0 ? t.review.hint : t.review.more}
                             </button>
                           ) : null}
                           <button
@@ -547,13 +543,13 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                             onClick={() => setSkipTyping(true)}
                             className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-md py-1 text-xs underline-offset-4 hover:underline focus-visible:ring-[3px] focus-visible:outline-none"
                           >
-                            Just show me the answer
+                            {t.review.justShowMe}
                           </button>
                         </div>
                       </div>
                     ) : (
                       <Button size="lg" className="w-full" onClick={() => setFlipped(true)}>
-                        Show answer
+                        {t.review.showAnswer}
                       </Button>
                     )}
                   </motion.div>
@@ -620,24 +616,25 @@ function Verdict({
   typed: string;
   hinted: boolean;
 }) {
+  const { t } = useI18n();
   const written = typed.trim();
 
   const { icon: Icon, label, className } =
     grade === "correct"
       ? {
           icon: Check,
-          label: "Correct",
+          label: t.review.correct,
           className: "border-success/40 bg-success/10 text-success",
         }
       : grade === "close"
         ? {
             icon: Minus,
-            label: "Almost",
+            label: t.review.almost,
             className: "border-warning/40 bg-warning/10 text-warning-text",
           }
         : {
             icon: X,
-            label: written ? "Not quite" : "Skipped",
+            label: written ? t.review.notQuite : t.review.skipped,
             className: "border-destructive/40 bg-destructive/10 text-destructive",
           };
 
@@ -650,12 +647,12 @@ function Verdict({
       <span className="font-medium">{label}</span>
       {grade !== "correct" && written ? (
         <span className="text-muted-foreground min-w-0 truncate">
-          you wrote &ldquo;{written}&rdquo;
+          {t.review.youWrote(written)}
         </span>
       ) : null}
       {hinted ? (
         <span className="text-muted-foreground ml-auto shrink-0 text-xs">
-          with a hint
+          {t.review.withAHint}
         </span>
       ) : null}
     </div>
@@ -679,12 +676,14 @@ function AllCaughtUp({
   hasCards: boolean;
   onCram: () => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="grid flex-1 place-items-center px-6 pb-16 text-center">
       <div className="max-w-sm">
         <PaperCreature state="asleep" className="mx-auto size-32" />
         <h1 className="font-display mt-2 text-2xl font-semibold tracking-tight">
-          All caught up
+          {t.review.allCaughtUp}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
           Nothing is due right now. Coming back early is wasted effort — the
@@ -694,11 +693,11 @@ function AllCaughtUp({
           {hasCards ? (
             <Button variant="outline" onClick={onCram}>
               <RotateCcw />
-              Review anyway
+              {t.review.reviewAnyway}
             </Button>
           ) : null}
           <Button variant="ghost" render={<Link href={exitHref} />}>
-            Back
+            {t.review.back}
           </Button>
         </div>
       </div>
@@ -724,6 +723,8 @@ function SessionComplete({
   heldBack: number;
   onKeepGoing: () => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -735,7 +736,7 @@ function SessionComplete({
         <PaperCreature state="celebrating" className="mx-auto size-32" />
 
         <h1 className="font-display mt-2 text-2xl font-semibold tracking-tight">
-          Session complete
+          {t.review.sessionComplete}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
           {reviewed} {reviewed === 1 ? "review" : "reviews"} logged
@@ -749,7 +750,7 @@ function SessionComplete({
                 {tally[rating.value]}
               </div>
               <div className="text-muted-foreground mt-0.5 text-[11px]">
-                {rating.label}
+                {t.review[rating.value]}
               </div>
             </div>
           ))}
@@ -767,18 +768,18 @@ function SessionComplete({
           {heldBack > 0 ? (
             <Button onClick={onKeepGoing}>
               <Plus />
-              Keep going
+              {t.review.keepGoing}
             </Button>
           ) : null}
           <Button
             variant={heldBack > 0 ? "outline" : "default"}
             render={<Link href={exitHref} />}
           >
-            Done
+            {t.review.done}
           </Button>
           <Button variant="ghost" onClick={onCram}>
             <RotateCcw />
-            Go through them again
+            {t.review.goAgain}
           </Button>
         </div>
       </div>
