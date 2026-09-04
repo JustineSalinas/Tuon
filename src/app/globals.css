@@ -89,7 +89,7 @@
   --popover-foreground: oklch(0.216 0.009 55);
 
   /* Terracotta — the one loud colour, used sparingly */
-  --primary: oklch(0.575 0.126 42);           /* #C0603A */
+  --primary: oklch(0.587 0.154 37.4);         /* #C65431 — sampled from the logo */
   --primary-foreground: oklch(0.985 0.006 84);
 
   --secondary: oklch(0.938 0.010 82);         /* warm stone */
@@ -155,7 +155,7 @@
   --popover: oklch(0.228 0.009 58);
   --popover-foreground: oklch(0.938 0.010 82);
 
-  --primary: oklch(0.678 0.128 45);           /* lifted terracotta for contrast */
+  --primary: oklch(0.678 0.138 40);           /* lifted terracotta for contrast */
   --primary-foreground: oklch(0.185 0.012 45);
 
   --secondary: oklch(0.282 0.011 58);

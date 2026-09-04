@@ -70,16 +70,30 @@ export function useReviewCards(
             query(collection(db, "users", uid, "studySets"), orderBy("createdAt", "desc")),
           ),
           getDocs(collection(db, "users", uid, "reviewLogs")),
-          // One collection-group query for every card the student owns,
-          // instead of one query per study set. `ownerId` is stamped on each
-          // card at write time and pinned to the owning path by the rules.
-          getDocs(
-            query(
-              collectionGroup(db, "flashcards"),
-              where("ownerId", "==", uid),
-              orderBy("order", "asc"),
-            ),
-          ),
+          // Reviewing ONE set asks that set for its own cards. Reviewing
+          // everything takes one collection-group query for the whole library
+          // rather than one query per set — `ownerId` is stamped on each card
+          // at write time and pinned to the owning path by the rules, so the
+          // field the query trusts is not one the client could forge.
+          //
+          // The single-set branch is not an optimisation of the group query,
+          // it is the correction of a bug: the filter below already discarded
+          // every card outside the chosen set, so this used to read a whole
+          // library to use twelve cards of it.
+          studySetId
+            ? getDocs(
+                query(
+                  collection(db, "users", uid, "studySets", studySetId, "flashcards"),
+                  orderBy("order", "asc"),
+                ),
+              )
+            : getDocs(
+                query(
+                  collectionGroup(db, "flashcards"),
+                  where("ownerId", "==", uid),
+                  orderBy("order", "asc"),
+                ),
+              ),
         ]);
 
         const logsByCardId = new Map<string, ReviewLog>();

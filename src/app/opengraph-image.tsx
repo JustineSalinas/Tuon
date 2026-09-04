@@ -1,4 +1,4 @@
-import { BOOK_PATH } from "@/components/brand/book-mark";
+import { BOOK_PATH, MARK_HEX } from "@/components/brand/book-mark";
 import { ImageResponse } from "next/og";
 
 /**
@@ -35,7 +35,7 @@ export default async function Image() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <svg width="52" height="52" viewBox="0 0 32 32" fill="none">
-          <path d={BOOK_PATH} fill="#C0603A" />
+          <path d={BOOK_PATH} fill={MARK_HEX} />
         </svg>
           <div style={{ fontSize: 44, fontWeight: 600, color: "#1F1B18" }}>Tuón</div>
         </div>
