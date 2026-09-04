@@ -17,7 +17,7 @@ import { MemoryDecay } from "@/components/marketing/memory-decay";
 import { ByHand } from "@/components/marketing/by-hand";
 import { HeroDashboard } from "@/components/marketing/hero-dashboard";
 import { PaperCreature } from "@/components/brand/paper-creature";
-import { AskTuon } from "@/components/marketing/ask-tuon";
+import { ASK_INPUT_ID, AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaAside, TalaPerch } from "@/components/marketing/tala";
 import { TuonMark } from "@/components/brand/logo";
 import { CREATURE_NAME } from "@/lib/brand";
@@ -144,6 +144,14 @@ function Hero() {
               someone whose question is different that this is not for them. */}
           <Link
             href="#ask"
+            // The scroll already worked; this is what makes it arrive IN the
+            // chat rather than beside it. `preventScroll` so the caret lands
+            // without a second jump fighting the smooth scroll on its way.
+            onClick={() =>
+              document
+                .getElementById(ASK_INPUT_ID)
+                ?.focus({ preventScroll: true })
+            }
             className="border-border hover:border-primary/40 hover:bg-accent/30 group inline-flex shrink-0 items-center gap-3 rounded-full border py-2 pr-5 pl-2.5 transition-colors"
           >
             <PaperCreature state="idle" className="size-9 shrink-0" />

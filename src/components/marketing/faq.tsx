@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
+import type { Messages } from "@/lib/i18n/en";
 import { GENERATION_EXPLAINER, PLANS } from "@/lib/ai/config";
 import { cn } from "@/lib/utils";
 
@@ -46,9 +47,81 @@ function renderAnswer(
   );
 }
 
+/** The widened catalogue type, not `en`'s literals — a component reads
+    whichever locale is active, and those are different strings. */
+type FaqEntry = Messages["marketing"]["faq"]["items"][number];
+
+function FaqItem({
+  item,
+  expanded,
+  onToggle,
+  values,
+}: {
+  item: FaqEntry;
+  expanded: boolean;
+  onToggle: () => void;
+  values: { count: number; explainer: string };
+}) {
+  return (
+    <div
+      className={cn(
+        "overflow-hidden rounded-2xl border transition-colors",
+        expanded ? "border-primary/40 bg-accent/20" : "bg-card",
+      )}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className="hover:bg-accent/30 focus-visible:ring-ring flex w-full items-start gap-4 px-6 py-5 text-left transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
+      >
+        <span className="flex-1 leading-snug font-medium">{item.q}</span>
+        <ChevronDown
+          className={cn(
+            "text-muted-foreground mt-0.5 size-4 shrink-0 transition-transform duration-200",
+            expanded && "rotate-180",
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="text-muted-foreground px-6 pb-6 text-[15px] leading-relaxed">
+              {renderAnswer(
+                item.a,
+                "linkHref" in item && item.linkHref
+                  ? { href: item.linkHref, label: item.linkLabel }
+                  : null,
+                values,
+              )}
+            </p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function Faq() {
   const { t } = useI18n();
-  const [open, setOpen] = useState<number | null>(0);
+  // A set rather than one index: in two columns, making someone close a
+  // question on the left to read one on the right is a rule with no reason.
+  const [open, setOpen] = useState<ReadonlySet<number>>(() => new Set([0]));
+
+  function toggle(index: number) {
+    setOpen((current) => {
+      const next = new Set(current);
+      if (!next.delete(index)) next.add(index);
+      return next;
+    });
+  }
 
   const values = {
     count: PLANS.free.monthlyGenerations,
@@ -56,50 +129,23 @@ export function Faq() {
   };
 
   return (
-    <div className="mx-auto mt-12 max-w-2xl divide-y rounded-2xl border">
-      {t.marketing.faq.items.map((item, index) => {
-        const expanded = open === index;
-        return (
-          <div key={item.q}>
-            <button
-              type="button"
-              onClick={() => setOpen(expanded ? null : index)}
-              aria-expanded={expanded}
-              className="hover:bg-accent/30 focus-visible:ring-ring flex w-full items-center gap-4 px-5 py-4 text-left transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
-            >
-              <span className="flex-1 font-medium">{item.q}</span>
-              <ChevronDown
-                className={cn(
-                  "text-muted-foreground size-4 shrink-0 transition-transform duration-200",
-                  expanded && "rotate-180",
-                )}
+    <div className="mx-auto mt-12 grid max-w-4xl items-start gap-3 md:grid-cols-2 md:gap-4">
+      {[0, 1].map((column) => (
+        <div key={column} className="flex flex-col gap-3 md:gap-4">
+          {t.marketing.faq.items
+            .map((item, index) => ({ item, index }))
+            .filter(({ index }) => index % 2 === column)
+            .map(({ item, index }) => (
+              <FaqItem
+                key={item.q}
+                item={item}
+                expanded={open.has(index)}
+                onToggle={() => toggle(index)}
+                values={values}
               />
-            </button>
-
-            <AnimatePresence initial={false}>
-              {expanded ? (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                  className="overflow-hidden"
-                >
-                  <p className="text-muted-foreground px-5 pb-4 text-sm leading-relaxed">
-                    {renderAnswer(
-                      item.a,
-                      "linkHref" in item && item.linkHref
-                        ? { href: item.linkHref, label: item.linkLabel }
-                        : null,
-                      values,
-                    )}
-                  </p>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-        );
-      })}
+            ))}
+        </div>
+      ))}
     </div>
   );
 }

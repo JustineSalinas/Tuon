@@ -47,6 +47,15 @@ import { cn } from "@/lib/utils";
  * fallback-rather-than-break rule already governs verification email.
  */
 
+/**
+ * So anything that links here can put the caret in the box.
+ *
+ * An id rather than a callback because the thing that wants to focus it is a
+ * pill in the hero, most of a page away, and threading a ref through the page
+ * to do it would be a lot of wiring for one line.
+ */
+export const ASK_INPUT_ID = "ask-input";
+
 export function AskTuon() {
   const { t, locale } = useI18n();
 
@@ -75,6 +84,17 @@ export function AskTuon() {
 
   // Abandoning an in-flight request on unmount stops a setState after teardown.
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Arriving on a shared /#ask link should land in the chat, not beside it.
+  // `preventScroll` because the browser is already on its way there and a
+  // second, instant jump would fight it.
+  useEffect(() => {
+    if (window.location.hash !== "#ask") return;
+    const frame = requestAnimationFrame(() =>
+      inputRef.current?.focus({ preventScroll: true }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   /**
    * Ask whether the assistant can answer, before anyone has typed.
@@ -349,6 +369,7 @@ export function AskTuon() {
             className="flex items-end gap-2 border-t p-3 sm:p-4"
           >
             <textarea
+              id={ASK_INPUT_ID}
               ref={inputRef}
               value={draft}
               onChange={(e) => {

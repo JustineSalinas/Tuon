@@ -30,6 +30,7 @@ import {
 } from "@/lib/curriculum";
 import { CONSENT_VERSION } from "@/lib/legal/consent";
 import { MAX_SCHOOL_LENGTH, normaliseSchool, suggestSchools } from "@/lib/schools";
+import { useSchools } from "@/lib/hooks/use-schools";
 import type { EducationLevel, Strand } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,13 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   }, [educationLevel]);
 
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
+  // Fetched only once this step is reached, so a student who never gets here
+  // never pays for it. Until it lands the curated shortlist answers.
+  const schools = useSchools(currentStep === "school");
+  // Computed once rather than twice: the old code called the suggester in the
+  // guard and again in the map, which over nine thousand rows is two scans per
+  // keystroke instead of one.
+  const schoolMatches = suggestSchools(school, schools);
 
   // Until a level is picked the remaining steps are unknown, so `steps` is
   // only the two we are sure of. Claiming "2 / 2" there tells the student they
@@ -305,9 +313,9 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                   {/* Suggestions only — the typed value is always what saves.
                       A fixed dropdown would tell most students their school
                       does not count; there are thousands of them. */}
-                  {suggestSchools(school).length > 0 ? (
+                  {schoolMatches.length > 0 ? (
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {suggestSchools(school).map((suggestion) => (
+                      {schoolMatches.map((suggestion) => (
                         <button
                           key={suggestion}
                           type="button"

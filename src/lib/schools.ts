@@ -1,12 +1,18 @@
 /**
- * School suggestions for onboarding.
+ * Schools, for the one field that asks where a student actually studies.
  *
- * This list is deliberately NOT authoritative. There are well over ten
- * thousand secondary and tertiary institutions in the Philippines, most of
- * them public high schools with no national name recognition, and a fixed
- * dropdown would quietly tell the average student that their school does not
- * count. So the field is free text; these only make the common cases faster
- * to type, and the typed value is always what gets saved.
+ * The field is still FREE TEXT and always was: a dropdown that cannot spell
+ * your school tells you your school does not count, and no list of a country's
+ * schools is ever complete or current. What has changed is the size of the
+ * help — the suggester now searches 9,465 secondary schools and higher
+ * education institutions from `public/schools.json`, built by
+ * `scripts/build-schools.mjs` from the DepEd masterlist and CHED's list of
+ * recognised HEIs.
+ *
+ * The list below survives as the INSTANT pool. It is in the bundle, so the
+ * first keystroke answers with no network at all, and for the institutions
+ * most students attend that is the entire interaction — the 335 KB index is
+ * only fetched if these do not have the answer.
  *
  * Ordering is roughly by how many students an institution enrols, not by
  * prestige — the goal is fewer keystrokes, not a ranking.
@@ -77,18 +83,26 @@ export const MAX_SCHOOL_LENGTH = 120;
  * a student searching "tomas" should not have to know their school files
  * under U.
  */
-export function suggestSchools(query: string, limit = 6): string[] {
+export function suggestSchools(
+  query: string,
+  pool: readonly string[] = SCHOOL_SUGGESTIONS,
+  limit = 6,
+): string[] {
   const q = query.trim().toLowerCase();
   if (q.length < 2) return [];
 
   const starts: string[] = [];
   const contains: string[] = [];
 
-  for (const school of SCHOOL_SUGGESTIONS) {
+  for (const school of pool) {
     const lower = school.toLowerCase();
     if (lower === q) continue; // already typed exactly; nothing to offer
     if (lower.startsWith(q)) starts.push(school);
     else if (lower.includes(q)) contains.push(school);
+    // Only a full page of prefix matches can end the scan early. Breaking on
+    // `contains` too would stop before finding better matches further down,
+    // which over nine thousand rows is the difference between "Batangas
+    // State" finding the university and finding a barangay high school.
     if (starts.length >= limit) break;
   }
 
