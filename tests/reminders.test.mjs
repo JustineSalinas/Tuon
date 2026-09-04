@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { en } from "../src/lib/i18n/en.ts";
 import {
   reminderIsDue,
-} from "file:///c:/Users/ASUS/tuonapp/src/lib/reminders.ts";
+} from "../src/lib/reminders.ts";
 
 let passed = 0;
 function check(name, fn) {
