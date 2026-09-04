@@ -36,6 +36,14 @@ jobs:
       - name: Credential scan
         run: npm run check:secrets -- --all
 
+      # `LayoutProps` and the rest of the typed-routes surface are generated
+      # into `.next/types`, so they do not exist in a fresh clone. Typecheck
+      # runs before Build, which is why every run on this workflow failed on a
+      # type the framework was always going to write. `typegen` does that one
+      # job without paying for a full build, and needs no environment.
+      - name: Generate route types
+        run: npx next typegen
+
       - name: Typecheck
         run: npx tsc --noEmit
 
