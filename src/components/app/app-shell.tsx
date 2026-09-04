@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays,
@@ -8,6 +10,7 @@ import {
   Home,
   Layers,
   LogOut,
+  MoreHorizontal,
   Network,
   Users,
   Plus,
@@ -53,8 +56,19 @@ const NAV = [
   { href: "/app/stats", key: "retention", icon: TrendingUp, exact: false },
 ] as const;
 
-/** The bottom bar only has room for four; the rest live in the sidebar. */
-const MOBILE_NAV = NAV.slice(0, 4);
+/**
+ * The bottom bar holds three destinations, the primary action, and a way to
+ * reach everything else.
+ *
+ * It used to hold the first four of NAV and a comment claiming the rest lived
+ * in the sidebar — which is `hidden md:flex`, so on a phone they lived
+ * nowhere. Ask Tala, Groups, Graph and Retention had no entry point on the
+ * device this app is mostly used on.
+ */
+const MOBILE_NAV = NAV.slice(0, 3);
+
+/** Everything the bar cannot hold. Calendar included — see MOBILE_NAV. */
+const MORE_NAV = NAV.slice(3);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -182,8 +196,77 @@ function MobileHeader() {
 
 function MobileNav({ pathname }: { pathname: string }) {
   const { t } = useI18n();
+  const { profile } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Any navigation closes it, including the back button. Adjusted during
+  // render rather than in an effect: React 19 rejects setState in an effect,
+  // and doing it here closes the sheet before the new route paints instead of
+  // a frame after it — the same pattern `usePaged` uses to reset paging.
+  const [shownFor, setShownFor] = useState(pathname);
+  if (shownFor !== pathname) {
+    setShownFor(pathname);
+    setMoreOpen(false);
+  }
+
+  const inMore = MORE_NAV.some((item) => isActive(pathname, item.href, item.exact));
+
   return (
-    <nav className="bg-background/90 fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+    <>
+      <AnimatePresence>
+        {moreOpen ? (
+          <>
+            <motion.button
+              type="button"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMoreOpen(false)}
+              aria-label={t.nav.closeMenu}
+              className="fixed inset-0 z-30 bg-black/30 md:hidden"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-background fixed inset-x-0 bottom-0 z-40 rounded-t-2xl border-t px-4 pt-3 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:hidden"
+            >
+              <div className="bg-border mx-auto h-1 w-10 rounded-full" />
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {MORE_NAV.map((item) => {
+                  const active = isActive(pathname, item.href, item.exact);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border p-3.5 text-sm transition-colors",
+                        active
+                          ? "border-primary/40 bg-accent/30 font-medium"
+                          : "hover:bg-accent/30",
+                      )}
+                    >
+                      <item.icon className="size-4 shrink-0" />
+                      {t.nav[item.key]}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* The timer, which was desktop-only. Reviewing happens on the
+                  phone; a study timer you can only start on a laptop is a
+                  study timer for a different student. */}
+              <div className="mt-3">
+                <PomodoroDock subjects={profile?.courses ?? []} />
+              </div>
+            </motion.div>
+          </>
+        ) : null}
+      </AnimatePresence>
+
+      <nav className="bg-background/90 fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
       {MOBILE_NAV.map((item) => {
         const active = isActive(pathname, item.href, item.exact);
         return (
@@ -209,7 +292,23 @@ function MobileNav({ pathname }: { pathname: string }) {
         </span>
         {t.nav.newNote}
       </Link>
-    </nav>
+
+      <button
+        type="button"
+        onClick={() => setMoreOpen((isOpen) => !isOpen)}
+        aria-expanded={moreOpen}
+        className={cn(
+          "flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors",
+          // Lit when you are on one of the pages it holds, so the bar still
+          // says where you are when the destination is behind it.
+          moreOpen || inMore ? "text-primary font-medium" : "text-muted-foreground",
+        )}
+      >
+        <MoreHorizontal className="size-5" />
+        {t.nav.more}
+      </button>
+      </nav>
+    </>
   );
 }
 
