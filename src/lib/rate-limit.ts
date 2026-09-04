@@ -142,22 +142,6 @@ export const RATE_LIMITS = {
   },
 } satisfies Record<string, RateLimitRule>;
 
-/**
- * Best-effort client address.
- *
- * `x-forwarded-for` is client-controlled in general, but on Vercel the proxy
- * rewrites it, so the FIRST entry is the real peer. Reading the last entry, or
- * trusting the header off-platform, would let a caller spoof their way around
- * the limit — so a request with no usable address is limited under a shared
- * key rather than waved through.
- */
-export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const first = forwarded?.split(",")[0]?.trim();
-  if (first) return first;
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
 export async function checkRateLimit(
   rule: RateLimitRule,
   key: string,
@@ -232,3 +216,6 @@ export function rateLimitedResponse(result: RateLimitResult, what: string) {
     { status: 429, headers: { "retry-after": String(result.retryAfter) } },
   );
 }
+
+// Re-exported so every route keeps importing its limit key from one place.
+export { clientIp } from "@/lib/net/client-ip";
