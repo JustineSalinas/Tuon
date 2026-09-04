@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { SCHOOL_SUGGESTIONS } from "@/lib/schools";
+import { SHORTLIST_POOL, type SchoolPool } from "@/lib/schools";
 
 /**
  * The full school index, fetched the first time someone needs it.
@@ -24,25 +24,32 @@ import { SCHOOL_SUGGESTIONS } from "@/lib/schools";
  * memory.
  */
 
-let cache: readonly string[] | null = null;
-let inFlight: Promise<readonly string[]> | null = null;
+let cache: SchoolPool | null = null;
+let inFlight: Promise<SchoolPool> | null = null;
 
-function loadSchools(): Promise<readonly string[]> {
+/** Trust nothing about the shape: a captive portal returns HTML with a 200. */
+function readPool(data: unknown): SchoolPool | null {
+  if (!data || typeof data !== "object") return null;
+  const { hei, secondary } = data as Record<string, unknown>;
+  const ok = (list: unknown) =>
+    Array.isArray(list) && list.every((n) => typeof n === "string");
+  if (!ok(hei) || !ok(secondary)) return null;
+  return { hei: hei as string[], secondary: secondary as string[] };
+}
+
+function loadSchools(): Promise<SchoolPool> {
   if (cache) return Promise.resolve(cache);
   if (inFlight) return inFlight;
 
   inFlight = fetch("/schools.json")
     .then((response) => (response.ok ? response.json() : null))
     .then((data: unknown) => {
-      // Trust nothing about the shape: this is a static file, but a proxy or a
-      // captive portal can return an HTML error page with a 200.
-      if (!Array.isArray(data) || !data.every((n) => typeof n === "string")) {
-        return SCHOOL_SUGGESTIONS;
-      }
-      cache = data as readonly string[];
+      const pool = readPool(data);
+      if (!pool) return SHORTLIST_POOL;
+      cache = pool;
       return cache;
     })
-    .catch(() => SCHOOL_SUGGESTIONS)
+    .catch(() => SHORTLIST_POOL)
     .finally(() => {
       inFlight = null;
     });
@@ -54,10 +61,8 @@ function loadSchools(): Promise<readonly string[]> {
  * @param enabled fetch only once the field is actually in use. Passing false
  *                keeps the shortlist and costs nothing.
  */
-export function useSchools(enabled: boolean): readonly string[] {
-  const [schools, setSchools] = useState<readonly string[]>(
-    cache ?? SCHOOL_SUGGESTIONS,
-  );
+export function useSchools(enabled: boolean): SchoolPool {
+  const [schools, setSchools] = useState<SchoolPool>(cache ?? SHORTLIST_POOL);
 
   useEffect(() => {
     if (!enabled || cache) return;

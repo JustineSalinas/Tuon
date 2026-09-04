@@ -28,3 +28,4 @@ import "./i18n.test.mjs";
 import "./companion.test.mjs";
 import "./rate-limit.test.mjs";
 import "./memory.test.mjs";
+import "./schools.test.mjs";

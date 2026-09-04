@@ -18,9 +18,13 @@
  * harder to find. ISCED 2 and 3 are lower and upper secondary — upper
  * secondary IS Senior High — so those stay, and so does every HEI.
  *
- * The output is a flat array of names, sorted, deduplicated case-insensitively.
- * No ids, no addresses, no coordinates: the field stores what the student
- * typed, and everything else would be weight nobody reads.
+ * The output keeps the two tiers APART — `{ hei, secondary }` — because which
+ * list a name came from is the only signal available about which of two
+ * schools sharing a name is the bigger institution, and the suggester needs it
+ * to stop 7,136 high schools burying 2,333 universities. Beyond that it is
+ * just sorted, deduplicated names: no ids, no addresses, no coordinates, since
+ * the field stores what the student typed and the rest would be weight nobody
+ * reads.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -71,7 +75,8 @@ function tidy(value) {
   return out.replace(/""/g, '"').trim();
 }
 
-const names = new Set();
+const secondaryNames = new Set();
+const heiNames = new Set();
 let dropped = 0;
 
 // ---------------------------------------------------------------- DepEd
@@ -93,10 +98,9 @@ let dropped = 0;
       continue;
     }
     const name = tidy(cells[nameAt] ?? "");
-    if (name) names.add(name);
+    if (name) secondaryNames.add(name);
   }
 }
-const afterDeped = names.size;
 
 // ----------------------------------------------------------------- CHED
 {
@@ -108,25 +112,34 @@ const afterDeped = names.size;
   for (const line of lines.slice(1)) {
     if (!line) continue;
     const name = tidy(splitCsv(line)[nameAt] ?? "");
-    if (name) names.add(name);
+    if (name) heiNames.add(name);
   }
 }
 
-// Dedupe case-insensitively, keeping the first spelling seen.
-const seen = new Map();
-for (const name of names) {
-  const key = name.toLowerCase();
-  if (!seen.has(key)) seen.set(key, name);
+/** Case-fold dedupe, keeping the first spelling seen, then sorted. */
+function tidyList(set, exclude) {
+  const seen = new Map();
+  for (const name of set) {
+    const key = name.toLowerCase();
+    if (exclude?.has(key)) continue;
+    if (!seen.has(key)) seen.set(key, name);
+  }
+  return [...seen.values()].sort((a, b) =>
+    a.localeCompare(b, "en", { sensitivity: "base" }),
+  );
 }
 
-const sorted = [...seen.values()].sort((a, b) =>
-  a.localeCompare(b, "en", { sensitivity: "base" }),
-);
+// Higher education wins a name held by both. A handful of institutions run a
+// secondary department under the same name, and the university is what
+// somebody typing it almost always means.
+const hei = tidyList(heiNames);
+const heiKeys = new Set(hei.map((n) => n.toLowerCase()));
+const secondary = tidyList(secondaryNames, heiKeys);
 
-writeFileSync("public/schools.json", JSON.stringify(sorted));
+const json = JSON.stringify({ hei, secondary });
+writeFileSync("public/schools.json", json);
 
 console.log(`elementary rows dropped   ${dropped}`);
-console.log(`secondary schools         ${afterDeped}`);
-console.log(`+ higher education        ${names.size - afterDeped}`);
-console.log(`after case-fold dedupe    ${sorted.length}`);
-console.log(`public/schools.json       ${(JSON.stringify(sorted).length / 1024).toFixed(0)} KB`);
+console.log(`higher education          ${hei.length}`);
+console.log(`secondary schools         ${secondary.length}`);
+console.log(`public/schools.json       ${(json.length / 1024).toFixed(0)} KB`);

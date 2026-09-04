@@ -76,37 +76,126 @@ export const SCHOOL_SUGGESTIONS = [
 export const MAX_SCHOOL_LENGTH = 120;
 
 /**
- * Suggestions matching what has been typed so far.
+ * The two tiers, kept apart on purpose.
  *
- * Matches on any word boundary rather than only the start of the string, so
- * "Santo Tomas" and "UST"-style partial recall both land somewhere useful —
- * a student searching "tomas" should not have to know their school files
- * under U.
+ * Not a cosmetic split: it is the only signal available about which of two
+ * schools sharing a name is the bigger institution. There are 7,136 secondary
+ * schools and 2,333 higher education institutions, and a search for a
+ * distinctive name almost always means the one there are fewer of.
  */
-export function suggestSchools(
-  query: string,
-  pool: readonly string[] = SCHOOL_SUGGESTIONS,
-  limit = 6,
-): string[] {
-  const q = query.trim().toLowerCase();
-  if (q.length < 2) return [];
+export interface SchoolPool {
+  readonly hei: readonly string[];
+  readonly secondary: readonly string[];
+}
 
+/** The curated shortlist, as a pool. All of these are higher education. */
+export const SHORTLIST_POOL: SchoolPool = {
+  hei: SCHOOL_SUGGESTIONS,
+  secondary: [],
+};
+
+/**
+ * Words that are never part of how anyone abbreviates a school.
+ *
+ * "University of San Agustin" is USA, not UOSA, and "Colegio de San Juan de
+ * Letran" is CSJL. Dropping these is what makes the initials match what a
+ * student actually types.
+ */
+const SKIPPED = new Set(["of", "the", "and", "de", "del", "des", "for", "in", "at"]);
+
+/**
+ * The initials a school is known by.
+ *
+ * Taken from the part BEFORE any campus suffix, because a campus is not part
+ * of the name anyone abbreviates: "West Visayas State University-Main" has to
+ * answer to WVSU, and taking initials from the whole string would make it
+ * WVSUM and match nothing anyone types.
+ */
+export function acronymOf(name: string): string {
+  const base = name.split(/[-–,(]/)[0];
+  return base
+    .split(/[^A-Za-zñÑ]+/)
+    .filter((word) => word && !SKIPPED.has(word.toLowerCase()))
+    .map((word) => word[0]!.toLowerCase())
+    .join("");
+}
+
+/**
+ * How many of the six slots higher education may take before secondary gets a
+ * turn.
+ *
+ * Half, rather than all: whichever tier the student meant, the other one is
+ * still on screen. Letting higher education take the lot fixed "san agustin"
+ * and broke "iloilo", where the colleges would have pushed Iloilo National
+ * High School off a list a Senior High student was reading.
+ */
+const HEI_RESERVE = 3;
+
+/**
+ * Shortest first, within a set of names that all already match.
+ *
+ * A stand-in for coverage — the share of the name the query accounts for —
+ * which for a fixed query is the same ordering and cheaper to compute. It is
+ * the difference between "san agustin" reaching the University of San Agustin
+ * and stopping at two Colegios and an institute of technology, and it puts the
+ * main campus above its branches for free.
+ */
+function byCoverage(a: string, b: string): number {
+  return a.length - b.length || a.localeCompare(b);
+}
+
+/** Prefix matches first, then anything containing the query. */
+function rank(pool: readonly string[], q: string): string[] {
   const starts: string[] = [];
   const contains: string[] = [];
-
   for (const school of pool) {
     const lower = school.toLowerCase();
     if (lower === q) continue; // already typed exactly; nothing to offer
     if (lower.startsWith(q)) starts.push(school);
     else if (lower.includes(q)) contains.push(school);
-    // Only a full page of prefix matches can end the scan early. Breaking on
-    // `contains` too would stop before finding better matches further down,
-    // which over nine thousand rows is the difference between "Batangas
-    // State" finding the university and finding a barangay high school.
-    if (starts.length >= limit) break;
+  }
+  return [...starts.sort(byCoverage), ...contains.sort(byCoverage)];
+}
+
+/**
+ * Suggestions matching what has been typed so far.
+ *
+ * Order is: schools whose initials ARE the query, then higher education, then
+ * secondary, with the two tiers interleaved so neither can crowd the other
+ * out. Within a tier, names that start with the query beat names that merely
+ * contain it — a student typing "tomas" should not have to know their school
+ * files under U.
+ */
+export function suggestSchools(
+  query: string,
+  pool: SchoolPool = SHORTLIST_POOL,
+  limit = 6,
+): string[] {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return [];
+
+  const picked: string[] = [];
+  const add = (name: string) => {
+    if (picked.length < limit && !picked.includes(name)) picked.push(name);
+  };
+
+  // Initials first. Someone who typed CPU knows exactly what they meant, and
+  // no substring match deserves to sit above that.
+  for (const tier of [pool.hei, pool.secondary]) {
+    tier
+      .filter((school) => acronymOf(school) === q)
+      .sort(byCoverage)
+      .forEach(add);
   }
 
-  return [...starts, ...contains].slice(0, limit);
+  const hei = rank(pool.hei, q);
+  const secondary = rank(pool.secondary, q);
+
+  hei.slice(0, HEI_RESERVE).forEach(add);
+  secondary.forEach(add);
+  hei.forEach(add);
+
+  return picked;
 }
 
 /** Collapses whitespace and trims; the stored form. */
