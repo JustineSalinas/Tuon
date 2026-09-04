@@ -70,20 +70,20 @@ export function SiteFooter() {
               <h2 className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
                 {column.heading}
               </h2>
-              <ul className="mt-3.5 space-y-2.5">
+              <ul className="mt-3.5 space-y-1 sm:space-y-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     {link.href.startsWith("#") || link.href.startsWith("mailto:") ? (
                       <a
                         href={link.href}
-                        className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                        className="text-muted-foreground hover:text-foreground block py-2 text-sm transition-colors sm:py-0"
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         href={link.href}
-                        className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                        className="text-muted-foreground hover:text-foreground block py-2 text-sm transition-colors sm:py-0"
                       >
                         {link.label}
                       </Link>

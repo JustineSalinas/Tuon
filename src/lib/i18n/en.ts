@@ -29,6 +29,8 @@ export const en = {
     graph: "Graph",
     retention: "Retention",
     newNote: "New note",
+    more: "More",
+    closeMenu: "Close menu",
     settings: "Settings",
     help: "Help",
     signOut: "Sign out",

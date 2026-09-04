@@ -36,6 +36,8 @@ export const fil: Messages = {
     graph: "Graph",
     retention: "Retention",
     newNote: "Bagong nota",
+    more: "Iba pa",
+    closeMenu: "Isara ang menu",
     settings: "Settings",
     help: "Tulong",
     signOut: "Mag-sign out",

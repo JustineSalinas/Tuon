@@ -350,24 +350,44 @@ function IPhoneMini() {
 }
 
 /**
- * The lineup is ~886px of fixed-width hardware, which no phone fits.
+ * The lineup is ~918px of fixed-width hardware, which no phone fits.
  *
- * Scaling it down beats letting it scroll: a centred overflow lands the
+ * It used to scale down — 0.38 on a phone — and that did not make it small, it
+ * made it unreadable. The screens carry real interface at 6-8px, sized for
+ * full scale, and below about 0.8 that text stops being text; the section
+ * became three grey thumbnails on the one device most of these students
+ * actually hold.
+ *
+ * So it scrolls at full size instead, snapping from device to device. Scaling
+ * was originally chosen over overflow because "a centred overflow lands the
  * visitor on the middle of a half-cropped MacBook, which reads as broken
- * rather than as a carousel. The wrapper's clamped height absorbs the space a
- * transform would otherwise leave behind, since `scale` does not affect layout.
+ * rather than as a carousel" — true of a centred overflow with no affordance,
+ * and exactly what snap points and a deliberate peek of the next device fix.
+ * From `lg` there is room for all three, and it goes back to a static row.
  */
 export function DeviceLineup() {
   const { t } = useI18n();
 
   return (
     <div className="mt-12 md:mt-14">
-      {/* 918px wide all in — the MacBook's base bar is 452, wider than its lid. */}
-      <div className="h-[162px] overflow-hidden sm:h-[262px] lg:h-auto lg:overflow-visible">
-        <div className="flex origin-top-left scale-[0.38] items-end gap-6 sm:scale-[0.62] lg:scale-100 lg:justify-center">
-          <MacBookMini caption={t.marketing.devices.desktopCaption} />
-          <IPadMini />
-          <IPhoneMini />
+      {/* Bleeds to the page edges so the peek reads as "there is more this
+          way" rather than as something clipped by a container. */}
+      <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-8 md:px-8 lg:mx-0 lg:overflow-visible lg:px-0">
+        {/* 918px wide all in — the MacBook's base bar is 452, wider than its
+            lid. `w-max` keeps the row from being squeezed by the scroller. */}
+        <div className="flex w-max snap-x snap-mandatory items-end gap-6 lg:w-auto lg:justify-center">
+          {/* The phone comes FIRST on a phone. Whoever is reading this on one
+              should not have to swipe past a laptop to reach the screen they
+              are about to use. */}
+          <div className="order-1 snap-center lg:order-3">
+            <IPhoneMini />
+          </div>
+          <div className="order-2 snap-center lg:order-2">
+            <IPadMini />
+          </div>
+          <div className="order-3 snap-center lg:order-1">
+            <MacBookMini caption={t.marketing.devices.desktopCaption} />
+          </div>
         </div>
       </div>
     </div>

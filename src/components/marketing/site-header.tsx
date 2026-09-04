@@ -39,13 +39,22 @@ export function SiteHeader() {
           middle one actually centred; a flex row with `mx-auto` would centre it
           in the space LEFT OVER, and that moves whenever the buttons change. On
           phones the nav is hidden, the middle track collapses to nothing, and
-          the same grid puts the wordmark left and the buttons right. */}
+          the same grid puts the wordmark left and the buttons right.
+
+          Each child names its own column. `hidden` is `display: none`, so the
+          nav drops out of the grid below `lg` and auto-placement would slide
+          the buttons into the middle track — which is exactly what it did,
+          leaving them stranded mid-header with an empty column behind them. */}
       <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-3.5 md:px-8">
-        <Link href="/" onClick={() => setOpen(false)} className="justify-self-start">
+        <Link
+          href="/"
+          onClick={() => setOpen(false)}
+          className="col-start-1 justify-self-start"
+        >
           <Wordmark />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="col-start-2 hidden items-center gap-1 lg:flex">
           {LINKS.map((key) => (
             <a
               key={key}
@@ -57,7 +66,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center justify-self-end gap-2">
+        <div className="col-start-3 flex items-center justify-self-end gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -66,13 +75,15 @@ export function SiteHeader() {
           >
             {t.marketing.nav.signIn}
           </Button>
-          <Button size="sm" render={<Link href="/signup" />}>
+          <Button size="sm" className="h-10 sm:h-8" render={<Link href="/signup" />}>
             {t.marketing.nav.getStarted}
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            // 36px is the smallest thing on the page and the only way to
+            // navigate on a phone. Full size below `lg`, where it is visible.
+            className="size-11 lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-label={open ? t.marketing.nav.closeMenu : t.marketing.nav.openMenu}

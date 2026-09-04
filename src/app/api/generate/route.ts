@@ -21,7 +21,6 @@ import {
   PLANS,
   cooldownSecondsFor,
   maxNoteCharsFor,
-  normalisePlan,
 } from "@/lib/ai/config";
 import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompt";
 import { STUDY_SET_JSON_SCHEMA, parseGeneratedStudySet } from "@/lib/ai/schema";
@@ -88,8 +87,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Per-address ceiling. The per-account quota below bounds what one student
-  // costs; this bounds how many accounts one connection can create and spend.
+  // Per-address ceiling, checked before auth because it is the cheap one and
+  // it is what a script hits first. Loose on purpose: it is a farming
+  // backstop, and a whole school shares one address.
   const limit = await checkRateLimit(RATE_LIMITS.generate, clientIp(request));
   if (!limit.allowed) return rateLimitedResponse(limit, "study sets");
 
@@ -97,6 +97,15 @@ export async function POST(request: Request) {
   if (!caller) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
+
+  // Per-account ceiling. This is the one a student could actually reach, and
+  // keying it on the account rather than the address is what stops one
+  // classmate's session from locking out the room.
+  const accountLimit = await checkRateLimit(
+    RATE_LIMITS.generateAccount,
+    caller.uid,
+  );
+  if (!accountLimit.allowed) return rateLimitedResponse(accountLimit, "study sets");
 
   // Verification gates the one endpoint that costs money. Signing in, writing
   // notes, and reviewing all work unverified — this exists to stop a script

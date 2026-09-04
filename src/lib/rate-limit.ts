@@ -71,13 +71,34 @@ export const RATE_LIMITS = {
     windowSeconds: 3600,
   },
   /**
-   * Generation. The per-plan cap and cooldown already gate a single account;
-   * this catches many accounts behind one address. Set well above what a
-   * shared school or café connection would produce.
+   * Generation, per ADDRESS. Purely an anti-farming backstop — it exists to
+   * stop one connection minting accounts and spending each one's free tier,
+   * not to bound what a student does.
+   *
+   * Deliberately loose, because a school is one address. Forty students in a
+   * lab generating two sets each in a period is eighty requests from one IP,
+   * and the old ceiling of sixty turned that into a 429 nobody in the building
+   * could clear. Account creation is already capped at ten an hour per address
+   * by `bootstrap`, which is the tighter half of the same defence, so this one
+   * can afford to be generous.
    */
   generate: {
     scope: "generate",
-    limit: envLimit("RATE_LIMIT_GENERATE", 60),
+    limit: envLimit("RATE_LIMIT_GENERATE", 300),
+    windowSeconds: 3600,
+  },
+  /**
+   * Generation, per ACCOUNT. The ceiling a student could actually reach.
+   *
+   * The monthly quota already bounds what one account costs over a month, and
+   * the per-plan cooldown spaces requests out — except on Pro, where the
+   * cooldown is zero. This bounds the blast radius of a stuck client there:
+   * far above any honest use, low enough that a loop cannot burn a month's
+   * quota in a few minutes.
+   */
+  generateAccount: {
+    scope: "generate-account",
+    limit: envLimit("RATE_LIMIT_GENERATE_ACCOUNT", 20),
     windowSeconds: 3600,
   },
   /**
