@@ -21,7 +21,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuHeader,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -86,12 +86,12 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
         }
       />
       <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="font-normal">
+        <DropdownMenuHeader>
           <span className="text-sm font-medium">{t.exportSet.heading}</span>
           <span className="text-muted-foreground block text-xs">
             {t.sets.flashcards(payload?.flashcards.length ?? 0)}
           </span>
-        </DropdownMenuLabel>
+        </DropdownMenuHeader>
         <DropdownMenuSeparator />
 
         <DropdownMenuItem onClick={handleAnki}>
