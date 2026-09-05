@@ -30,15 +30,25 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#FAF7F2",
     lang: "en-PH",
     categories: ["education", "productivity"],
+    // `/icon/<id>`, not `/icon`. `app/icon.tsx` declares its sizes through
+    // `generateImageMetadata`, so each one is its own route and the bare path
+    // 404s — which it did, on both entries, leaving an installed Tuon with no
+    // icon on the home screen at all.
     icons: [
       {
-        src: "/icon",
+        src: "/icon/32",
+        sizes: "32x32",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon/512",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon",
+        src: "/icon/512",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
