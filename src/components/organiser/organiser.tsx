@@ -26,7 +26,6 @@ import {
 import {
   CalendarClock,
   Check,
-  Clock,
   ListTodo,
   Loader2,
   Plus,
@@ -55,14 +54,12 @@ import {
   upcomingDeadlines,
 } from "@/lib/organiser/plan-items";
 import type { PlanItem, PlanItemKind } from "@/lib/types";
-import { StudyLog } from "@/components/organiser/study-log";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 export function Organiser({ todayKey }: { todayKey: string }) {
@@ -99,52 +96,89 @@ export function Organiser({ todayKey }: { todayKey: string }) {
         </div>
       </div>
 
-      <Tabs defaultValue="deadlines" className="mt-5">
-        <TabsList>
-          <TabsTrigger value="deadlines">
-            <CalendarClock className="size-3.5" />
-            {t.organiser.deadlines}
-            {deadlines.length > 0 ? <Count value={deadlines.length} /> : null}
-          </TabsTrigger>
-          <TabsTrigger value="todos">
-            <ListTodo className="size-3.5" />
-            {t.organiser.todos}
-            {openTodos > 0 ? <Count value={openTodos} /> : null}
-          </TabsTrigger>
-          <TabsTrigger value="timetable">
-            <Table2 className="size-3.5" />
-            {t.organiser.timetable}
-          </TabsTrigger>
-          <TabsTrigger value="time">
-            <Clock className="size-3.5" />
-            {t.organiser.time}
-          </TabsTrigger>
-        </TabsList>
-
-        {loading ? (
-          <Skeleton className="mt-4 h-40 w-full rounded-2xl" />
-        ) : (
-          <>
-            <TabsContent value="deadlines" className="mt-4">
+      {loading ? (
+        <div className="mt-5 grid items-start gap-8 lg:grid-cols-2">
+          <Skeleton className="h-64 w-full rounded-2xl" />
+          <Skeleton className="h-64 w-full rounded-2xl" />
+        </div>
+      ) : (
+        <div className="mt-5 grid items-start gap-8 lg:grid-cols-2">
+          {/* What you owe. Dated first, then undated — one column, because a
+              deadline and a to-do are the same question asked twice and
+              splitting them across two tabs meant neither list was ever
+              complete. */}
+          <div className="min-w-0">
+            <ColumnHeading
+              icon={<CalendarClock className="size-4" />}
+              title={t.organiser.deadlines}
+              count={deadlines.length}
+            />
+            <div className="mt-3">
               <DeadlineList
                 items={deadlines}
                 todayKey={todayKey}
                 subjects={subjects}
               />
-            </TabsContent>
-            <TabsContent value="todos" className="mt-4">
-              <TodoList items={todos} todayKey={todayKey} subjects={subjects} />
-            </TabsContent>
-            <TabsContent value="timetable" className="mt-4">
+            </div>
+
+            <div className="mt-7">
+              <ColumnHeading
+                icon={<ListTodo className="size-4" />}
+                title={t.organiser.todos}
+                count={openTodos}
+              />
+              <div className="mt-3">
+                <TodoList
+                  items={todos}
+                  todayKey={todayKey}
+                  subjects={subjects}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* When you are not free. Beside the list rather than behind it:
+              this is the half of the week that decides whether any of the
+              other half is possible. */}
+          <div className="min-w-0">
+            <ColumnHeading
+              icon={<Table2 className="size-4" />}
+              title={t.organiser.timetable}
+            />
+            <div className="mt-3">
               <Timetable items={classes} subjects={subjects} />
-            </TabsContent>
-            <TabsContent value="time" className="mt-4">
-              <StudyLog todayKey={todayKey} subjects={subjects} />
-            </TabsContent>
-          </>
-        )}
-      </Tabs>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
+  );
+}
+
+/**
+ * A column's heading inside "Your week".
+ *
+ * `h3`, under the section's `h2` — the weekday rows inside the timetable
+ * moved down to `h4` so the page has one heading ladder rather than three
+ * components each starting their own.
+ */
+function ColumnHeading({
+  icon,
+  title,
+  count,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  count?: number;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-muted-foreground">{icon}</span>
+      <h3 className="font-display text-base font-semibold tracking-tight">
+        {title}
+      </h3>
+      {count ? <Count value={count} /> : null}
+    </div>
   );
 }
 
@@ -411,9 +445,9 @@ function Timetable({
         <div className="space-y-4">
           {populated.map((weekday) => (
             <div key={weekday}>
-              <h3 className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+              <h4 className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
                 {t.common.weekdays[weekday]}
-              </h3>
+              </h4>
               <ul className="mt-2 divide-y rounded-xl border">
                 {classesOn(items, weekday).map((item) => (
                   <li

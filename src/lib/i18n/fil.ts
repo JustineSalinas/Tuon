@@ -457,6 +457,9 @@ export const fil: Messages = {
     todos: "Gagawin",
     timetable: "Iskedyul",
     time: "Oras",
+    timeStudied: "Oras na inaral",
+    timeStudiedHint:
+      "Mag-log ng sesyon, o hayaang gawin ng timer. Ang linggong ito, oras-oras.",
     saveFailed: "Hindi ma-save iyon. Tingnan ang koneksyon mo.",
     changeFailed: "Hindi ma-save ang pagbabagong iyon.",
     deleteFailed: "Hindi mabura iyon.",

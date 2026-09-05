@@ -459,6 +459,10 @@ export const en = {
     todos: "To do",
     timetable: "Timetable",
     time: "Time",
+    /** Section heading now, not a tab label — "Time" alone said nothing. */
+    timeStudied: "Time studied",
+    timeStudiedHint:
+      "Log a session, or let the timer do it. This week, hour by hour.",
     saveFailed: "Could not save that. Check your connection.",
     changeFailed: "Could not save that change.",
     deleteFailed: "Could not delete that.",

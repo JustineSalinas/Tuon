@@ -20,6 +20,7 @@ import {
 import { Organiser } from "@/components/organiser/organiser";
 import { StudyHeatmap } from "@/components/app/study-heatmap";
 import { Panel } from "@/components/app/panel";
+import { StudyLog } from "@/components/organiser/study-log";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export default function CalendarPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useI18n();
   const { cards, loading } = useReviewCards(user?.uid);
   const { timeZone } = usePreferences();
@@ -199,6 +200,21 @@ export default function CalendarPage() {
           time" rather than under today's plan, and this is where the
           dashboard's own link has always pointed. The card no longer repeats
           this heading — the two used to stack, one directly above the other. */}
+      {/* The log, out of the organiser's tab strip. What you already did is
+          not part of "your week ahead", and it belongs against the grid it
+          feeds: add a session here, watch the square darken below. */}
+      <section className="mt-10">
+        <h2 className="font-display text-lg font-semibold tracking-tight">
+          {t.organiser.timeStudied}
+        </h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {t.organiser.timeStudiedHint}
+        </p>
+        <div className="mt-3">
+          <StudyLog todayKey={todayKey} subjects={profile?.courses ?? []} />
+        </div>
+      </section>
+
       <section className="mt-10">
         <h2 className="font-display text-lg font-semibold tracking-tight">
           {t.dashboard.yearOfStudy}
