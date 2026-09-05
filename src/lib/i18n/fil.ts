@@ -65,8 +65,10 @@ export const fil: Messages = {
     startReviewing: "Simulan ang review",
     everythingOnTrack: "Nasa tamang landas ang lahat.",
     // No plural change on the noun: "8 kard", not "8 mga kard".
-    cardsNeedWork: (count: number) => `${count} kard ang kailangan pang balikan`,
-    cardsReadyToStart: (count: number) => `${count} kard ang handa nang simulan`,
+    cardsNeedWork: (count: number) =>
+      `${count} kard ang kailangan pang balikan`,
+    cardsReadyToStart: (count: number) =>
+      `${count} kard ang handa nang simulan`,
     rateEachOne:
       "I-rate ang bawat isa at si Tuón na ang bahala kung kailan mo ito muling makikita.",
     noneWillHold: (when: string) =>
@@ -140,7 +142,8 @@ export const fil: Messages = {
     blocksToday: (count: number) => `${count} block ngayong araw`,
     backgroundNote:
       "Patuloy itong tumatakbo kahit nasa background. Focus blocks lang ang nilo-log.",
-    logged: (time: string, next: string) => `${time} ang na-log. ${next} na susunod.`,
+    logged: (time: string, next: string) =>
+      `${time} ang na-log. ${next} na susunod.`,
     nextUp: (next: string) => `${next} na ang susunod.`,
     notLogged: "Hindi na-save sa log mo ang block na iyon.",
     breakOver: "Tapos na ang break. Balik na tayo.",
@@ -149,6 +152,18 @@ export const fil: Messages = {
   heatmap: {
     whereItWent: "Saan napunta ang oras",
     otherSubjects: "Lahat ng iba pa",
+    noneYet: "Wala pang naitalang pag-aaral",
+    totalAcross: (hours: string, days: number) =>
+      `${hours} sa ${days} ${days === 1 ? "araw" : "na araw"}`,
+    currentRun: "kasalukuyang sunod",
+    longestRun: "pinakamahabang sunod",
+    runDays: (days: number) => `${days} ${days === 1 ? "araw" : "na araw"}`,
+    legend: {
+      under15: "wala pang 15m",
+      m15: "15m",
+      m30: "30m",
+      h1: "1h+",
+    },
   },
 
   common: {
@@ -194,8 +209,7 @@ export const fil: Messages = {
     allSets: "Lahat ng set",
     termsLiveIn: "Ang mga term at ang mga subject nito ay nasa",
     settingsLink: "settings",
-    noMatch: (query: string) =>
-      `Walang study set na tumugma sa “${query}”.`,
+    noMatch: (query: string) => `Walang study set na tumugma sa “${query}”.`,
     noneYet: "Wala pang study set",
     noneYetHint:
       "Magsulat ng nota, tapos pindutin ang Generate study set. Lalabas dito ang flashcards at quiz mo.",
@@ -241,7 +255,8 @@ export const fil: Messages = {
     confident: "Kumpiyansa na",
     mastered: "Bihasa na",
     untouchedHint: "wala pang na-review",
-    learningHint: "karamihan sa kard ay bumabalik pa rin sa loob ng isang linggo",
+    learningHint:
+      "karamihan sa kard ay bumabalik pa rin sa loob ng isang linggo",
     familiarHint: "nagsisimula nang humaba ang iskedyul",
     confidentHint: "karamihan sa kard ay tumatagal nang ilang linggo",
     masteredHint: "lahat ay ilang linggo pa at walang mahina",
@@ -309,7 +324,8 @@ export const fil: Messages = {
     subjectOptional: "Subject (opsyonal)",
     noSubject: "Walang subject",
     subjectExample: "hal. Calculus 1",
-    moreNeeded: (count: number) => `${count} pa ang kailangan para makapag-generate`,
+    moreNeeded: (count: number) =>
+      `${count} pa ang kailangan para makapag-generate`,
     startTyping: "Magsimulang mag-type para ma-save ang notang ito.",
     addMoreToGenerate: (count: number) =>
       `Magdagdag ng ${count} pang karakter para makagawa ng study set.`,
@@ -348,13 +364,15 @@ export const fil: Messages = {
     notAPdf: "Hindi iyon PDF. PDF file lang ang pwedeng i-import sa ngayon.",
     tooLarge: (sizeMb: string, limitMb: number) =>
       `${sizeMb}MB ang PDF na iyon. ${limitMb}MB ang limitasyon — subukang hatiin ito sa mga kabanata.`,
-    readerFailed: "Hindi masimulan ang PDF reader. Mag-refresh at subukan ulit.",
+    readerFailed:
+      "Hindi masimulan ang PDF reader. Mag-refresh at subukan ulit.",
     passwordProtected:
       "May password ang PDF na iyon. Alisin ang password at subukan ulit.",
     unreadable: "Hindi mabasa ang file na iyon bilang PDF. Maaaring sira ito.",
     noTextLayer:
       "Walang nabasang teksto. Mukhang scanned PDF ito o mga larawan ng pahina — hindi pa mabasa ni Tuón ang ganito. Subukan ang PDF na galing sa dokumento.",
-    unknown: "May naging problema sa pagbasa ng PDF na iyon. Subukan ang ibang file.",
+    unknown:
+      "May naging problema sa pagbasa ng PDF na iyon. Subukan ang ibang file.",
   },
 
   generate: {
@@ -371,7 +389,8 @@ export const fil: Messages = {
     ],
     tryAgain: "Subukan ulit",
     failed: "Hindi nagawa. Subukan ulit.",
-    offline: "Hindi maabot ang server. Tingnan ang koneksyon mo at subukan ulit.",
+    offline:
+      "Hindi maabot ang server. Tingnan ang koneksyon mo at subukan ulit.",
     merged: (added: number, kept: number) =>
       `${added} bagong kard ang naidagdag. Napanatili ng ${kept} mong kard ang progreso nila.`,
     nothingNew:
@@ -420,6 +439,8 @@ export const fil: Messages = {
     scheduled: "Nakaiskedyul",
     overdue: "Lampas na",
     tapADay: "Pindutin ang isang araw para makita kung anong kard.",
+    selectedDay: "Piniling araw",
+    yearHint: "Bawat araw na nag-aral ka, at kung saan napunta ang oras.",
     nothingScheduled: "Walang nakaiskedyul.",
     overdueSuffix: " — lampas na",
     noneYet: "Wala pang nakaiskedyul",
@@ -446,7 +467,8 @@ export const fil: Messages = {
     todosEmpty:
       "Maliliit na bagay na hindi flashcard. Mananatili sila sa listahan kahit na-tsek na, para makita mo kung ano talaga ang inabot ng linggo mo.",
     markDone: (title: string) => `Markahan ang ${title} bilang tapos`,
-    markNotDone: (title: string) => `Markahan ang ${title} bilang hindi pa tapos`,
+    markNotDone: (title: string) =>
+      `Markahan ang ${title} bilang hindi pa tapos`,
     deleteItem: (title: string) => `Burahin ang ${title}`,
     classesOverlap:
       "May dalawang klaseng nagsasabay. Iniwan kung paano mo ito inilagay — ang tunay na banggaan ay dapat ayusin sa eskwelahan mo, hindi basta tanggihang i-save dito.",
@@ -548,20 +570,23 @@ export const fil: Messages = {
     standings: "Standings",
     standingsHint:
       "Galing ang XP sa mga kard na talagang naalala mo nang bumalik ang mga ito — hindi sa oras na naitala, kaya walang kinikita ang pag-iwan ng timer. Ang kard na tumatagal ng isang buwan ay katumbas ng sampung recall.",
-    noStandings: "Wala pa. Mag-review ng ilang kard at lalabas dito ang unang XP mo.",
+    noStandings:
+      "Wala pa. Mag-review ng ilang kard at lalabas dito ang unang XP mo.",
     you: "ikaw",
     masteredCount: (count: number) => `${count} ang bihasa na`,
     xp: (value: string) => `${value} XP`,
     standingsPrivacy:
       "Ang mga bilang na ito lang ang ibinabahagi sa grupo — hindi kailanman ang nota mo, ang kard mo, o kung anong subject ang huli ka.",
     error: {
-      UNVERIFIED: "Hindi ma-verify ang request na ito. I-reload at subukan ulit.",
+      UNVERIFIED:
+        "Hindi ma-verify ang request na ito. I-reload at subukan ulit.",
       NOT_SIGNED_IN: "Kailangan mong maka-sign in.",
       MALFORMED: "May naging problema sa pagpapadala niyon. Subukan ulit.",
       UNKNOWN_ACTION: "May naging problema sa pagpapadala niyon. Subukan ulit.",
       NAME_REQUIRED: "Bigyan ng pangalan ang grupo.",
       NO_PROFILE: "Tapusin muna ang pag-set up ng account mo.",
-      TOO_MANY_GROUPS: "Nasa pinakamaraming grupo ka na na pinapayagan ng Tuón.",
+      TOO_MANY_GROUPS:
+        "Nasa pinakamaraming grupo ka na na pinapayagan ng Tuón.",
       BAD_CODE: "Hindi wasto ang invite code na iyon.",
       EXPIRED_CODE: "Hindi na wasto ang imbitasyong iyon. Humingi ng bago.",
       GROUP_FULL: "Puno na ang grupong iyon.",
@@ -569,7 +594,8 @@ export const fil: Messages = {
       UNKNOWN_GROUP: "Hindi kilalang grupo.",
       RATE_LIMITED:
         "Masyadong maraming pagbabago mula sa koneksyong ito. Subukan ulit sa loob ng ilang minuto.",
-      SERVER_NOT_CONFIGURED: "Hindi pa buo ang pagkaka-configure ng server na ito.",
+      SERVER_NOT_CONFIGURED:
+        "Hindi pa buo ang pagkaka-configure ng server na ito.",
       OFFLINE: "Hindi maabot ang Tuón. Tingnan ang koneksyon mo.",
       unknown: "Hindi iyon gumana. Subukan ulit.",
     },
@@ -587,7 +613,8 @@ export const fil: Messages = {
     change: "Palitan",
     subjects: "Mga subject",
     course: "Kurso",
-    fromCurrentTerm: "Galing ang mga subject mo sa term na minarkahan mong kasalukuyan.",
+    fromCurrentTerm:
+      "Galing ang mga subject mo sa term na minarkahan mong kasalukuyan.",
     editUnderSemesters: "I-edit ang mga ito sa Semesters",
     addAnotherSubject: "Magdagdag pa ng subject",
     addYourOwnCourse: "Idagdag ang sarili mong kurso",
@@ -611,7 +638,8 @@ export const fil: Messages = {
     saveFailed: "Hindi ma-save ang larawang iyon.",
     removeFailed: "Hindi maalis ang larawang iyon.",
     type: "Kailangang JPEG, PNG o WebP iyon.",
-    tooBig: "Masyadong malaki ang larawang iyon. Subukan ang mas mababa sa 10MB.",
+    tooBig:
+      "Masyadong malaki ang larawang iyon. Subukan ang mas mababa sa 10MB.",
     decode: "Hindi mabasa ang file na iyon bilang larawan.",
     encode: "Hindi ma-resize ang larawang iyon. Subukan ang iba.",
   },
@@ -623,7 +651,8 @@ export const fil: Messages = {
     setUp: "I-set up ang mga semester",
     hint: "Ang term na minarkahan mong kasalukuyan ang magdedesisyon kung anong subject ang lalabas kapag nag-tag ka ng nota o study set. Napapanatili ng mga lumang term ang lahat ng nasa kanila.",
     addSemester: "Magdagdag ng semester",
-    atMost: (count: number) => `${count} semester ang pinakamarami na itinatago ng Tuón.`,
+    atMost: (count: number) =>
+      `${count} semester ang pinakamarami na itinatago ng Tuón.`,
     termFull: (count: number) => `May ${count} subject na ang term na iyon.`,
     current: "Kasalukuyan",
     makeCurrent: "Gawing kasalukuyan",
@@ -681,14 +710,16 @@ export const fil: Messages = {
       "Ang dark ay mainit sa mata, hindi itim na itim — para sa pag-review nang ala-una ng umaga nang hindi sumisigaw ang screen.",
     colourHint:
       "Hiwalay sa light at dark — pumili ng kulay minsan at susunod ito sa iyo kahit saan ka pumunta.",
-    colourFailed: "Hindi ma-save ang kulay na iyon. Magre-reset ito sa ibang device.",
+    colourFailed:
+      "Hindi ma-save ang kulay na iyon. Magre-reset ito sa ibang device.",
     languageHint:
       "Ang sariling salita ng Tuón. Mananatili ang mga nota at kard mo sa kung anong wika mo isinulat — pati na ang Taglish.",
     languageFailed: "Hindi ma-save ang wikang iyon.",
     draftLocale: "Draft — hindi pa nasusuri ng katutubong nagsasalita",
     timeZoneHint:
       "Nagdedesisyon kung kailan itinuturing na due ang isang kard ngayong araw. Kapag mali ito, malilipat ang bawat petsa ng review, at walang magmumukhang mali sa screen.",
-    timeZoneSaved: "Na-update ang time zone. Susunod dito ang mga due date mo mula ngayon.",
+    timeZoneSaved:
+      "Na-update ang time zone. Susunod dito ang mga due date mo mula ngayon.",
     timeZoneFailed: "Hindi ma-save ang time zone mo.",
     deviceSays: "Sabi ng device na ito, nasa",
     deviceSaysTail: " ka, na hindi ang pinagbabatayan ng mga review mo.",
@@ -697,7 +728,8 @@ export const fil: Messages = {
       "Ang timer sa sidebar. Dalawampu’t limang minuto ang klasikong block at bagay sa marami; kung hindi ito bagay sa iyo, mas mahalaga ang maikling natatapos mo kaysa sa mahabang iniiwan mo.",
     timerSaved: "Na-update ang timer.",
     timerFailed: "Hindi ma-save ang mga haba na iyon.",
-    longBreakNote: "Dumarating ang mahabang break pagkatapos ng bawat ikaapat na focus block.",
+    longBreakNote:
+      "Dumarating ang mahabang break pagkatapos ng bawat ikaapat na focus block.",
     typedRecallHint:
       "Ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Sinasagot ng pag-type ang tanong bago mo makita. Sa mga sagot lang na kayang i-type, at pinapatawad ang spelling, ayos ng salita at accent.",
     typedRecallFailed: "Hindi ma-save ang setting na iyon.",
@@ -715,7 +747,8 @@ export const fil: Messages = {
     deviceNote:
       "Galing ang paalala sa device na ito, kaya lalabas lang ito sa araw na binuksan mo ang Tuón. Malaki ang maitutulong ng pag-install nito sa home screen mo.",
     unsupported: "Hindi makapagpakita ng paalala ang browser na ito.",
-    blocked: "Hinarang ng browser mo ang mga notification. Pwede mo itong payagan sa site settings.",
+    blocked:
+      "Hinarang ng browser mo ang mga notification. Pwede mo itong payagan sa site settings.",
     set: (time: string) => `Nakatakda ang paalala sa ${time}.`,
     cardsReady: (count: number) => `${count} kard ang handa nang i-review.`,
   },
@@ -740,15 +773,18 @@ export const fil: Messages = {
     newEmail: "Bagong email address",
     emailPlaceholder: "juan@example.com",
     currentPassword: "Kasalukuyang password mo",
-    googleReauth: "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
+    googleReauth:
+      "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
     emailChangeNote:
       "Magpapadala muna kami ng link sa bagong address. Magbabago lang ang email mo kapag pinindot mo ito, kaya hindi ka mai-lock out ng isang typo.",
     sendConfirmation: "Ipadala ang kumpirmasyon",
     confirmationSent:
       "Tingnan ang bagong address mo para sa link ng kumpirmasyon. Magbabago ang email mo kapag pinindot mo ito.",
-    verificationFailed: "Hindi maipadala ang email na iyon. Subukan ulit sa loob ng isang minuto.",
+    verificationFailed:
+      "Hindi maipadala ang email na iyon. Subukan ulit sa loob ng isang minuto.",
     alreadyVerified: "Na-verify na ang address na ito.",
-    verificationSent: "Naipadala ang verification email. Tingnan ang inbox at spam folder mo.",
+    verificationSent:
+      "Naipadala ang verification email. Tingnan ang inbox at spam folder mo.",
     password: "Password",
     passwordHint: "Palitan ito kung sa tingin mo ay may ibang nakakaalam nito.",
     currentPasswordLabel: "Kasalukuyang password",
@@ -761,7 +797,8 @@ export const fil: Messages = {
     signOutEverywhere: "Mag-sign out sa lahat ng lugar",
     signOutEverywhereHint:
       "Tinatapos ang bawat session, pati ang computer lab na nakalimutan mong sign-outan. Masi-sign out ka rin dito.",
-    signedOutEverywhere: "Naka-sign out na sa lahat. Sini-sign out ka na rin dito.",
+    signedOutEverywhere:
+      "Naka-sign out na sa lahat. Sini-sign out ka na rin dito.",
     signOutFailed: "Hindi ma-sign out ang ibang device mo. Subukan ulit.",
     noEmail: "Walang email address ang account na ito.",
     error: {
@@ -770,7 +807,8 @@ export const fil: Messages = {
       invalidEmail: "Mukhang hindi wastong email address iyon.",
       weakPassword: "Gumamit ng password na hindi bababa sa 6 na karakter.",
       recentLogin: "Mag-sign in ulit, tapos subukan muli.",
-      tooManyRequests: "Masyadong maraming pagsubok. Maghintay sandali at subukan ulit.",
+      tooManyRequests:
+        "Masyadong maraming pagsubok. Maghintay sandali at subukan ulit.",
       cancelled: "Kinansela ang pag-sign in.",
       unknown: "May naging problema.",
     },
@@ -782,19 +820,22 @@ export const fil: Messages = {
     privacyNotice: "Paunawa sa Privacy",
     introTail: "para sa kung ano ang hawak namin at bakit.",
     downloadTitle: "I-download ang datos mo",
-    downloadHint: "Profile, nota, study set, at review history bilang isang JSON file.",
+    downloadHint:
+      "Profile, nota, study set, at review history bilang isang JSON file.",
     download: "I-download",
     downloaded: "Na-download na ang datos mo.",
     exportFailed: "Nabigo ang export.",
     deleteTitle: "Burahin ang account mo",
-    deleteHint: "Tinatanggal ang mga nota, study set, at review history mo. Hindi na mababawi.",
+    deleteHint:
+      "Tinatanggal ang mga nota, study set, at review history mo. Hindi na mababawi.",
     deleteBody:
       "Buburahin nito ang profile mo, bawat nota, bawat study set, at ang buong review history mo. Hindi na ito maibabalik, at hindi na mabubuo muli ang progreso mo sa spaced repetition.",
     downloadFirst: "I-download muna ang datos mo kung gusto mo itong itago.",
     typeToConfirmBefore: "I-type ang",
     typeToConfirmAfter: "para kumpirmahin",
     yourPassword: "Password mo",
-    googleReauth: "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
+    googleReauth:
+      "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
     deletePermanently: "Burahin nang tuluyan",
     deleted: "Nabura na ang account mo at lahat ng datos nito.",
     deleteFailed: "Hindi mabura ang account mo.",
@@ -819,16 +860,19 @@ export const fil: Messages = {
     upgrade: "Mag-upgrade",
     monthly: "Buwanan",
     yearly: "Taunan",
-    annualDeal: (months: number) => `Magbayad ng ${months} buwan, makakuha ng 12.`,
+    annualDeal: (months: number) =>
+      `Magbayad ng ${months} buwan, makakuha ng 12.`,
     perYear: "taon",
     perMonth: "buwan",
     choose: (plan: string) => `Piliin ang ${plan}`,
     payWith:
       "Magbayad gamit ang GCash, Maya, o card. Pwede kang mag-cancel anumang oras — walang naisulat mo ang nabubura kapag natapos ang isang plan.",
-    notLive: "Hindi pa live ang mga bayad. Sandali lang — patuloy na gagana ang libreng plan mo.",
+    notLive:
+      "Hindi pa live ang mga bayad. Sandali lang — patuloy na gagana ang libreng plan mo.",
     checkoutFailed: "Hindi masimulan ang checkout.",
     confirmingTitle: "Salamat — kinukumpirma namin ang bayad mo.",
-    confirmingBody: "Mag-a-update dito ang plan mo pagkatapos itong ma-clear, kadalasan sa loob ng ilang segundo.",
+    confirmingBody:
+      "Mag-a-update dito ang plan mo pagkatapos itong ma-clear, kadalasan sa loob ng ilang segundo.",
     checkoutCancelled: "Kinansela ang checkout. Walang siningil.",
   },
 
@@ -846,7 +890,8 @@ export const fil: Messages = {
       ],
     },
     plus: {
-      tagline: "Buong course load — anim na subject, dalawang beses sa isang linggo.",
+      tagline:
+        "Buong course load — anim na subject, dalawang beses sa isang linggo.",
       features: [
         "50 AI study set kada buwan",
         "Mga notang hanggang 60,000 karakter",
@@ -868,8 +913,14 @@ export const fil: Messages = {
   },
 
   palettes: {
-    terracotta: { label: "Terracotta", hint: "Mainit na luad at cream — ang orihinal" },
-    indigo: { label: "Indigo", hint: "Malamig at tahimik, para sa pag-aaral sa gabi" },
+    terracotta: {
+      label: "Terracotta",
+      hint: "Mainit na luad at cream — ang orihinal",
+    },
+    indigo: {
+      label: "Indigo",
+      hint: "Malamig at tahimik, para sa pag-aaral sa gabi",
+    },
     forest: {
       label: "Forest",
       hint: "Malalim na berde, magaan sa mata sa mahabang session",
@@ -908,7 +959,8 @@ export const fil: Messages = {
     title: "Test",
     leave: "Umalis sa test",
     noneYet: "Wala pang mate-test",
-    noneYetHint: "Walang flashcard ang set na ito, kaya walang mapagkukunan ng test.",
+    noneYetHint:
+      "Walang flashcard ang set na ito, kaya walang mapagkukunan ng test.",
     backToSet: "Balik sa set",
     briefTitle: (questions: number, minutes: number) =>
       `${questions} tanong, ${minutes} minuto`,
@@ -964,7 +1016,8 @@ export const fil: Messages = {
 
   stats: {
     title: "Retention",
-    subtitle: "Kung ano ang hitsura ng iskedyul mo, at aling kard ang nadudulas.",
+    subtitle:
+      "Kung ano ang hitsura ng iskedyul mo, at aling kard ang nadudulas.",
     keepForgetting: "Paulit-ulit na nakakalimutan",
     failedRepeatedly: "kard na paulit-ulit mong namali",
     nothingTroubling: "walang nagpapahirap sa iyo",
@@ -1066,15 +1119,18 @@ export const fil: Messages = {
       `${left} ang natitira ngayong buwan · magre-reset sa ${date}`,
     quotaUpgrade: (perMonth: number, php: number) =>
       `Kumuha ng ${perMonth} kada buwan sa ₱${php}`,
-    confirmEmail: "Kumpirmahin ang email mo para makapagsimulang gumawa ng study set.",
+    confirmEmail:
+      "Kumpirmahin ang email mo para makapagsimulang gumawa ng study set.",
     confirmEmailRest: "Gumagana naman ang lahat ng iba pa habang naghihintay.",
     checking: "Tinitingnan…",
     confirmedIt: "Nakumpirma ko na",
     sending: "Ipinapadala…",
     resend: "Ipadala ulit",
     dismiss: "Isara",
-    stillNotConfirmed: "Hindi pa rin nakumpirma. Buksan muna ang link sa email.",
-    sendFailed: "Hindi maipadala sa ngayon. Subukan ulit sa loob ng isang minuto.",
+    stillNotConfirmed:
+      "Hindi pa rin nakumpirma. Buksan muna ang link sa email.",
+    sendFailed:
+      "Hindi maipadala sa ngayon. Subukan ulit sa loob ng isang minuto.",
     alreadyVerified: "Na-verify na ang address na ito.",
     sentTo: (email: string) =>
       `Naipadala sa ${email}. Tingnan ang spam kung hindi ito dumating.`,
@@ -1138,17 +1194,20 @@ export const fil: Messages = {
       emailInUse:
         "May account nang gumagamit ng email na iyon. Subukang mag-log in na lang.",
       invalidEmail: "Mukhang hindi wastong email address iyon.",
-      tooManyRequests: "Masyadong maraming pagsubok. Maghintay sandali at subukan ulit.",
+      tooManyRequests:
+        "Masyadong maraming pagsubok. Maghintay sandali at subukan ulit.",
       tooManyResets:
         "Masyadong maraming pagsubok. Maghintay ng ilang minuto at subukan ulit.",
-      network: "Hindi maabot ang network. Tingnan ang koneksyon mo at subukan ulit.",
+      network:
+        "Hindi maabot ang network. Tingnan ang koneksyon mo at subukan ulit.",
       popupBlocked:
         "Hinarang ng browser mo ang Google sign-in window. Payagan ang pop-up at subukan ulit.",
       differentMethod:
         "May account ka na sa email na ito gamit ang ibang paraan ng pag-sign in.",
       unauthorizedDomain:
         "Hindi awtorisado ang address na ito para sa pag-sign in. Kung nagbukas ka ng preview o deployment link, gamitin ang pangunahing address ng site.",
-      notAllowed: "Hindi pinagana ang paraang iyon ng pag-sign in para sa app na ito.",
+      notAllowed:
+        "Hindi pinagana ang paraang iyon ng pag-sign in para sa app na ito.",
       sessionExpired: "Hindi na wasto ang session na iyon. Mag-sign in ulit.",
       resetFailed: "Hindi maipadala ang email sa ngayon. Subukan ulit.",
       unknown: "May naging problema. Subukan ulit.",
@@ -1262,7 +1321,10 @@ export const fil: Messages = {
 
     wordsTitle: "Ano ang ibig sabihin ng mga salita",
     words: [
-      { term: "Due", body: "Naubos na ang agwat ng kard at naghihintay na ito sa iyo ngayon." },
+      {
+        term: "Due",
+        body: "Naubos na ang agwat ng kard at naghihintay na ito sa iyo ngayon.",
+      },
       {
         term: "Mahina",
         body: "Sapat na ang dami ng pagkakamali mo sa kard na ito para isipin ng Tuón na nanganganib ito. Kadalasan ay masyadong marami ang ginagawa ng kard — isipin mong hatiin ito.",
@@ -1338,7 +1400,8 @@ export const fil: Messages = {
     ],
 
     contactTitle: "Hindi pa rin malinaw?",
-    contactBody: (email: string) => `Mag-email sa ${email} at may taong babasa nito.`,
+    contactBody: (email: string) =>
+      `Mag-email sa ${email} at may taong babasa nito.`,
     contactAction: "Magpadala ng email",
   },
 
@@ -1396,7 +1459,6 @@ export const fil: Messages = {
       askTala: (creature: string) => `Tanungin si ${creature}`,
     },
 
-
     why: {
       eyebrow: "Bakit ka nakakalimot",
       title: "Tinatapon ng utak mo ang hindi na niya nakikita",
@@ -1408,7 +1470,8 @@ export const fil: Messages = {
     curve: {
       lead: "Panoorin itong mangyari sa isang kard. I-drag sa buong buwan.",
       question: "Ano ang ginagawa ng mitochondria?",
-      answer: "Naglalabas ng enerhiya mula sa pagkain tungo sa anyong magagamit ng selula.",
+      answer:
+        "Naglalabas ng enerhiya mula sa pagkain tungo sa anyong magagamit ng selula.",
       onceLabel: "Minsan lang inaral",
       reviewedLabel: "Nire-review kapag sinabi ng Tuón",
       recall: "ang matatandaan mo nito",
@@ -1416,8 +1479,7 @@ export const fil: Messages = {
       today: "Ngayon",
       oneMonth: "Isang buwan",
       scrub: "Igalaw sa buong buwan",
-      alt:
-        "Ang parehong flashcard nang dalawang beses, sa loob ng isang buwan. Kaliwa, minsan lang inaral: lumalabo ang sagot sa loob ng ilang araw hanggang hindi na mabasa, nagtatapos sa halos 1 sa 10. Kanan, nire-review sa iskedyul ng Tuón: nananatiling malinaw ang sagot buong buwan, may apat na review na nakamarka.",
+      alt: "Ang parehong flashcard nang dalawang beses, sa loob ng isang buwan. Kaliwa, minsan lang inaral: lumalabo ang sagot sa loob ng ilang araw hanggang hindi na mabasa, nagtatapos sa halos 1 sa 10. Kanan, nire-review sa iskedyul ng Tuón: nananatiling malinaw ang sagot buong buwan, may apat na review na nakamarka.",
       fourReviews: "Apat na review. Mga anim na minuto lahat-lahat.",
       wholeDifference: "Iyan ang buong pagkakaiba ng dalawang kard na ito.",
       source:
@@ -1446,7 +1508,6 @@ export const fil: Messages = {
         },
       ],
     },
-
 
     versus: {
       eyebrow: "Kumpara sa manu-mano",
@@ -1510,7 +1571,8 @@ export const fil: Messages = {
         {
           title: "Le Chatelier's Principle",
           subject: "General Chemistry 1",
-          excerpt: "Kapag naistorbo ang sistemang nasa equilibrium, lilipat ito…",
+          excerpt:
+            "Kapag naistorbo ang sistemang nasa equilibrium, lilipat ito…",
           chars: "2,840 na karakter",
         },
         {
@@ -1547,7 +1609,8 @@ export const fil: Messages = {
       ],
       setupTitle: "Tatlong tanong at nag-aaral ka na.",
       yourSchool: "Ang eskwelahan mo",
-      schoolHint: "I-type ang kahit ano — hindi kailangang nasa listahan ang eskwelahan mo.",
+      schoolHint:
+        "I-type ang kahit ano — hindi kailangang nasa listahan ang eskwelahan mo.",
       yourStrand: "Ang strand mo",
       strandHint: "Kolehiyo ba? Dito ka pipili ng degree program.",
       yourSubjects: "Ang mga subject mo",
@@ -1568,7 +1631,8 @@ export const fil: Messages = {
       yearly: (freeMonths: number) => `Taunan · ${freeMonths} buwang libre`,
       mostPopular: "Pinakasikat",
       perMonth: "/buwan",
-      billedAnnually: (total: string) => `₱${total} na sisingilin minsan sa isang taon.`,
+      billedAnnually: (total: string) =>
+        `₱${total} na sisingilin minsan sa isang taon.`,
       soon: "(malapit na)",
       startFree: "Magsimula nang libre",
       comingSoon: "Malapit na",
@@ -1722,7 +1786,8 @@ export const fil: Messages = {
     quizQuestions: (count: number) => `${count} tanong sa quiz`,
     saveToMySets: "I-save sa mga set ko",
     signUpToSave: "Mag-sign up nang libre para ma-save ito",
-    ownCopy: "Magkakaroon ka ng sariling kopya — sa iyo pa rin ang mga review mo.",
+    ownCopy:
+      "Magkakaroon ka ng sariling kopya — sa iyo pa rin ang mga review mo.",
     flashcardsHeading: "Flashcards",
     saved: "Na-save sa mga study set mo.",
     saveFailed: "Hindi ma-save ang kopya. Subukan ulit.",
@@ -1743,7 +1808,8 @@ export const fil: Messages = {
     title: (creature: string) => `Tanungin si ${creature}`,
     subtitle:
       "Nakikita niya kung kumusta ang pag-aaral mo — ano ang due, aling subject ang pinakamahina, gaano ka kahanda. Hindi niya nakikita ang mga nota o kard mo.",
-    companionOf: (creature: string) => `${creature}, ang kasama mo sa pag-aaral`,
+    companionOf: (creature: string) =>
+      `${creature}, ang kasama mo sa pag-aaral`,
     placeholder: "Magtanong tungkol sa pag-aaral mo…",
     followUp: "Magtanong pa…",
     yourMessage: "Mensahe mo",

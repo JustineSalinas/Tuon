@@ -19,6 +19,7 @@ import {
 } from "@/lib/hooks/use-review-cards";
 import { Organiser } from "@/components/organiser/organiser";
 import { StudyHeatmap } from "@/components/app/study-heatmap";
+import { Panel } from "@/components/app/panel";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,10 +46,13 @@ export default function CalendarPage() {
     [now, monthOffset, timeZone, t.common.dateLocale],
   );
 
-  const selectedCards = selected ? (forecast.get(selected) ?? []) : [];
+  // Null means today rather than nothing: see the note at the top of this
+  // file about the panel that was empty until you clicked it.
+  const activeDay = selected ?? todayKey;
+  const selectedCards = forecast.get(activeDay) ?? [];
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8 md:py-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
@@ -70,109 +74,119 @@ export default function CalendarPage() {
       ) : cards.length === 0 ? (
         <EmptyCalendar t={t} />
       ) : (
-        <>
-          {/* Month navigation */}
-          <div className="mt-8 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold tracking-tight">
-              {month.label}
-            </h2>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t.calendar.previousMonth}
-                onClick={() => setMonthOffset((m) => m - 1)}
-              >
-                <ChevronLeft />
-              </Button>
-              {monthOffset !== 0 ? (
-                <Button variant="ghost" size="sm" onClick={() => setMonthOffset(0)}>
-                  {t.common.today}
+        <div className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <section className="min-w-0">
+            {/* Month navigation */}
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-lg font-semibold tracking-tight">
+                {month.label}
+              </h2>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t.calendar.previousMonth}
+                  onClick={() => setMonthOffset((m) => m - 1)}
+                >
+                  <ChevronLeft />
                 </Button>
-              ) : null}
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t.calendar.nextMonth}
-                onClick={() => setMonthOffset((m) => m + 1)}
-              >
-                <ChevronRight />
-              </Button>
-            </div>
-          </div>
-
-          {/* Grid */}
-          <div className="bg-card mt-4 overflow-hidden rounded-2xl border">
-            <div className="text-muted-foreground grid grid-cols-7 border-b text-center text-xs">
-              {t.common.weekdaysNarrow.map((day) => (
-                <div key={day} className="py-2 font-medium">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7">
-              {month.days.map((day, index) => {
-                const count = forecast.get(day.key)?.length ?? 0;
-                const isToday = day.key === todayKey;
-                const isPast = day.key < todayKey;
-                const isSelected = day.key === selected;
-
-                return (
-                  <motion.button
-                    key={day.key}
-                    type="button"
-                    onClick={() => setSelected(isSelected ? null : day.key)}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: Math.min(index * 0.004, 0.2) }}
-                    className={cn(
-                      "relative flex aspect-square flex-col items-center justify-center gap-1 border-r border-b text-sm transition-colors last:border-r-0",
-                      !day.inMonth && "text-muted-foreground/40",
-                      isSelected ? "bg-accent" : "hover:bg-accent/40",
-                    )}
+                {monthOffset !== 0 ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMonthOffset(0)}
                   >
-                    <span
+                    {t.common.today}
+                  </Button>
+                ) : null}
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t.calendar.nextMonth}
+                  onClick={() => setMonthOffset((m) => m + 1)}
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
+            </div>
+
+            {/* Grid */}
+            <div className="bg-card mt-4 overflow-hidden rounded-2xl border">
+              <div className="text-muted-foreground grid grid-cols-7 border-b text-center text-xs">
+                {t.common.weekdaysNarrow.map((day) => (
+                  <div key={day} className="py-2 font-medium">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7">
+                {month.days.map((day, index) => {
+                  const count = forecast.get(day.key)?.length ?? 0;
+                  const isToday = day.key === todayKey;
+                  const isPast = day.key < todayKey;
+                  const isSelected = day.key === activeDay;
+
+                  return (
+                    <motion.button
+                      key={day.key}
+                      type="button"
+                      onClick={() => setSelected(day.key)}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: Math.min(index * 0.004, 0.2) }}
                       className={cn(
-                        "grid size-7 place-items-center rounded-full tabular-nums",
-                        isToday && "bg-primary text-primary-foreground font-semibold",
+                        "relative flex aspect-square flex-col items-center justify-center gap-1 border-r border-b text-sm transition-colors last:border-r-0",
+                        !day.inMonth && "text-muted-foreground/40",
+                        isSelected ? "bg-accent" : "hover:bg-accent/40",
                       )}
                     >
-                      {day.dayOfMonth}
-                    </span>
-
-                    {count > 0 ? (
                       <span
                         className={cn(
-                          "rounded-full px-1.5 text-[10px] font-medium tabular-nums",
-                          isPast
-                            ? "bg-destructive/15 text-destructive"
-                            : "bg-primary/15 text-primary",
+                          "grid size-7 place-items-center rounded-full tabular-nums",
+                          isToday &&
+                            "bg-primary text-primary-foreground font-semibold",
                         )}
                       >
-                        {count}
+                        {day.dayOfMonth}
                       </span>
-                    ) : (
-                      <span className="h-[15px]" />
-                    )}
-                  </motion.button>
-                );
-              })}
+
+                      {count > 0 ? (
+                        <span
+                          className={cn(
+                            "rounded-full px-1.5 text-[10px] font-medium tabular-nums",
+                            isPast
+                              ? "bg-destructive/15 text-destructive"
+                              : "bg-primary/15 text-primary",
+                          )}
+                        >
+                          {count}
+                        </span>
+                      ) : (
+                        <span className="h-[15px]" />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          <Legend t={t} />
+            <Legend t={t} />
+          </section>
 
-          {/* Selected day */}
-          {selected ? (
+          {/* The day, beside the month rather than below the fold. Sticky so
+              that scrolling down to the timetable does not take the day you
+              just clicked off the screen with it. */}
+          <aside className="min-w-0 xl:sticky xl:top-6">
             <DayDetail
-              dayKeyValue={selected}
+              dayKeyValue={activeDay}
               cards={selectedCards}
-              isPast={selected < todayKey}
+              isPast={activeDay < todayKey}
+              isToday={activeDay === todayKey}
               t={t}
             />
-          ) : null}
-        </>
+          </aside>
+        </div>
       )}
 
       {/* Below the grid, and outside the empty-state branch on purpose: a
@@ -183,11 +197,15 @@ export default function CalendarPage() {
 
       {/* The year, moved off the dashboard. It belongs with the rest of "your
           time" rather than under today's plan, and this is where the
-          dashboard's own link has always pointed. */}
+          dashboard's own link has always pointed. The card no longer repeats
+          this heading — the two used to stack, one directly above the other. */}
       <section className="mt-10">
         <h2 className="font-display text-lg font-semibold tracking-tight">
           {t.dashboard.yearOfStudy}
         </h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {t.calendar.yearHint}
+        </p>
         <div className="mt-3">
           <StudyHeatmap />
         </div>
@@ -216,11 +234,13 @@ function DayDetail({
   dayKeyValue,
   cards,
   isPast,
+  isToday,
   t,
 }: {
   dayKeyValue: string;
   cards: ReviewCard[];
   isPast: boolean;
+  isToday: boolean;
   t: Messages;
 }) {
   const bySet = useMemo(() => {
@@ -234,43 +254,53 @@ function DayDetail({
   }, [cards]);
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="mt-6"
-    >
-      <h2 className="font-display text-lg font-semibold tracking-tight">
-        {formatDayLabel(dayKeyValue, t.common.dateLocale)}
-      </h2>
+    <Panel>
+      {/* Keyed on the day so the panel animates when the selection changes.
+          Without the key it swapped its text in place, which on a sticky
+          panel beside the grid read as nothing having happened. */}
+      <motion.div
+        key={dayKeyValue}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+          {isToday ? t.common.today : t.calendar.selectedDay}
+        </p>
+        <h2 className="font-display mt-1 text-lg font-semibold tracking-tight">
+          {formatDayLabel(dayKeyValue, t.common.dateLocale)}
+        </h2>
 
-      {cards.length === 0 ? (
-        <p className="text-muted-foreground mt-2 text-sm">{t.calendar.nothingScheduled}</p>
-      ) : (
-        <>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {t.common.cards(cards.length)}
-            {isPast ? t.calendar.overdueSuffix : ""}
+        {cards.length === 0 ? (
+          <p className="text-muted-foreground mt-2 text-sm">
+            {t.calendar.nothingScheduled}
           </p>
-          <div className="mt-3 grid gap-2">
-            {bySet.map(([setId, entry]) => (
-              <Link
-                key={setId}
-                href={`/app/sets/${setId}`}
-                className="hover:border-primary/40 hover:bg-accent/30 flex items-center gap-3 rounded-xl border p-3.5 transition-colors"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                  {entry.title}
-                </span>
-                <Badge variant="secondary" className="tabular-nums">
-                  {entry.count}
-                </Badge>
-              </Link>
-            ))}
-          </div>
-        </>
-      )}
-    </motion.section>
+        ) : (
+          <>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {t.common.cards(cards.length)}
+              {isPast ? t.calendar.overdueSuffix : ""}
+            </p>
+            <div className="mt-3 grid gap-2">
+              {bySet.map(([setId, entry]) => (
+                <Link
+                  key={setId}
+                  href={`/app/sets/${setId}`}
+                  className="hover:border-primary/40 hover:bg-accent/30 flex items-center gap-3 rounded-xl border p-3.5 transition-colors"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                    {entry.title}
+                  </span>
+                  <Badge variant="secondary" className="tabular-nums">
+                    {entry.count}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+      </motion.div>
+    </Panel>
   );
 }
 

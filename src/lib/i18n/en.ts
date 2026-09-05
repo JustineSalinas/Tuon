@@ -144,6 +144,20 @@ export const en = {
   heatmap: {
     whereItWent: "Where the hours went",
     otherSubjects: "Everything else",
+    noneYet: "No study logged yet",
+    /** @param hours already formatted, e.g. "12h 30m" */
+    totalAcross: (hours: string, days: number) =>
+      `${hours} across ${days} ${days === 1 ? "day" : "days"}`,
+    currentRun: "current run",
+    longestRun: "longest run",
+    runDays: (days: number) => `${days} ${days === 1 ? "day" : "days"}`,
+    /** What one square is worth. Named amounts, not "less / more". */
+    legend: {
+      under15: "under 15m",
+      m15: "15m",
+      m30: "30m",
+      h1: "1h+",
+    },
   },
 
   common: {
@@ -158,7 +172,8 @@ export const en = {
     minutes: "minutes",
     cards: (count: number) => `${count} ${count === 1 ? "card" : "cards"}`,
     days: (count: number) => `${count} ${count === 1 ? "day" : "days"}`,
-    members: (count: number) => `${count} ${count === 1 ? "member" : "members"}`,
+    members: (count: number) =>
+      `${count} ${count === 1 ? "member" : "members"}`,
     today: "Today",
     tomorrow: "Tomorrow",
     yesterday: "Yesterday",
@@ -348,7 +363,8 @@ export const en = {
     notAPdf: "That is not a PDF. Only PDF files can be imported right now.",
     tooLarge: (sizeMb: string, limitMb: number) =>
       `That PDF is ${sizeMb}MB. The limit is ${limitMb}MB — try splitting it into chapters.`,
-    readerFailed: "Could not start the PDF reader. Please refresh and try again.",
+    readerFailed:
+      "Could not start the PDF reader. Please refresh and try again.",
     passwordProtected:
       "That PDF is password-protected. Remove the password and try again.",
     unreadable: "That file could not be read as a PDF. It may be corrupted.",
@@ -424,6 +440,9 @@ export const en = {
     scheduled: "Scheduled",
     overdue: "Overdue",
     tapADay: "Tap a day to see which cards.",
+    /** Eyebrow on the day panel when the chosen day is not today. */
+    selectedDay: "Selected day",
+    yearHint: "Every day you studied, and what you spent the hours on.",
     nothingScheduled: "Nothing scheduled.",
     overdueSuffix: " — overdue",
     noneYet: "Nothing scheduled yet",
@@ -552,14 +571,16 @@ export const en = {
     standings: "Standings",
     standingsHint:
       "XP comes from cards you actually remembered when they came back — not from hours logged, so leaving a timer running earns nothing. A card that holds for a month is worth ten recalls.",
-    noStandings: "Nothing yet. Review some cards and your first XP appears here.",
+    noStandings:
+      "Nothing yet. Review some cards and your first XP appears here.",
     you: "you",
     masteredCount: (count: number) => `${count} mastered`,
     xp: (value: string) => `${value} XP`,
     standingsPrivacy:
       "Only these figures are shared with the group — never your notes, your cards, or which subjects you are behind on.",
     error: {
-      UNVERIFIED: "This request could not be verified. Please reload and try again.",
+      UNVERIFIED:
+        "This request could not be verified. Please reload and try again.",
       NOT_SIGNED_IN: "You need to be signed in.",
       MALFORMED: "Something went wrong sending that. Please try again.",
       UNKNOWN_ACTION: "Something went wrong sending that. Please try again.",
@@ -571,7 +592,8 @@ export const en = {
       GROUP_FULL: "That group is full.",
       JOIN_FAILED: "Could not join that group.",
       UNKNOWN_GROUP: "Unknown group.",
-      RATE_LIMITED: "Too many changes from this connection. Try again in a few minutes.",
+      RATE_LIMITED:
+        "Too many changes from this connection. Try again in a few minutes.",
       SERVER_NOT_CONFIGURED: "This server is not fully configured yet.",
       OFFLINE: "Could not reach Tuón. Check your connection.",
       unknown: "That did not work. Try again.",
@@ -590,7 +612,8 @@ export const en = {
     change: "Change",
     subjects: "Subjects",
     course: "Course",
-    fromCurrentTerm: "Your subjects come from the term you have marked as current.",
+    fromCurrentTerm:
+      "Your subjects come from the term you have marked as current.",
     editUnderSemesters: "Edit them under Semesters",
     addAnotherSubject: "Add another subject",
     addYourOwnCourse: "Add your own course",
@@ -652,7 +675,8 @@ export const en = {
       "Work tagged with a subject you no longer have. It is all still in your library and still comes up for review — it just is not counted under any subject. Move it somewhere, or clear the label.",
     sortOut: "Sort out",
     removeTitle: (subject: string) => `Remove ${subject}?`,
-    nothingTagged: "Nothing is tagged with this subject, so there is nothing to move.",
+    nothingTagged:
+      "Nothing is tagged with this subject, so there is nothing to move.",
     subjectHolds: (contents: string) => `This subject has ${contents}.`,
     nothingDeleted: "None of it is deleted.",
     nothingDeletedBody:
@@ -673,7 +697,8 @@ export const en = {
       sets: (count: number) => `${count} study ${count === 1 ? "set" : "sets"}`,
       setsWithCards: (sets: number, cards: number) =>
         `${sets} study ${sets === 1 ? "set" : "sets"} (${cards} cards)`,
-      planItems: (count: number) => `${count} ${count === 1 ? "item" : "items"} in your week`,
+      planItems: (count: number) =>
+        `${count} ${count === 1 ? "item" : "items"} in your week`,
       sessions: (count: number) =>
         `${count} logged ${count === 1 ? "session" : "sessions"}`,
       nothing: "nothing yet",
@@ -689,7 +714,8 @@ export const en = {
       "Dark is warm rather than black — it is meant for reviewing at 1am without the screen shouting at you.",
     colourHint:
       "Separate from light and dark — pick a colour once and it follows you into whichever one you are in.",
-    colourFailed: "Could not save that colour. It will reset on another device.",
+    colourFailed:
+      "Could not save that colour. It will reset on another device.",
     languageHint:
       "Tuón’s own words. Your notes and cards stay in whatever language you wrote them — including Taglish.",
     languageFailed: "Could not save that language.",
@@ -723,7 +749,8 @@ export const en = {
     deviceNote:
       "The reminder comes from this device, so it can only appear on a day you open Tuón. Installing it to your home screen makes that far more likely.",
     unsupported: "This browser cannot show reminders.",
-    blocked: "Your browser blocked notifications. You can allow them in site settings.",
+    blocked:
+      "Your browser blocked notifications. You can allow them in site settings.",
     set: (time: string) => `Reminder set for ${time}.`,
     /**
      * The notification itself. Counts cards, never days in a row — the whole
@@ -753,15 +780,18 @@ export const en = {
     newEmail: "New email address",
     emailPlaceholder: "juan@example.com",
     currentPassword: "Your current password",
-    googleReauth: "You’ll be asked to sign in with Google once more to confirm.",
+    googleReauth:
+      "You’ll be asked to sign in with Google once more to confirm.",
     emailChangeNote:
       "We send a link to the new address first. Your email only changes once you click it, so a typo cannot lock you out.",
     sendConfirmation: "Send confirmation",
     confirmationSent:
       "Check your new address for a confirmation link. Your email changes once you click it.",
-    verificationFailed: "Could not send that email. Please try again in a minute.",
+    verificationFailed:
+      "Could not send that email. Please try again in a minute.",
     alreadyVerified: "This address is already verified.",
-    verificationSent: "Verification email sent. Check your inbox and spam folder.",
+    verificationSent:
+      "Verification email sent. Check your inbox and spam folder.",
     password: "Password",
     passwordHint: "Change it if you think someone else knows it.",
     currentPasswordLabel: "Current password",
@@ -795,19 +825,22 @@ export const en = {
     privacyNotice: "Privacy Notice",
     introTail: "for what we hold and why.",
     downloadTitle: "Download your data",
-    downloadHint: "Profile, notes, study sets, and review history as one JSON file.",
+    downloadHint:
+      "Profile, notes, study sets, and review history as one JSON file.",
     download: "Download",
     downloaded: "Your data has been downloaded.",
     exportFailed: "Export failed.",
     deleteTitle: "Delete your account",
-    deleteHint: "Removes your notes, study sets, and review history. Not reversible.",
+    deleteHint:
+      "Removes your notes, study sets, and review history. Not reversible.",
     deleteBody:
       "This deletes your profile, every note, every study set, and your whole review history. It cannot be undone, and your spaced repetition progress cannot be rebuilt.",
     downloadFirst: "Download your data first if you want to keep it.",
     typeToConfirmBefore: "Type",
     typeToConfirmAfter: "to confirm",
     yourPassword: "Your password",
-    googleReauth: "You will be asked to sign in with Google once more to confirm.",
+    googleReauth:
+      "You will be asked to sign in with Google once more to confirm.",
     deletePermanently: "Delete permanently",
     deleted: "Your account and all of its data have been deleted.",
     deleteFailed: "Could not delete your account.",
@@ -838,10 +871,12 @@ export const en = {
     choose: (plan: string) => `Choose ${plan}`,
     payWith:
       "Pay with GCash, Maya, or a card. You can cancel any time — nothing you have written is ever deleted when a plan ends.",
-    notLive: "Payments aren’t live yet. Hang tight — your free plan keeps working.",
+    notLive:
+      "Payments aren’t live yet. Hang tight — your free plan keeps working.",
     checkoutFailed: "Could not start checkout.",
     confirmingTitle: "Thanks — we’re confirming your payment.",
-    confirmingBody: "Your plan updates here as soon as it clears, usually within a few seconds.",
+    confirmingBody:
+      "Your plan updates here as soon as it clears, usually within a few seconds.",
     checkoutCancelled: "Checkout cancelled. Nothing was charged.",
   },
 
@@ -881,9 +916,15 @@ export const en = {
   },
 
   palettes: {
-    terracotta: { label: "Terracotta", hint: "Warm clay and cream — the original" },
+    terracotta: {
+      label: "Terracotta",
+      hint: "Warm clay and cream — the original",
+    },
     indigo: { label: "Indigo", hint: "Cool and quiet, for studying at night" },
-    forest: { label: "Forest", hint: "Deep green, easy on the eyes for long sessions" },
+    forest: {
+      label: "Forest",
+      hint: "Deep green, easy on the eyes for long sessions",
+    },
     plum: { label: "Plum", hint: "Muted purple with a warm grey" },
     slate: {
       label: "Slate",
@@ -918,7 +959,8 @@ export const en = {
     title: "Test",
     leave: "Leave the test",
     noneYet: "Nothing to test yet",
-    noneYetHint: "This set has no flashcards, so there is nothing to draw a test from.",
+    noneYetHint:
+      "This set has no flashcards, so there is nothing to draw a test from.",
     backToSet: "Back to the set",
     briefTitle: (questions: number, minutes: number) =>
       `${questions} questions, ${minutes} minutes`,
@@ -988,7 +1030,8 @@ export const en = {
     chart: "Chart",
     table: "Table",
     whereCardsAre: "Where your cards are",
-    whereCardsAreHint: "Every card moves left to right as you keep remembering it.",
+    whereCardsAreHint:
+      "Every card moves left to right as you keep remembering it.",
     maturity: {
       new: "Never seen",
       learning: "Learning",
@@ -1085,9 +1128,11 @@ export const en = {
     stillNotConfirmed: "Still not confirmed. Open the link in the email first.",
     sendFailed: "Could not send just now. Try again in a minute.",
     alreadyVerified: "This address is already verified.",
-    sentTo: (email: string) => `Sent to ${email}. Check spam if it doesn't arrive.`,
+    sentTo: (email: string) =>
+      `Sent to ${email}. Check spam if it doesn't arrive.`,
     offline: "No connection — you can keep reviewing.",
-    offlineRest: "Your ratings are saved on this device and sync when you are back.",
+    offlineRest:
+      "Your ratings are saved on this device and sync when you are back.",
   },
 
   auth: {
@@ -1111,7 +1156,8 @@ export const en = {
     terms: "Terms of Use",
     termsAnd: "and",
     privacy: "Privacy Notice",
-    termsAfter: ". If you are under 18, please read them with a parent or guardian.",
+    termsAfter:
+      ". If you are under 18, please read them with a parent or guardian.",
     haveAccount: "Already have an account? ",
     newHere: "New to Tuón? ",
     createOne: "Create one",
@@ -1130,7 +1176,8 @@ export const en = {
       backToSignIn: "Back to sign in",
       sentHeading: "Check your email",
       sentBodyBefore: "If an account exists for",
-      sentBodyAfter: ", a link to set a new password is on its way. It expires in an hour.",
+      sentBodyAfter:
+        ", a link to set a new password is on its way. It expires in an hour.",
       sentSpam:
         "Nothing after a few minutes? Check spam, and make sure you typed the address you signed up with.",
       differentAddress: "Use a different address",
@@ -1138,10 +1185,12 @@ export const en = {
     error: {
       weakPassword: "Please use a password of at least 6 characters.",
       noMatch: "That email and password do not match an account.",
-      emailInUse: "An account already exists with that email. Try logging in instead.",
+      emailInUse:
+        "An account already exists with that email. Try logging in instead.",
       invalidEmail: "That does not look like a valid email address.",
       tooManyRequests: "Too many attempts. Please wait a moment and try again.",
-      tooManyResets: "Too many attempts. Please wait a few minutes and try again.",
+      tooManyResets:
+        "Too many attempts. Please wait a few minutes and try again.",
       network: "Cannot reach the network. Check your connection and try again.",
       popupBlocked:
         "Your browser blocked the Google sign-in window. Allow pop-ups and try again.",
@@ -1262,7 +1311,10 @@ export const en = {
 
     wordsTitle: "What the words mean",
     words: [
-      { term: "Due", body: "The card's gap has run out and it is waiting for you today." },
+      {
+        term: "Due",
+        body: "The card's gap has run out and it is waiting for you today.",
+      },
       {
         term: "Shaky",
         body: "You have failed this card enough times that Tuón thinks it is at risk. Usually it means the card is trying to do too much at once — consider splitting it.",
@@ -1396,7 +1448,6 @@ export const en = {
       askTala: (creature: string) => `Ask ${creature}`,
     },
 
-
     why: {
       eyebrow: "Why you forget",
       title: "Your brain throws away whatever it stops seeing",
@@ -1416,8 +1467,7 @@ export const en = {
       today: "Today",
       oneMonth: "One month",
       scrub: "Move through the month",
-      alt:
-        "The same flashcard twice, over one month. Left, studied once: the answer blurs away within days until it cannot be read, ending near one in ten. Right, reviewed on Tuón's schedule: the answer stays sharp all month, with four reviews marked along the way.",
+      alt: "The same flashcard twice, over one month. Left, studied once: the answer blurs away within days until it cannot be read, ending near one in ten. Right, reviewed on Tuón's schedule: the answer stays sharp all month, with four reviews marked along the way.",
       fourReviews: "Four reviews. About six minutes in total.",
       wholeDifference: "That is the whole difference between these two cards.",
       source:
@@ -1446,7 +1496,6 @@ export const en = {
         },
       ],
     },
-
 
     versus: {
       eyebrow: "Versus doing it yourself",
@@ -1510,7 +1559,8 @@ export const en = {
         {
           title: "Le Chatelier's Principle",
           subject: "General Chemistry 1",
-          excerpt: "If a system at equilibrium is disturbed, it shifts to counteract…",
+          excerpt:
+            "If a system at equilibrium is disturbed, it shifts to counteract…",
           chars: "2,840 characters",
         },
         {
@@ -1522,7 +1572,8 @@ export const en = {
         {
           title: "Limits and continuity",
           subject: "Pre-Calculus",
-          excerpt: "A limit describes what a function approaches, not what it is…",
+          excerpt:
+            "A limit describes what a function approaches, not what it is…",
           chars: "2,110 characters",
         },
       ],
@@ -1552,7 +1603,8 @@ export const en = {
       strandHint: "College instead? You pick a degree program here.",
       yourSubjects: "Your subjects",
       addYourOwn: "+ Add your own",
-      subjectsHint: "Every note and set is tagged with one, so nothing gets mixed up.",
+      subjectsHint:
+        "Every note and set is tagged with one, so nothing gets mixed up.",
     },
 
     pricing: {
@@ -1714,8 +1766,10 @@ export const en = {
     send: "Send",
     disclaimer: (creature: string) =>
       `${creature} only answers questions about Tuón, and can be wrong. Nothing you type here is saved to an account.`,
-    failed: "Could not answer that one. The FAQ above covers the usual questions.",
-    offline: "Could not reach the server. Check your connection, or read the FAQ above.",
+    failed:
+      "Could not answer that one. The FAQ above covers the usual questions.",
+    offline:
+      "Could not reach the server. Check your connection, or read the FAQ above.",
   },
 
   shared: {

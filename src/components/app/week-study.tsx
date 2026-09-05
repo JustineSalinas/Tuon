@@ -7,8 +7,13 @@ import { useI18n } from "@/components/providers/i18n-provider";
 import { useStudySessions } from "@/lib/hooks/use-firestore";
 import { usePreferences } from "@/lib/hooks/use-preferences";
 import { dayKey } from "@/lib/hooks/use-review-cards";
-import { formatMinutes, minutesByDay, weekDayKeys } from "@/lib/organiser/sessions";
+import {
+  formatMinutes,
+  minutesByDay,
+  weekDayKeys,
+} from "@/lib/organiser/sessions";
 import { buildStreaks } from "@/lib/stats/heatmap";
+import { Panel, PanelLede } from "@/components/app/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -48,22 +53,22 @@ export function WeekStudy() {
   const days = useMemo(() => weekDayKeys(today), [today]);
   const streaks = useMemo(() => buildStreaks(byDay, today), [byDay, today]);
 
-  if (loading) return <Skeleton className="h-40 w-full rounded-xl" />;
+  if (loading) return <Skeleton className="h-52 w-full rounded-2xl" />;
 
   const minutes = days.map((key) => byDay.get(key) ?? 0);
   const total = minutes.reduce((sum, value) => sum + value, 0);
   const scale = Math.max(SCALE_FLOOR, ...minutes);
 
   return (
-    <div className="rounded-xl border p-4 sm:p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <p className="font-display text-2xl font-semibold tracking-tight">
-          {formatMinutes(total)}
-        </p>
-        <p className="text-muted-foreground text-sm">
-          {t.dashboard.streakDays(streaks.current)}
-        </p>
-      </div>
+    <Panel>
+      <PanelLede
+        value={formatMinutes(total)}
+        aside={
+          <p className="text-muted-foreground text-sm">
+            {t.dashboard.streakDays(streaks.current)}
+          </p>
+        }
+      />
 
       <div className="mt-5 flex items-end justify-between gap-1.5">
         {days.map((key, index) => {
@@ -75,7 +80,10 @@ export function WeekStudy() {
           const future = key > today;
 
           return (
-            <div key={key} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+            <div
+              key={key}
+              className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
+            >
               <div className="flex h-20 w-full items-end justify-center">
                 <div
                   className={cn(
@@ -91,14 +99,19 @@ export function WeekStudy() {
                   style={{
                     // A floor so a short session is still a visible mark; zero
                     // days keep a hairline so the week reads as seven slots.
-                    height: value === 0 ? 3 : `${Math.max(8, (value / scale) * 80)}px`,
+                    height:
+                      value === 0
+                        ? 3
+                        : `${Math.max(8, (value / scale) * 80)}px`,
                   }}
                 />
               </div>
               <span
                 className={cn(
                   "text-[11px]",
-                  isToday ? "text-foreground font-medium" : "text-muted-foreground",
+                  isToday
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground",
                 )}
               >
                 {t.common.weekdaysNarrow[index]}
@@ -107,6 +120,6 @@ export function WeekStudy() {
           );
         })}
       </div>
-    </div>
+    </Panel>
   );
 }

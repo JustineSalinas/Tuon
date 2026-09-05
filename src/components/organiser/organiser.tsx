@@ -72,16 +72,25 @@ export function Organiser({ todayKey }: { todayKey: string }) {
 
   const subjects = useMemo(() => profile?.courses ?? [], [profile?.courses]);
 
-  const deadlines = useMemo(() => upcomingDeadlines(items, todayKey), [items, todayKey]);
+  const deadlines = useMemo(
+    () => upcomingDeadlines(items, todayKey),
+    [items, todayKey],
+  );
   const todos = useMemo(() => orderTodos(items), [items]);
   const openTodos = todos.filter((todo) => todo.done !== true).length;
-  const classes = useMemo(() => items.filter((item) => item.kind === "class"), [items]);
+  const classes = useMemo(
+    () => items.filter((item) => item.kind === "class"),
+    [items],
+  );
 
   return (
-    <section className="mt-12">
+    // mt-10 and text-lg to match the two sections it sits between. It was
+    // mt-12/text-xl, so the middle block of three announced itself louder
+    // than the month above it and the year below it.
+    <section className="mt-10">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">
+          <h2 className="font-display text-lg font-semibold tracking-tight">
             {t.organiser.yourWeek}
           </h2>
           <p className="text-muted-foreground mt-1 text-sm">
@@ -117,7 +126,11 @@ export function Organiser({ todayKey }: { todayKey: string }) {
         ) : (
           <>
             <TabsContent value="deadlines" className="mt-4">
-              <DeadlineList items={deadlines} todayKey={todayKey} subjects={subjects} />
+              <DeadlineList
+                items={deadlines}
+                todayKey={todayKey}
+                subjects={subjects}
+              />
             </TabsContent>
             <TabsContent value="todos" className="mt-4">
               <TodoList items={todos} todayKey={todayKey} subjects={subjects} />
@@ -152,7 +165,9 @@ function useItemWriter() {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
-  async function add(fields: Partial<PlanItem> & { kind: PlanItemKind; title: string }) {
+  async function add(
+    fields: Partial<PlanItem> & { kind: PlanItemKind; title: string },
+  ) {
     if (!user) return false;
     setBusy(true);
     try {
@@ -247,9 +262,14 @@ function DeadlineList({
                 >
                   {renderDueDate(describeDueDate(item.dueDate!, todayKey), t)}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">
+                  {item.title}
+                </span>
                 {item.courseTag ? (
-                  <Badge variant="secondary" className="hidden shrink-0 sm:inline-flex">
+                  <Badge
+                    variant="secondary"
+                    className="hidden shrink-0 sm:inline-flex"
+                  >
                     {item.courseTag}
                   </Badge>
                 ) : null}
@@ -290,7 +310,13 @@ function TodoList({
         withDate
         busy={busy}
         onAdd={({ title, courseTag, dueDate }) =>
-          add({ kind: "todo", title, courseTag, dueDate: dueDate ?? null, done: false })
+          add({
+            kind: "todo",
+            title,
+            courseTag,
+            dueDate: dueDate ?? null,
+            done: false,
+          })
         }
       />
 
@@ -309,7 +335,9 @@ function TodoList({
                       ? t.organiser.markNotDone(item.title)
                       : t.organiser.markDone(item.title)
                   }
-                  onCheckedChange={(next) => void patch(item.id, { done: next === true })}
+                  onCheckedChange={(next) =>
+                    void patch(item.id, { done: next === true })
+                  }
                 />
                 <span
                   className={cn(
@@ -325,7 +353,10 @@ function TodoList({
                   </span>
                 ) : null}
                 {item.courseTag ? (
-                  <Badge variant="secondary" className="hidden shrink-0 sm:inline-flex">
+                  <Badge
+                    variant="secondary"
+                    className="hidden shrink-0 sm:inline-flex"
+                  >
                     {item.courseTag}
                   </Badge>
                 ) : null}
@@ -346,7 +377,13 @@ function TodoList({
    Timetable
    ------------------------------------------------------------------------- */
 
-function Timetable({ items, subjects }: { items: PlanItem[]; subjects: string[] }) {
+function Timetable({
+  items,
+  subjects,
+}: {
+  items: PlanItem[];
+  subjects: string[];
+}) {
   const { add, remove, busy } = useItemWriter();
   const { t } = useI18n();
   const clashing = useMemo(() => overlappingClassIds(items), [items]);
@@ -354,7 +391,9 @@ function Timetable({ items, subjects }: { items: PlanItem[]; subjects: string[] 
   // Weekdays first: a timetable that opens on Sunday wastes the top of the
   // screen on the two days nobody has class.
   const order = [1, 2, 3, 4, 5, 6, 0];
-  const populated = order.filter((weekday) => classesOn(items, weekday).length > 0);
+  const populated = order.filter(
+    (weekday) => classesOn(items, weekday).length > 0,
+  );
 
   return (
     <div className="space-y-3">
@@ -388,7 +427,9 @@ function Timetable({ items, subjects }: { items: PlanItem[]; subjects: string[] 
                       {formatMinute(item.startMinute ?? 0)} –{" "}
                       {formatMinute(item.endMinute ?? 0)}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      {item.title}
+                    </span>
                     {item.location ? (
                       <span className="text-muted-foreground hidden shrink-0 text-xs sm:inline">
                         {item.location}
@@ -429,7 +470,13 @@ function Empty({ children }: { children: React.ReactNode }) {
  * data-loss surface that DOES need a confirmation is deleting a subject, and
  * that one has one.
  */
-function DeleteButton({ label, onDelete }: { label: string; onDelete: () => void }) {
+function DeleteButton({
+  label,
+  onDelete,
+}: {
+  label: string;
+  onDelete: () => void;
+}) {
   return (
     <button
       type="button"
@@ -506,11 +553,17 @@ function AddRow({
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          aria-label={dateRequired ? t.organiser.dueDate : t.organiser.dueDateOptional}
+          aria-label={
+            dateRequired ? t.organiser.dueDate : t.organiser.dueDateOptional
+          }
           className="w-40"
         />
       ) : null}
-      <SubjectPicker subjects={subjects} value={courseTag} onChange={setCourseTag} />
+      <SubjectPicker
+        subjects={subjects}
+        value={courseTag}
+        onChange={setCourseTag}
+      />
       <Button onClick={submit} disabled={!ready || busy}>
         {busy ? <Loader2 className="animate-spin" /> : <Plus />}
         {t.common.add}
@@ -526,7 +579,9 @@ function AddClassRow({
 }: {
   subjects: string[];
   busy: boolean;
-  onAdd: (fields: Partial<PlanItem> & { kind: PlanItemKind; title: string }) => Promise<boolean>;
+  onAdd: (
+    fields: Partial<PlanItem> & { kind: PlanItemKind; title: string },
+  ) => Promise<boolean>;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -648,13 +703,21 @@ function AddClassRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <SubjectPicker subjects={subjects} value={courseTag} onChange={setCourseTag} />
+        <SubjectPicker
+          subjects={subjects}
+          value={courseTag}
+          onChange={setCourseTag}
+        />
         <Button onClick={submit} disabled={!ready || busy}>
           {busy ? <Loader2 className="animate-spin" /> : <Check />}
           {t.organiser.saveClass}
         </Button>
-        {startMinute !== null && endMinute !== null && endMinute <= startMinute ? (
-          <span className="text-destructive text-xs">{t.organiser.endsBeforeStarts}</span>
+        {startMinute !== null &&
+        endMinute !== null &&
+        endMinute <= startMinute ? (
+          <span className="text-destructive text-xs">
+            {t.organiser.endsBeforeStarts}
+          </span>
         ) : null}
       </div>
     </div>

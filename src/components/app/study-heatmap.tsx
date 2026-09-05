@@ -35,6 +35,7 @@ import {
   shiftDays,
   type HeatLevel,
 } from "@/lib/stats/heatmap";
+import { Panel, PanelLede } from "@/components/app/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -55,9 +56,6 @@ const LEVEL_CLASS: Record<HeatLevel, string> = {
   4: "bg-primary",
 };
 
-/** What each step is worth, said in the legend rather than "less / more". */
-const LEVEL_LABEL = ["none", "under 15m", "15m", "30m", "1h+"];
-
 /**
  * How many subjects the breakdown names before folding the rest together.
  *
@@ -65,8 +63,6 @@ const LEVEL_LABEL = ["none", "under 15m", "15m", "30m", "1h+"];
  * "everything else" row keeps it a summary.
  */
 const TOP_SUBJECTS = 5;
-
-const WEEKDAY_LABEL = ["", "Mon", "", "Wed", "", "Fri", ""];
 
 /**
  * A full year, the way GitHub shows it.
@@ -99,6 +95,24 @@ export function StudyHeatmap() {
   const today = dayKey(new Date(), timeZone);
   const byDay = useMemo(() => minutesByDay(sessions), [sessions]);
   const map = useMemo(() => buildHeatmap(byDay, today, WEEKS), [byDay, today]);
+
+  /**
+   * Alternate days only. Seven names down a 13px column is a wall of text,
+   * and the catalogue's list is already Sunday-first — the same order the
+   * grid stacks its rows in, so these line up without a second constant that
+   * could drift out of step with it.
+   */
+  const weekdayLabels = t.common.weekdaysNarrow.map((label, i) =>
+    i % 2 === 1 ? label : "",
+  );
+
+  /** What one square is worth. Named amounts, not "less / more". */
+  const legendLabel: Record<number, string> = {
+    1: t.heatmap.legend.under15,
+    2: t.heatmap.legend.m15,
+    3: t.heatmap.legend.m30,
+    4: t.heatmap.legend.h1,
+  };
   const streaks = useMemo(() => buildStreaks(byDay, today), [byDay, today]);
 
   /**
@@ -136,34 +150,36 @@ export function StudyHeatmap() {
   if (loading) return <Skeleton className="h-44 w-full rounded-2xl" />;
 
   return (
-    <div className="bg-card rounded-2xl border p-5">
+    <Panel>
       {/* A sentence first, then the figures. Every other card in Tuón opens
           by saying what it means — "8 cards need work", "All caught up" — and
-          leads the numbers rather than opening with a scoreboard. */}
-      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
-        <div>
-          <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
-            Your year
-          </p>
-          <p className="font-display mt-1.5 text-2xl font-semibold tracking-tight">
-            {map.activeDays === 0
-              ? "No study logged yet"
-              : `${formatHours(map.totalMinutes)} across ${map.activeDays} ${
-                  map.activeDays === 1 ? "day" : "days"
-                }`}
-          </p>
-        </div>
+          leads the numbers rather than opening with a scoreboard.
 
-        <p
-          className="text-muted-foreground text-xs tabular-nums"
-          // Reserves the line so hovering a cell does not nudge the layout.
-          style={{ minHeight: "1rem" }}
-        >
-          {pickedDay
-            ? `${formatDay(pickedDay.day)} · ${formatHours(pickedDay.minutes)}`
-            : ""}
-        </p>
-      </div>
+          The card no longer titles itself: the page above it already prints
+          "Your year", and the two were stacking. */}
+      <PanelLede
+        value={
+          map.activeDays === 0
+            ? t.heatmap.noneYet
+            : t.heatmap.totalAcross(
+                formatHours(map.totalMinutes),
+                map.activeDays,
+              )
+        }
+        aside={
+          <p
+            className="text-muted-foreground text-xs tabular-nums"
+            // Reserves the line so hovering a cell does not nudge the layout.
+            style={{ minHeight: "1rem" }}
+          >
+            {pickedDay
+              ? `${formatDay(pickedDay.day, t.common.dateLocale)} · ${formatHours(
+                  pickedDay.minutes,
+                )}`
+              : ""}
+          </p>
+        }
+      />
 
       {/* Both runs, always. Hiding the longest until it differed meant the
           number appeared from nowhere the first time a streak broke — the
@@ -171,12 +187,12 @@ export function StudyHeatmap() {
           say "you have done better than this before". */}
       <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
         <Figure
-          value={`${streaks.current} ${streaks.current === 1 ? "day" : "days"}`}
-          label="current run"
+          value={t.heatmap.runDays(streaks.current)}
+          label={t.heatmap.currentRun}
         />
         <Figure
-          value={`${streaks.longest} ${streaks.longest === 1 ? "day" : "days"}`}
-          label="longest run"
+          value={t.heatmap.runDays(streaks.longest)}
+          label={t.heatmap.longestRun}
           muted
         />
       </dl>
@@ -207,7 +223,7 @@ export function StudyHeatmap() {
               className="bg-card sticky left-0 z-10 mr-1 flex w-8 flex-col pr-1"
               style={{ gap: `${GAP}px` }}
             >
-              {WEEKDAY_LABEL.map((label, i) => (
+              {weekdayLabels.map((label, i) => (
                 <span
                   key={i}
                   className="text-muted-foreground text-[10px]"
@@ -219,7 +235,11 @@ export function StudyHeatmap() {
             </div>
 
             {map.weeks.map((week, w) => (
-              <div key={w} className="flex flex-col" style={{ gap: `${GAP}px` }}>
+              <div
+                key={w}
+                className="flex flex-col"
+                style={{ gap: `${GAP}px` }}
+              >
                 {week.map((day) =>
                   day.future ? (
                     <span key={day.day} style={{ width: CELL, height: CELL }} />
@@ -227,12 +247,23 @@ export function StudyHeatmap() {
                     <button
                       key={day.day}
                       type="button"
-                      onClick={() => setPicked(day.day === picked ? null : day.day)}
+                      onClick={() =>
+                        setPicked(day.day === picked ? null : day.day)
+                      }
                       onMouseEnter={() => setPicked(day.day)}
                       onMouseLeave={() => setPicked(null)}
-                      title={`${formatDay(day.day)} — ${formatHours(day.minutes)}`}
-                      aria-label={`${formatDay(day.day)}, ${formatHours(day.minutes)}`}
-                      style={{ width: CELL, height: CELL, borderRadius: RADIUS }}
+                      title={`${formatDay(day.day, t.common.dateLocale)} — ${formatHours(
+                        day.minutes,
+                      )}`}
+                      aria-label={`${formatDay(
+                        day.day,
+                        t.common.dateLocale,
+                      )}, ${formatHours(day.minutes)}`}
+                      style={{
+                        width: CELL,
+                        height: CELL,
+                        borderRadius: RADIUS,
+                      }}
                       className={cn(
                         "focus-visible:ring-ring transition-transform focus-visible:ring-2 focus-visible:outline-none",
                         LEVEL_CLASS[day.level],
@@ -267,11 +298,11 @@ export function StudyHeatmap() {
               style={{ width: CELL, height: CELL, borderRadius: RADIUS }}
               className={LEVEL_CLASS[level]}
             />
-            {LEVEL_LABEL[level]}
+            {legendLabel[level]}
           </span>
         ))}
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -298,7 +329,10 @@ function SubjectBreakdown({
   const top = rows.slice(0, TOP_SUBJECTS);
   const rest = rows.slice(TOP_SUBJECTS);
   const restMinutes = rest.reduce((sum, row) => sum + row.minutes, 0);
-  const shown = restMinutes > 0 ? [...top, { subject: otherLabel, minutes: restMinutes }] : top;
+  const shown =
+    restMinutes > 0
+      ? [...top, { subject: otherLabel, minutes: restMinutes }]
+      : top;
 
   // Against the busiest subject, not the total: see above.
   const peak = Math.max(1, ...shown.map((row) => row.minutes));
@@ -313,14 +347,18 @@ function SubjectBreakdown({
           const label = row.subject === UNTAGGED ? untaggedLabel : row.subject;
           return (
             <li key={label} className="flex items-center gap-3">
-              <span className="min-w-0 flex-1 truncate text-[13px]">{label}</span>
+              <span className="min-w-0 flex-1 truncate text-[13px]">
+                {label}
+              </span>
               <span
                 aria-hidden="true"
                 className="bg-muted hidden h-1.5 w-32 shrink-0 overflow-hidden rounded-full sm:block"
               >
                 <span
                   className="bg-primary/70 block h-full rounded-full"
-                  style={{ width: `${Math.round((row.minutes / peak) * 100)}%` }}
+                  style={{
+                    width: `${Math.round((row.minutes / peak) * 100)}%`,
+                  }}
                 />
               </span>
               <span className="text-muted-foreground w-14 shrink-0 text-right text-xs tabular-nums">
@@ -358,9 +396,9 @@ function Figure({
   );
 }
 
-function formatDay(key: string): string {
+function formatDay(key: string, locale: string): string {
   const [year, month, day] = key.split("-").map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+  return new Date(year, month - 1, day).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
   });
