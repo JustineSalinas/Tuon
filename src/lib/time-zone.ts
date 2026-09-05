@@ -72,6 +72,30 @@ export function offsetLabel(timeZone: string): string {
   }
 }
 
+/**
+ * Minutes from midnight on the local clock in the given zone.
+ *
+ * The timetable stores classes as minutes from midnight with no date, so
+ * deciding whether a gap has already passed needs the student's wall clock,
+ * not the machine's. `h23` rather than `hour12: false`, which renders
+ * midnight as 24 in some engines and would put "now" a day ahead.
+ */
+export function minutesOfDayIn(date: Date, timeZone: string): number {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(date);
+    const read = (type: string) =>
+      Number(parts.find((p) => p.type === type)?.value ?? "0");
+    return read("hour") * 60 + read("minute");
+  } catch {
+    return date.getHours() * 60 + date.getMinutes();
+  }
+}
+
 /** Local YYYY-MM-DD key for a date in the given zone. */
 export function dayKeyIn(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", {

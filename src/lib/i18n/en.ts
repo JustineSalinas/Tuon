@@ -141,6 +141,32 @@ export const en = {
     notLogged: "That block was not saved to your log.",
   },
 
+  /**
+   * The timetable, finally doing something.
+   *
+   * Reasons arrive from `organiser/free-time` as keys — the module knows the
+   * gap is after the last class, and this is where that becomes a sentence.
+   */
+  whenToStudy: {
+    heading: "When to study",
+    span: (from: string, to: string) => `${from} – ${to}`,
+    reason: {
+      wholeDay: "Nothing in your timetable today.",
+      beforeFirstClass: "Before your first class.",
+      betweenClasses: "Between classes.",
+      afterClasses: "After your last class.",
+    },
+    needs: (minutes: number) => `About ${minutes} min for today's plan.`,
+    tight: (minutes: number) =>
+      `Only ${minutes} min free — you may not get through all of it.`,
+    nextClass: (title: string, time: string) => `Next: ${title} at ${time}`,
+    noClasses: "No classes today.",
+    noneLeft: "Nothing free left today. Tomorrow, then.",
+    addTimetable: "Add your class schedule",
+    addTimetableWhy:
+      "Tell Tuón when your classes are and it will find the gaps, so a plan comes with a time you can actually do it.",
+  },
+
   heatmap: {
     whereItWent: "Where the hours went",
     otherSubjects: "Everything else",

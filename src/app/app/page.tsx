@@ -3,12 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import {
-  ArrowRight,
-  CalendarClock,
-  FileText,
-  LifeBuoy,
-} from "lucide-react";
+import { ArrowRight, CalendarClock, FileText, LifeBuoy } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/components/providers/i18n-provider";
@@ -24,11 +19,15 @@ import {
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import { nextDeadline } from "@/lib/organiser/plan-items";
 import { useNow } from "@/lib/hooks/use-now";
+import { WhenToStudy } from "@/components/app/when-to-study";
 import { DEFAULT_EASE_FACTOR, daysUntil, parseExamDate } from "@/lib/srs/sm2";
 import { AT_RISK_EASE } from "@/lib/stats/retention";
 import { QuotaIndicator } from "@/components/app/quota-indicator";
 import { FirstRun } from "@/components/app/first-run";
-import { ReadinessCard, SubjectReadinessList } from "@/components/app/readiness";
+import {
+  ReadinessCard,
+  SubjectReadinessList,
+} from "@/components/app/readiness";
 import { TodaysPlan } from "@/components/app/todays-plan";
 import { WeekStudy } from "@/components/app/week-study";
 import { Upcoming } from "@/components/app/upcoming";
@@ -60,12 +59,17 @@ export default function DashboardPage() {
     >();
 
     for (const log of logs) {
-      const entry = byStudySet.get(log.studySetId) ?? { due: 0, reviewed: 0, shaky: 0 };
+      const entry = byStudySet.get(log.studySetId) ?? {
+        due: 0,
+        reviewed: 0,
+        shaky: 0,
+      };
       entry.reviewed += 1;
       if ((log.nextReviewAt?.toDate?.().getTime() ?? 0) <= now) entry.due += 1;
       // Same threshold the readiness projection uses, so the hero and the plan
       // are counting the same cards.
-      if ((log.easeFactor ?? DEFAULT_EASE_FACTOR) < AT_RISK_EASE) entry.shaky += 1;
+      if ((log.easeFactor ?? DEFAULT_EASE_FACTOR) < AT_RISK_EASE)
+        entry.shaky += 1;
       byStudySet.set(log.studySetId, entry);
     }
 
@@ -103,7 +107,13 @@ export default function DashboardPage() {
   // dashboard's most prominent number costs no extra reads.
   const readiness = useMemo(
     () =>
-      buildReadiness(sets, logs, parseExamDate(profile?.examDate), new Date(now), deadline),
+      buildReadiness(
+        sets,
+        logs,
+        parseExamDate(profile?.examDate),
+        new Date(now),
+        deadline,
+      ),
     [sets, logs, profile?.examDate, now, deadline],
   );
 
@@ -130,7 +140,6 @@ export default function DashboardPage() {
       dailyCardGoal,
     );
   }, [setStats, sets, notes, readiness, dailyCardGoal]);
-
 
   const firstName = (profile?.displayName || "there").trim().split(/\s+/)[0];
 
@@ -226,7 +235,15 @@ export default function DashboardPage() {
                   href="/app/sets"
                   linkLabel={t.dashboard.allSets}
                 />
-                <div className="mt-3">
+                {/* Above the steps, not below them: "when" is the question
+                    a student is holding while they read "what", and an
+                    answer that arrives after the list has been scrolled past
+                    is an answer to nobody. */}
+                <div className="mt-3 grid gap-3">
+                  <WhenToStudy
+                    cards={plan.totalCards}
+                    todayKey={dayKey(new Date(now), timeZone)}
+                  />
                   <TodaysPlan plan={plan} />
                 </div>
               </section>
@@ -234,7 +251,11 @@ export default function DashboardPage() {
 
             {notes.length > 0 ? (
               <section className="min-w-0">
-                <SectionHeading title={t.dashboard.recentNotes} href="/app/notes" linkLabel={t.dashboard.allNotes} />
+                <SectionHeading
+                  title={t.dashboard.recentNotes}
+                  href="/app/notes"
+                  linkLabel={t.dashboard.allNotes}
+                />
                 <div className="mt-3 grid gap-2">
                   {notes.slice(0, 4).map((note) => (
                     <Link
@@ -244,7 +265,9 @@ export default function DashboardPage() {
                     >
                       <FileText className="text-muted-foreground size-4 shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{note.title}</div>
+                        <div className="truncate text-sm font-medium">
+                          {note.title}
+                        </div>
                         {note.courseTag ? (
                           <div className="text-muted-foreground truncate text-xs">
                             {note.courseTag}
@@ -339,7 +362,9 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-baseline justify-between">
-      <h2 className="font-display text-lg font-semibold tracking-tight">{title}</h2>
+      <h2 className="font-display text-lg font-semibold tracking-tight">
+        {title}
+      </h2>
       <Link
         href={href}
         className="text-muted-foreground hover:text-foreground text-xs transition-colors"
@@ -393,7 +418,7 @@ function ExamCountdown({
   return (
     <p className="text-primary mt-2 flex items-center gap-1.5 text-sm font-medium">
       <CalendarClock className="size-4 shrink-0" />
-      {(examName?.trim() || "Your exam")} in {left} {left === 1 ? "day" : "days"}
+      {examName?.trim() || "Your exam"} in {left} {left === 1 ? "day" : "days"}
     </p>
   );
 }

@@ -149,6 +149,27 @@ export const fil: Messages = {
     breakOver: "Tapos na ang break. Balik na tayo.",
   },
 
+  whenToStudy: {
+    heading: "Kailan mag-aral",
+    span: (from: string, to: string) => `${from} – ${to}`,
+    reason: {
+      wholeDay: "Walang klase sa iskedyul mo ngayon.",
+      beforeFirstClass: "Bago ang unang klase mo.",
+      betweenClasses: "Sa pagitan ng mga klase.",
+      afterClasses: "Pagkatapos ng huling klase mo.",
+    },
+    needs: (minutes: number) => `Mga ${minutes} min para sa plano ngayon.`,
+    tight: (minutes: number) =>
+      `${minutes} min lang ang bakante — baka hindi mo matapos lahat.`,
+    nextClass: (title: string, time: string) =>
+      `Susunod: ${title} nang ${time}`,
+    noClasses: "Walang klase ngayon.",
+    noneLeft: "Wala nang bakante ngayong araw. Bukas na lang.",
+    addTimetable: "Idagdag ang iskedyul ng klase mo",
+    addTimetableWhy:
+      "Sabihin kay Tuón kung kailan ang mga klase mo at hahanapin nito ang mga puwang, para may oras na kasama ang plano.",
+  },
+
   heatmap: {
     whereItWent: "Saan napunta ang oras",
     otherSubjects: "Lahat ng iba pa",
