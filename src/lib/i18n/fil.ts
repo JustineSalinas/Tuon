@@ -165,9 +165,9 @@ export const fil: Messages = {
       `Susunod: ${title} nang ${time}`,
     noClasses: "Walang klase ngayon.",
     noneLeft: "Wala nang bakante ngayong araw. Bukas na lang.",
-    addTimetable: "Idagdag ang iskedyul ng klase mo",
+    addTimetable: "Idagdag ang lingguhang iskedyul mo",
     addTimetableWhy:
-      "Sabihin kay Tuón kung kailan ang mga klase mo at hahanapin nito ang mga puwang, para may oras na kasama ang plano.",
+      "Klase, shift sa trabaho, kahit ano na pumupuno sa araw — hahanapin ni Tuón ang mga puwang, para may oras na kasama ang plano.",
   },
 
   heatmap: {
@@ -502,10 +502,10 @@ export const fil: Messages = {
     dueDateOptional: "Petsa ng deadline (opsyonal)",
     subject: "Subject",
     noSubject: "Walang subject",
-    addAClass: "Magdagdag ng klase",
-    newClass: "Bagong klase",
-    classNamePlaceholder: "Lecture sa General Biology",
-    className: "Pangalan ng klase",
+    addAClass: "Idagdag sa linggo mo",
+    newClass: "Bagong gawain",
+    classNamePlaceholder: "Lecture sa General Biology, o Night shift",
+    className: "Ano ito",
     starts: "Simula",
     ends: "Katapusan",
     locationPlaceholder: "Room 204 (opsyonal)",

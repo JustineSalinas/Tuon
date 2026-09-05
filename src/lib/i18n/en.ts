@@ -162,9 +162,9 @@ export const en = {
     nextClass: (title: string, time: string) => `Next: ${title} at ${time}`,
     noClasses: "No classes today.",
     noneLeft: "Nothing free left today. Tomorrow, then.",
-    addTimetable: "Add your class schedule",
+    addTimetable: "Add your weekly schedule",
     addTimetableWhy:
-      "Tell Tuón when your classes are and it will find the gaps, so a plan comes with a time you can actually do it.",
+      "Classes, work shifts, anything that fills a day — Tuón finds the gaps between them, so a plan arrives with a time you can actually do it.",
   },
 
   heatmap: {
@@ -504,15 +504,15 @@ export const en = {
     classesOverlap:
       "Two classes overlap. Left as you entered it — a real clash is something to sort out with your school, not something this should quietly refuse to save.",
     timetableEmpty:
-      "Add your class times and the week has a shape. It is also how you spot the free afternoon you keep forgetting about.",
+      "Classes, a work shift, a standing commitment — anything that fills a day. Once the week has a shape, Tuón can tell you when you are actually free.",
     dueDate: "Due date",
     dueDateOptional: "Due date (optional)",
     subject: "Subject",
     noSubject: "No subject",
-    addAClass: "Add a class",
-    newClass: "New class",
-    classNamePlaceholder: "General Biology lecture",
-    className: "Class name",
+    addAClass: "Add to your week",
+    newClass: "New commitment",
+    classNamePlaceholder: "General Biology lecture, or Night shift",
+    className: "What is it",
     starts: "Starts",
     ends: "Ends",
     locationPlaceholder: "Room 204 (optional)",

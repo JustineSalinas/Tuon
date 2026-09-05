@@ -88,20 +88,27 @@ export function WhenToStudy({
   // when the plan is empty — a study window for no cards is noise.
   if (loading || cards <= 0) return null;
 
-  // No timetable at all: the one place that asks for one, and says why.
+  // Nothing scheduled. An offer, not a panel.
+  //
+  // Two of Tuón's four kinds of student own a class timetable. A board or
+  // licensure reviewer often has no fixed week at all, and plenty are working
+  // while they review — for them a permanent dashed card saying "add your
+  // schedule" is a standing reproach for using the product exactly as
+  // intended. One quiet line stays findable without becoming furniture.
   if (items.every((item) => item.kind !== "class")) {
     return (
       <Link
         href="/app/calendar"
-        className="hover:border-primary/40 hover:bg-accent/30 bg-card flex items-start gap-3 rounded-2xl border border-dashed p-4 transition-colors"
+        className="text-muted-foreground hover:text-foreground flex items-start gap-2 text-xs leading-relaxed transition-colors"
       >
-        <CalendarPlus className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-medium">{t.whenToStudy.addTimetable}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-            {t.whenToStudy.addTimetableWhy}
-          </p>
-        </div>
+        <CalendarPlus className="mt-0.5 size-3.5 shrink-0" />
+        <span>
+          <span className="text-foreground font-medium">
+            {t.whenToStudy.addTimetable}
+          </span>
+          {" — "}
+          {t.whenToStudy.addTimetableWhy}
+        </span>
       </Link>
     );
   }
