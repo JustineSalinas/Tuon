@@ -6,13 +6,18 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  ChevronDown,
   FileText,
   Home,
   Layers,
   MessageCircle,
   Flag,
   Network,
+  Play,
   Plus,
+  Settings,
+  Settings2,
+  Timer,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -177,11 +182,21 @@ function ComingUp() {
   );
 }
 
+/**
+ * The student this panel belongs to.
+ *
+ * The real dashboard greets you by name and names you again in the sidebar,
+ * so the mockup has to do both or the two do not look like the same screen.
+ * One constant, used in both places, so they cannot drift apart.
+ */
+const STUDENT_NAME = "Maria Santos";
+const STUDENT_CONTEXT = "Grade 12 · STEM";
+
 function Sidebar() {
   const { t } = useI18n();
 
   return (
-    <div className="bg-sidebar border-border hidden w-[222px] shrink-0 flex-col border-r p-4 lg:flex">
+    <div className="bg-sidebar border-border hidden w-64 shrink-0 flex-col border-r p-4 lg:flex">
       <div className="mb-4 flex items-center gap-2 px-2 pt-1">
         <TuonMark className="text-primary size-7" />
         <span className="font-display text-xl font-semibold tracking-tight">
@@ -211,18 +226,80 @@ function Sidebar() {
         {t.nav.newNote}
       </span>
 
-      {/* The quota, because it is on the real sidebar and because a visitor
-          working out whether the free tier is usable should not have to find
-          the pricing section to see the shape of it. */}
-      <div className="border-border mt-auto rounded-lg border p-2.5">
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs font-medium">{t.nav.sets}</span>
-          <span className="text-muted-foreground text-xs tabular-nums">
-            2/5
-          </span>
+      {/* The foot of the real sidebar, in its real order. All four were
+          missing but the quota, which is why this column had a hole in it —
+          not a spacing bug, three absent components. */}
+      <div className="mt-auto space-y-2.5">
+        {/* The timer. It lives here in the app because the one screen you
+            could see it on before was the one screen you are not studying
+            on. */}
+        <div className="bg-sidebar-accent/40 border-border rounded-xl border p-2.5">
+          <div className="flex items-center gap-2">
+            <Timer className="text-muted-foreground size-3.5 shrink-0" />
+            <div className="flex min-w-0 flex-1 items-baseline gap-2">
+              <span className="font-display text-lg leading-none font-semibold tabular-nums">
+                25:00
+              </span>
+              <span className="text-muted-foreground truncate text-[11px]">
+                {t.timer.focus}
+              </span>
+            </div>
+            <span className="bg-primary text-primary-foreground grid size-7 shrink-0 place-items-center rounded-full">
+              <Play className="size-3.5" />
+            </span>
+            <span className="text-muted-foreground grid size-7 shrink-0 place-items-center">
+              <Settings2 className="size-3.5" />
+            </span>
+          </div>
+
+          <div className="border-border mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1.5">
+            <FileText className="text-muted-foreground size-3 shrink-0" />
+            <span className="text-muted-foreground min-w-0 flex-1 truncate text-[11px]">
+              {t.timer.noSubject}
+            </span>
+            <ChevronDown className="text-muted-foreground size-3 shrink-0" />
+          </div>
+
+          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
+            {t.timer.backgroundNote}
+          </p>
         </div>
-        <div className="bg-secondary mt-1.5 h-1 overflow-hidden rounded-full">
-          <div className="bg-primary h-full w-2/5 rounded-full" />
+
+        {/* The quota, because a visitor working out whether the free tier is
+            usable should not have to find the pricing section to see the
+            shape of it. */}
+        <div className="border-border rounded-xl border p-2.5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs font-medium">{t.banners.quotaTitle}</span>
+            <span className="text-muted-foreground text-xs tabular-nums">
+              2/5
+            </span>
+          </div>
+          <div className="bg-secondary mt-1.5 h-1.5 overflow-hidden rounded-full">
+            <div className="bg-primary h-full w-2/5 rounded-full" />
+          </div>
+        </div>
+
+        {/* Who you are, and the gear beside it — which is the only visible
+            entry point to settings in the real app, so leaving it out of the
+            mockup hid a whole destination. */}
+        <div className="flex items-center gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1.5">
+            <span className="bg-primary/15 text-primary grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold">
+              M
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">
+                {STUDENT_NAME}
+              </span>
+              <span className="text-muted-foreground block truncate text-xs">
+                {STUDENT_CONTEXT}
+              </span>
+            </span>
+          </div>
+          <span className="text-muted-foreground grid size-9 shrink-0 place-items-center rounded-lg">
+            <Settings className="size-4" />
+          </span>
         </div>
       </div>
     </div>
@@ -285,7 +362,7 @@ export function HeroDashboard() {
 
         <div className="min-w-0 flex-1 p-5 sm:p-7">
           <h2 className="font-display text-2xl font-semibold tracking-tight">
-            {t.dashboard.goodAfternoon}
+            {t.dashboard.goodAfternoon}, {STUDENT_NAME.split(" ")[0]}
           </h2>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
