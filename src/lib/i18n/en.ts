@@ -49,6 +49,9 @@ export const en = {
     fullYear: "Full year",
     streakDays: (n: number) =>
       n === 0 ? "No run going" : `${n} ${n === 1 ? "day" : "days"} in a row`,
+    /** Shown under the week bars when not a minute has been logged. */
+    nothingLoggedWeek: "Nothing logged yet this week.",
+    startTheTimer: "Start the timer",
     comingUp: "Coming up",
     allDeadlines: "Calendar",
     nothingDue: "Nothing due",
@@ -164,7 +167,7 @@ export const en = {
     noneLeft: "Nothing free left today. Tomorrow, then.",
     addTimetable: "Add your weekly schedule",
     addTimetableWhy:
-      "Classes, work shifts, anything that fills a day — Tuón finds the gaps between them, so a plan arrives with a time you can actually do it.",
+      "Classes or work shifts — Tuón finds the gaps and gives your plan a time.",
   },
 
   heatmap: {

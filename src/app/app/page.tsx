@@ -144,7 +144,7 @@ export default function DashboardPage() {
   const firstName = (profile?.displayName || "there").trim().split(/\s+/)[0];
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-10">
       <motion.header
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/components/providers/i18n-provider";
@@ -120,6 +121,22 @@ export function WeekStudy() {
           );
         })}
       </div>
+
+      {/* An empty week is allowed to look empty — that is the card's whole
+          job — but it should not be the largest silent thing on the page.
+          The timer is in the sidebar on a desktop and behind More on a
+          phone, so the way to fix an empty week gets named here. */}
+      {total === 0 ? (
+        <p className="text-muted-foreground mt-4 text-xs leading-relaxed">
+          {t.dashboard.nothingLoggedWeek}{" "}
+          <Link
+            href="/app/calendar"
+            className="text-foreground font-medium underline underline-offset-4"
+          >
+            {t.dashboard.startTheTimer}
+          </Link>
+        </p>
+      ) : null}
     </Panel>
   );
 }

@@ -56,6 +56,8 @@ export const fil: Messages = {
     fullYear: "Buong taon",
     streakDays: (n: number) =>
       n === 0 ? "Walang sunod-sunod" : `${n} araw na sunod-sunod`,
+    nothingLoggedWeek: "Wala pang naitala ngayong linggo.",
+    startTheTimer: "Simulan ang timer",
     comingUp: "Paparating",
     allDeadlines: "Kalendaryo",
     nothingDue: "Walang nakatakda",
@@ -167,7 +169,7 @@ export const fil: Messages = {
     noneLeft: "Wala nang bakante ngayong araw. Bukas na lang.",
     addTimetable: "Idagdag ang lingguhang iskedyul mo",
     addTimetableWhy:
-      "Klase, shift sa trabaho, kahit ano na pumupuno sa araw — hahanapin ni Tuón ang mga puwang, para may oras na kasama ang plano.",
+      "Klase o shift sa trabaho — hahanap si Tuón ng puwang at bibigyan ng oras ang plano mo.",
   },
 
   heatmap: {
