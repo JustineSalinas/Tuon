@@ -189,8 +189,8 @@ function ComingUp() {
  * so the mockup has to do both or the two do not look like the same screen.
  * One constant, used in both places, so they cannot drift apart.
  */
-const STUDENT_NAME = "Maria Santos";
-const STUDENT_CONTEXT = "Grade 12 · STEM";
+const STUDENT_NAME = "Tim Tolosa";
+const STUDENT_CONTEXT = "College · IT";
 
 function Sidebar() {
   const { t } = useI18n();
@@ -229,11 +229,11 @@ function Sidebar() {
       {/* The foot of the real sidebar, in its real order. All four were
           missing but the quota, which is why this column had a hole in it —
           not a spacing bug, three absent components. */}
-      <div className="mt-auto space-y-2.5">
+      <div className="mt-auto space-y-3 pt-4">
         {/* The timer. It lives here in the app because the one screen you
             could see it on before was the one screen you are not studying
             on. */}
-        <div className="bg-sidebar-accent/40 border-border rounded-xl border p-2.5">
+        <div className="bg-sidebar-accent/40 border-border rounded-xl border p-3">
           <div className="flex items-center gap-2">
             <Timer className="text-muted-foreground size-3.5 shrink-0" />
             <div className="flex min-w-0 flex-1 items-baseline gap-2">
@@ -244,7 +244,7 @@ function Sidebar() {
                 {t.timer.focus}
               </span>
             </div>
-            <span className="bg-primary text-primary-foreground grid size-7 shrink-0 place-items-center rounded-full">
+            <span className="bg-primary text-primary-foreground ml-1 grid size-7 shrink-0 place-items-center rounded-full">
               <Play className="size-3.5" />
             </span>
             <span className="text-muted-foreground grid size-7 shrink-0 place-items-center">
@@ -252,7 +252,7 @@ function Sidebar() {
             </span>
           </div>
 
-          <div className="border-border mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1.5">
+          <div className="border-border mt-2.5 flex items-center gap-1.5 rounded-md border px-2 py-2">
             <FileText className="text-muted-foreground size-3 shrink-0" />
             <span className="text-muted-foreground min-w-0 flex-1 truncate text-[11px]">
               {t.timer.noSubject}
@@ -260,7 +260,7 @@ function Sidebar() {
             <ChevronDown className="text-muted-foreground size-3 shrink-0" />
           </div>
 
-          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
+          <p className="text-muted-foreground mt-2.5 text-[11px] leading-relaxed">
             {t.timer.backgroundNote}
           </p>
         </div>
@@ -268,7 +268,7 @@ function Sidebar() {
         {/* The quota, because a visitor working out whether the free tier is
             usable should not have to find the pricing section to see the
             shape of it. */}
-        <div className="border-border rounded-xl border p-2.5">
+        <div className="border-border rounded-xl border p-3">
           <div className="flex items-baseline justify-between">
             <span className="text-xs font-medium">{t.banners.quotaTitle}</span>
             <span className="text-muted-foreground text-xs tabular-nums">
@@ -284,9 +284,9 @@ function Sidebar() {
             entry point to settings in the real app, so leaving it out of the
             mockup hid a whole destination. */}
         <div className="flex items-center gap-1">
-          <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg p-2">
             <span className="bg-primary/15 text-primary grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold">
-              M
+              {STUDENT_NAME.charAt(0)}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">
