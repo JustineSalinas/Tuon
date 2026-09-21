@@ -38,7 +38,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuHeader,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -359,10 +359,10 @@ function UserMenu({ align }: { align: "start" | "end" }) {
         </DropdownMenuTrigger>
 
       <DropdownMenuContent align={align} className="w-56">
-        <DropdownMenuLabel className="font-normal">
+        <DropdownMenuHeader>
           <div className="truncate text-sm font-medium">{name}</div>
           <div className="text-muted-foreground truncate text-xs">{user?.email}</div>
-        </DropdownMenuLabel>
+        </DropdownMenuHeader>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/app/settings" />}>
             <Settings className="size-4" />

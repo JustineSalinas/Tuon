@@ -10,7 +10,10 @@ import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Faq } from "@/components/marketing/faq";
-import { DeviceLineup, NativeAppsNotice } from "@/components/marketing/device-showcase";
+import {
+  DeviceLineup,
+  NativeAppsNotice,
+} from "@/components/marketing/device-showcase";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { SetupFlow } from "@/components/marketing/setup-flow";
 import { MemoryDecay } from "@/components/marketing/memory-decay";
@@ -77,7 +80,9 @@ function Hero() {
 
           <h1 className="font-display mt-6 text-4xl leading-[1.03] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
             {t.marketing.hero.headline}
-            <span className="text-primary">{t.marketing.hero.headlineAccent}</span>
+            <span className="text-primary">
+              {t.marketing.hero.headlineAccent}
+            </span>
           </h1>
 
           <p className="text-muted-foreground mx-auto mt-6 max-w-xl text-lg leading-relaxed text-balance">
@@ -85,7 +90,11 @@ function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button size="lg" className="text-base" render={<Link href="/signup" />}>
+            <Button
+              size="lg"
+              className="text-base"
+              render={<Link href="/signup" />}
+            >
               {t.marketing.hero.startFree}
               <ArrowRight />
             </Button>
@@ -111,7 +120,7 @@ function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mx-auto mt-14 max-w-4xl md:mt-16"
+          className="relative mx-auto mt-14 w-full md:mt-16"
         >
           <TalaPerch className="-top-10 -right-2 z-10 size-20 md:-top-12 md:-right-5 md:size-24" />
           <HeroDashboard />
@@ -312,7 +321,10 @@ function BuiltForPH() {
           <ul className="space-y-3.5">
             {points.map((point) => (
               <li key={point} className="flex gap-3">
-                <Check className="text-primary mt-0.5 size-4 shrink-0" strokeWidth={3} />
+                <Check
+                  className="text-primary mt-0.5 size-4 shrink-0"
+                  strokeWidth={3}
+                />
                 <span className="text-sm leading-relaxed">{point}</span>
               </li>
             ))}
@@ -418,7 +430,9 @@ function PlanCard({
         <h3 className="font-display text-xl font-semibold tracking-tight">
           {plan.name}
         </h3>
-        {plan.highlighted ? <Badge>{t.marketing.pricing.mostPopular}</Badge> : null}
+        {plan.highlighted ? (
+          <Badge>{t.marketing.pricing.mostPopular}</Badge>
+        ) : null}
       </div>
 
       <div className="font-display mt-3 text-4xl font-semibold">
@@ -443,7 +457,11 @@ function PlanCard({
           <PricingRow key={feature}>{feature}</PricingRow>
         ))}
         {plan.plannedFeatures.map((feature) => (
-          <PricingRow key={feature} planned soonLabel={t.marketing.pricing.soon}>
+          <PricingRow
+            key={feature}
+            planned
+            soonLabel={t.marketing.pricing.soon}
+          >
             {feature}
           </PricingRow>
         ))}
@@ -455,7 +473,11 @@ function PlanCard({
             {t.marketing.pricing.startFree}
           </Button>
         ) : (
-          <Button size="lg" variant={plan.highlighted ? "default" : "outline"} disabled>
+          <Button
+            size="lg"
+            variant={plan.highlighted ? "default" : "outline"}
+            disabled
+          >
             {t.marketing.pricing.comingSoon}
           </Button>
         )}
@@ -478,7 +500,10 @@ function PricingRow({
       {planned ? (
         <Clock className="mt-0.5 size-4 shrink-0" />
       ) : (
-        <Check className="text-primary mt-0.5 size-4 shrink-0" strokeWidth={3} />
+        <Check
+          className="text-primary mt-0.5 size-4 shrink-0"
+          strokeWidth={3}
+        />
       )}
       <span>
         {children}
@@ -505,10 +530,14 @@ function FinalCta() {
           <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">
             {t.marketing.finalCta.body}
           </p>
-          <Button size="lg" className="mt-9 text-base" render={<Link href="/signup" />}>
-              {t.marketing.finalCta.action}
-              <ArrowRight />
-            </Button>
+          <Button
+            size="lg"
+            className="mt-9 text-base"
+            render={<Link href="/signup" />}
+          >
+            {t.marketing.finalCta.action}
+            <ArrowRight />
+          </Button>
           <p className="text-muted-foreground mt-4 text-sm">
             {t.marketing.finalCta.note}
           </p>

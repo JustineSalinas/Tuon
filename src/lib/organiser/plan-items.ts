@@ -126,11 +126,18 @@ export function toTimeValue(minute: number): string {
  * the thing a student most needs to see, and burying it below next week's
  * reading is how an organiser becomes something people stop opening.
  */
-export function upcomingDeadlines(items: PlanItem[], today: string): PlanItem[] {
+export function upcomingDeadlines(
+  items: PlanItem[],
+  today: string,
+): PlanItem[] {
   return items
     .filter((item) => item.kind === "deadline" && isDayKey(item.dueDate))
-    .sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : a.dueDate! > b.dueDate! ? 1 : 0))
-    .filter((item) => daysBetween(today, item.dueDate!) >= -DEADLINE_GRACE_DAYS);
+    .sort((a, b) =>
+      a.dueDate! < b.dueDate! ? -1 : a.dueDate! > b.dueDate! ? 1 : 0,
+    )
+    .filter(
+      (item) => daysBetween(today, item.dueDate!) >= -DEADLINE_GRACE_DAYS,
+    );
 }
 
 /**
@@ -161,7 +168,8 @@ export function orderTodos(items: PlanItem[]): PlanItem[] {
 
       const dueA = isDayKey(a.dueDate) ? a.dueDate : null;
       const dueB = isDayKey(b.dueDate) ? b.dueDate : null;
-      if (dueA !== null && dueB !== null && dueA !== dueB) return dueA < dueB ? -1 : 1;
+      if (dueA !== null && dueB !== null && dueA !== dueB)
+        return dueA < dueB ? -1 : 1;
       if (dueA !== null && dueB === null) return -1;
       if (dueA === null && dueB !== null) return 1;
 
@@ -176,6 +184,19 @@ function seconds(item: PlanItem): number {
 }
 
 /** Classes for one weekday, earliest first. */
+/**
+ * Weekday of a `YYYY-MM-DD` key, 0 = Sunday, matching `Date.getDay()`.
+ *
+ * Takes the key rather than a Date on purpose: the key was already resolved
+ * in the student's own zone, and going back to a Date to ask for its weekday
+ * is how a Manila evening becomes the previous day.
+ */
+export function weekdayOfKey(key: string): number {
+  const [year, month, day] = key.split("-").map(Number);
+  if (!year || !month || !day) return new Date().getDay();
+  return new Date(year, month - 1, day).getDay();
+}
+
 export function classesOn(items: PlanItem[], weekday: number): PlanItem[] {
   return items
     .filter((item) => item.kind === "class" && item.weekday === weekday)
@@ -221,7 +242,10 @@ export function overlappingClassIds(items: PlanItem[]): Set<string> {
  * instead of an arbitrary rolling window. Already-passed deadlines are no use
  * as a horizon — you cannot prepare for them — so only future ones count.
  */
-export function nextDeadline(items: PlanItem[], today: string): PlanItem | null {
+export function nextDeadline(
+  items: PlanItem[],
+  today: string,
+): PlanItem | null {
   const future = items
     .filter((item) => item.kind === "deadline" && isDayKey(item.dueDate))
     .filter((item) => daysBetween(today, item.dueDate!) >= 0)

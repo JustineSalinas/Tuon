@@ -58,7 +58,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuHeader,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -196,12 +196,12 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="start" className="w-60">
-            <DropdownMenuLabel className="font-normal">
+            <DropdownMenuHeader>
               <p className="text-sm font-medium">{t.timer[state.phase]}</p>
               <p className="text-muted-foreground text-xs">
                 {t.timer.blocksToday(state.completedFocus)}
               </p>
-            </DropdownMenuLabel>
+            </DropdownMenuHeader>
 
             <DropdownMenuSeparator />
             <DropdownMenuItem

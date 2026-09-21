@@ -53,6 +53,27 @@ function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+/**
+ * A non-interactive header at the top of a menu.
+ *
+ * NOT `DropdownMenuLabel`. That one renders Base UI's `Menu.GroupLabel`,
+ * which requires an enclosing `Menu.Group` and throws without one — it exists
+ * to name a group of items, not to introduce a menu. Reach for it only when
+ * there is a real `DropdownMenuGroup` around the items it names.
+ */
+function DropdownMenuHeader({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dropdown-menu-header"
+      className={cn("px-1.5 py-1", className)}
+      {...props}
+    />
+  )
+}
+
 function DropdownMenuLabel({
   className,
   inset,
@@ -255,6 +276,7 @@ export {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuHeader,
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
