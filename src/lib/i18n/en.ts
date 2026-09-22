@@ -911,6 +911,18 @@ export const en = {
     confirmingBody:
       "Your plan updates here as soon as it clears, usually within a few seconds.",
     checkoutCancelled: "Checkout cancelled. Nothing was charged.",
+    /**
+     * The RevenueCat/Stripe path, offered alongside PayMongo rather than in
+     * place of it. PayMongo already covers PH-issued cards through GCash and
+     * Maya's checkout, so this is framed for who actually needs a second
+     * option: paying from outside the Philippines.
+     */
+    orPayAbroad: "Paying from outside the Philippines?",
+    payByCard: (plan: string) => `Pay for ${plan} by card`,
+    cardPurchaseFailed: "The card purchase could not be started.",
+    cardPurchaseCancelled: "Cancelled. Nothing was charged.",
+    cardPurchaseStarted:
+      "Confirming your payment — your plan updates here within a few seconds.",
   },
 
   plans: {

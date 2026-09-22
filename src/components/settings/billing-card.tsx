@@ -6,6 +6,7 @@ import { AlertTriangle, Check, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { isRevenueCatAvailable, purchaseWithCard } from "@/lib/billing/revenuecat-client";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { useQuota } from "@/components/app/quota-indicator";
 import {
@@ -130,10 +131,26 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
 }
 
 function UpgradePicker() {
-  const { authedFetch } = useAuth();
+  const { authedFetch, user } = useAuth();
   const { t } = useI18n();
   const [period, setPeriod] = useState<BillingPeriod>("annual");
   const [pending, setPending] = useState<Plan | null>(null);
+  const [cardPending, setCardPending] = useState<Plan | null>(null);
+
+  async function payByCard(plan: Plan) {
+    if (!user) return;
+    setCardPending(plan);
+    const outcome = await purchaseWithCard(plan, period, user.uid);
+    setCardPending(null);
+
+    if (outcome.status === "purchased") {
+      toast.success(t.billing.cardPurchaseStarted);
+    } else if (outcome.status === "cancelled") {
+      toast.info(t.billing.cardPurchaseCancelled);
+    } else {
+      toast.error(outcome.message || t.billing.cardPurchaseFailed);
+    }
+  }
 
   async function checkout(plan: Plan) {
     setPending(plan);
@@ -244,10 +261,33 @@ function UpgradePicker() {
                 {pending === id ? <Loader2 className="animate-spin" /> : null}
                 {t.billing.choose(definition.name)}
               </Button>
+
+              {/* A second path for a Visa/Mastercard from outside the
+                  Philippines — PayMongo already covers PH-issued cards
+                  through the button above, so this only appears when
+                  RevenueCat is actually configured, never as a dead link. */}
+              {isRevenueCatAvailable() ? (
+                <Button
+                  className="mt-1.5 w-full"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => payByCard(id)}
+                  disabled={cardPending !== null}
+                >
+                  {cardPending === id ? <Loader2 className="animate-spin" /> : null}
+                  {t.billing.payByCard(definition.name)}
+                </Button>
+              ) : null}
             </div>
           );
         })}
       </div>
+
+      {isRevenueCatAvailable() ? (
+        <p className="text-muted-foreground mt-2 text-xs">
+          {t.billing.orPayAbroad}
+        </p>
+      ) : null}
 
       <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
         {t.billing.payWith}

@@ -900,6 +900,12 @@ export const fil: Messages = {
     confirmingBody:
       "Mag-a-update dito ang plan mo pagkatapos itong ma-clear, kadalasan sa loob ng ilang segundo.",
     checkoutCancelled: "Kinansela ang checkout. Walang siningil.",
+    orPayAbroad: "Nagbabayad mula sa labas ng Pilipinas?",
+    payByCard: (plan: string) => `Bayaran ang ${plan} gamit ang card`,
+    cardPurchaseFailed: "Hindi nasimulan ang pagbili gamit ang card.",
+    cardPurchaseCancelled: "Kinansela. Walang sinisingil.",
+    cardPurchaseStarted:
+      "Kinukumpirma ang bayad mo — mag-uupdate ang plan mo dito sa loob ng ilang segundo.",
   },
 
   plans: {
