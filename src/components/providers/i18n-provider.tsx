@@ -19,7 +19,13 @@
  * changes; that is the entire point of it.
  */
 
-import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { en, type Messages } from "@/lib/i18n/en";
@@ -67,6 +73,16 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (locale !== mirrored) setStoredLocale(locale);
   }, [locale, mirrored]);
+
+  // `<html lang>` for the same reason: it is the document's, not this
+  // component tree's, so it can only ever be set from an effect. The
+  // pre-paint script in layout.tsx (`localeScript`) covers first paint from
+  // localStorage; this covers every change after that — most importantly the
+  // profile arriving on a device where the student had never switched locale
+  // locally, which the script alone cannot see.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const value = useMemo(() => ({ locale, t: messagesFor(locale) }), [locale]);
 

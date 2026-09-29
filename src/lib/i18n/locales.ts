@@ -51,11 +51,15 @@ export function isReady(id: LocaleId): boolean {
  * The label is what stops anyone mistaking it for finished.
  */
 export function offeredLocales() {
-  return [...LOCALES].sort((a, b) => Number(isReady(b.id)) - Number(isReady(a.id)));
+  return [...LOCALES].sort(
+    (a, b) => Number(isReady(b.id)) - Number(isReady(a.id)),
+  );
 }
 
 export function readLocale(value: unknown): LocaleId {
-  return LOCALES.some((l) => l.id === value) ? (value as LocaleId) : DEFAULT_LOCALE;
+  return LOCALES.some((l) => l.id === value)
+    ? (value as LocaleId)
+    : DEFAULT_LOCALE;
 }
 
 /**
@@ -73,3 +77,19 @@ export function messagesFor(id: LocaleId): Messages {
 
 /** Mirrored in localStorage for the same reason the palette is. */
 export const LOCALE_STORAGE_KEY = "tuon.locale";
+
+/**
+ * Pre-paint script for `<html lang>`, run in `<head>` exactly like
+ * `paletteScript` — see that one for why this has to happen before React
+ * hydrates rather than in an effect. Without it `<html>` was hard-coded to
+ * `lang="en"` even for a student who had switched to Filipino, so a screen
+ * reader applied English pronunciation rules to Filipino text: a real WCAG
+ * 3.1.1 (Language of Page) failure, not a cosmetic one.
+ *
+ * `"en"` and `"fil"` are both already valid BCP-47 primary language subtags,
+ * so the locale id is used directly with no separate mapping table to drift
+ * out of sync with `LOCALES` above.
+ */
+export const localeScript = `(function(){try{var l=localStorage.getItem(${JSON.stringify(
+  LOCALE_STORAGE_KEY,
+)});if(l==="en"||l==="fil"){document.documentElement.setAttribute('lang',l)}}catch(e){}})()`;

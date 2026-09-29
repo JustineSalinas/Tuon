@@ -8,6 +8,7 @@ import {
   paletteScript,
 } from "@/components/providers/palette-provider";
 import { I18nProvider } from "@/components/providers/i18n-provider";
+import { localeScript } from "@/lib/i18n/locales";
 import { Toaster } from "@/components/ui/sonner";
 import { siteUrl } from "@/lib/site";
 
@@ -93,6 +94,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             renders terracotta and then swaps colour once the profile lands,
             which is worse than not offering palettes at all. */}
         <script dangerouslySetInnerHTML={{ __html: paletteScript }} />
+
+        {/* Sets `lang` before hydration for the same reason. `suppressHydrationWarning`
+            on <html> is what lets this and the server's own "en" disagree
+            without React complaining. */}
+        <script dangerouslySetInnerHTML={{ __html: localeScript }} />
 
         {/* Scroll reveals ship as opacity:0 in the SSR HTML and are only
             revealed by JS. If JS never runs, everything below the hero would
