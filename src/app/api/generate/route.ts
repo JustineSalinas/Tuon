@@ -73,7 +73,10 @@ export async function POST(request: Request) {
   if (configError) {
     console.error("[generate] Firebase Admin is not configured:", configError);
     return NextResponse.json(
-      { error: "This server is not fully configured yet. Please try again later." },
+      {
+        error:
+          "This server is not fully configured yet. Please try again later.",
+      },
       { status: 503 },
     );
   }
@@ -82,7 +85,10 @@ export async function POST(request: Request) {
   // No-op until APP_CHECK_ENFORCED is turned on.
   if (!(await verifyAppCheck(request))) {
     return NextResponse.json(
-      { error: "This request could not be verified. Please reload and try again." },
+      {
+        error:
+          "This request could not be verified. Please reload and try again.",
+      },
       { status: 403 },
     );
   }
@@ -105,7 +111,8 @@ export async function POST(request: Request) {
     RATE_LIMITS.generateAccount,
     caller.uid,
   );
-  if (!accountLimit.allowed) return rateLimitedResponse(accountLimit, "study sets");
+  if (!accountLimit.allowed)
+    return rateLimitedResponse(accountLimit, "study sets");
 
   // Verification gates the one endpoint that costs money. Signing in, writing
   // notes, and reviewing all work unverified — this exists to stop a script
@@ -140,14 +147,20 @@ export async function POST(request: Request) {
       studySetId?: unknown;
     };
     if (typeof body.noteId !== "string" || !body.noteId.trim()) {
-      return NextResponse.json({ error: "A noteId is required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "A noteId is required." },
+        { status: 400 },
+      );
     }
     noteId = body.noteId.trim();
     if (typeof body.studySetId === "string" && body.studySetId.trim()) {
       intoStudySetId = body.studySetId.trim();
     }
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body." },
+      { status: 400 },
+    );
   }
 
   const db = adminDb();
@@ -157,7 +170,10 @@ export async function POST(request: Request) {
   // --- Load the note -------------------------------------------------------
   const noteSnapshot = await noteRef.get();
   if (!noteSnapshot.exists) {
-    return NextResponse.json({ error: "That note no longer exists." }, { status: 404 });
+    return NextResponse.json(
+      { error: "That note no longer exists." },
+      { status: 404 },
+    );
   }
   const note = noteSnapshot.data() as {
     title?: string;
@@ -228,7 +244,8 @@ export async function POST(request: Request) {
         }
       }
 
-      const periodStart = data.generationPeriodStart?.toDate() ?? currentPeriodStart();
+      const periodStart =
+        data.generationPeriodStart?.toDate() ?? currentPeriodStart();
       const used = data.aiGenerationsUsedThisPeriod ?? 0;
       const quota = readQuota(plan, used, periodStart);
 
@@ -272,7 +289,10 @@ export async function POST(request: Request) {
           code: "COOLDOWN",
           retryAfterSeconds: error.secondsRemaining,
         },
-        { status: 429, headers: { "Retry-After": String(error.secondsRemaining) } },
+        {
+          status: 429,
+          headers: { "Retry-After": String(error.secondsRemaining) },
+        },
       );
     }
     if (error instanceof QuotaExhaustedError) {
@@ -286,10 +306,16 @@ export async function POST(request: Request) {
       );
     }
     if (error instanceof Error && error.message === "PROFILE_MISSING") {
-      return NextResponse.json({ error: "Your profile is not set up yet." }, { status: 409 });
+      return NextResponse.json(
+        { error: "Your profile is not set up yet." },
+        { status: 409 },
+      );
     }
     console.error("[generate] quota reservation failed", error);
-    return NextResponse.json({ error: "Could not start generation." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not start generation." },
+      { status: 500 },
+    );
   }
 
   /** Hands the reserved generation back when we fail before producing a set. */
@@ -324,7 +350,20 @@ export async function POST(request: Request) {
     const message = await anthropic.messages.create({
       model: AI_MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
-      system: SYSTEM_PROMPT,
+      // Fixed and identical on every call — chat.ts and companion.ts both
+      // cache their own system blocks for exactly this reason, and this is
+      // the endpoint that actually needed it most: it is the highest-volume
+      // call in the app, the one every paid generation makes, and its
+      // uncached system prompt was ~1,750 tokens resent in full each time.
+      // A cache read is roughly a tenth the price of a fresh read on the
+      // same tokens.
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [{ role: "user", content: userPrompt }],
       // Constrains the response to the exact shape we parse, so the model
       // cannot wrap it in prose or fences. Replaces the assistant prefill,
@@ -370,7 +409,9 @@ export async function POST(request: Request) {
   if (!parsed.ok) {
     await refund();
     return NextResponse.json(
-      { error: `${parsed.error} Your generation was not counted, so please try again.` },
+      {
+        error: `${parsed.error} Your generation was not counted, so please try again.`,
+      },
       { status: 422 },
     );
   }
@@ -485,9 +526,13 @@ export async function POST(request: Request) {
       // some cards are old and some are new, lands on the right document.
       const linked = question.tests_card_index;
       const front =
-        linked === null ? null : (parsed.data.flashcards[linked]?.front ?? null);
+        linked === null
+          ? null
+          : (parsed.data.flashcards[linked]?.front ?? null);
       const flashcardId =
-        front === null ? null : (cardIdByFront.get(normaliseFront(front)) ?? null);
+        front === null
+          ? null
+          : (cardIdByFront.get(normaliseFront(front)) ?? null);
 
       batch.set(studySetRef.collection("quizQuestions").doc(), {
         question: question.question,
@@ -516,7 +561,10 @@ export async function POST(request: Request) {
     await refund();
     console.error("[generate] persist failed", error);
     return NextResponse.json(
-      { error: "The study set was generated but could not be saved. Please try again." },
+      {
+        error:
+          "The study set was generated but could not be saved. Please try again.",
+      },
       { status: 500 },
     );
   }
