@@ -9,6 +9,7 @@ import { useI18n } from "@/components/providers/i18n-provider";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SkipLink } from "@/components/ui/skip-link";
+import { siteUrl } from "@/lib/site";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Faq } from "@/components/marketing/faq";
 import {
@@ -38,10 +39,44 @@ import {
   annualMonthlyEquivalent,
 } from "@/lib/ai/config";
 
+/**
+ * SoftwareApplication structured data.
+ *
+ * The one piece of this page search engines cannot infer from prose — that
+ * this is a specific, ratable, priced piece of software, not an article
+ * about one. Every field is a fact already true elsewhere in the codebase
+ * (the name, the free tier's real price from `PLANS`) rather than invented
+ * for the schema; there is deliberately no `aggregateRating` or `review`
+ * here, for the same reason the landing page itself carries no testimonials
+ * — fabricating social proof is worse than shipping without it, and that is
+ * exactly as true in JSON a crawler reads as it is in prose a visitor does.
+ */
+const productJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Tuón",
+  applicationCategory: "EducationalApplication",
+  operatingSystem: "Web",
+  url: siteUrl(),
+  description:
+    "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick. Built for Senior High and college students in the Philippines.",
+  offers: {
+    "@type": "Offer",
+    price: PLANS.free.phpMonthly,
+    priceCurrency: "PHP",
+  },
+};
+
 export default function LandingPage() {
   return (
     <SmoothScroll>
       <div className="flex min-h-dvh flex-col">
+        {/* Static, self-authored JSON — the same trusted-content pattern
+            layout.tsx already uses for its own pre-paint scripts. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        />
         <SkipLink />
         <SiteHeader />
         <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
