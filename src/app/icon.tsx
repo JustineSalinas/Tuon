@@ -41,10 +41,21 @@ const INK = MARK_HEX;
  * The small one is drawn proportionally larger. Margin costs nothing at 512px
  * and costs a legible pixel at 32, where the whole mark is barely two dozen
  * across.
+ *
+ * `512-maskable` is a THIRD, separate entry rather than a purpose flag on
+ * `512` reused for both — the two need different insets and reusing one
+ * silently gets one of them wrong. Android's adaptive-icon mask crops
+ * anything outside a centred ~80%-diameter safe circle, and the open book's
+ * outer page tips reach close to the edge of its own bounding box — fine for
+ * `purpose: "any"`, where nothing crops it, but they were getting clipped on
+ * install under `purpose: "maskable"` at the same 0.74 inset. 0.55 keeps the
+ * mark's own extremal points — the tips, not just its bounding box — inside
+ * that circle; confirmed by rendering both and looking, not computed blind.
  */
 const SIZES = [
   { id: "32", size: 32, inset: 0.94 },
   { id: "512", size: 512, inset: 0.74 },
+  { id: "512-maskable", size: 512, inset: 0.55 },
 ] as const;
 
 export function generateImageMetadata() {
@@ -56,26 +67,25 @@ export function generateImageMetadata() {
 }
 
 export default function Icon({ id }: { id: string }) {
-  const chosen = SIZES.find((entry) => entry.id === id) ?? SIZES[SIZES.length - 1];
+  const chosen =
+    SIZES.find((entry) => entry.id === id) ?? SIZES[SIZES.length - 1];
   const mark = Math.round(chosen.size * chosen.inset);
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: TILE,
-        }}
-      >
-        <svg width={mark} height={mark} viewBox="0 0 32 32" fill="none">
-          <path d={BOOK_PATH} fill={INK} />
-        </svg>
-      </div>
-    ),
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: TILE,
+      }}
+    >
+      <svg width={mark} height={mark} viewBox="0 0 32 32" fill="none">
+        <path d={BOOK_PATH} fill={INK} />
+      </svg>
+    </div>,
     { width: chosen.size, height: chosen.size },
   );
 }

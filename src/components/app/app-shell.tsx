@@ -33,6 +33,7 @@ import { GroupPresence } from "@/components/app/group-presence";
 import { ReminderRunner } from "@/components/app/reminder-runner";
 import { ServiceWorkerRegistration } from "@/components/app/service-worker";
 import { Button } from "@/components/ui/button";
+import { SkipLink } from "@/components/ui/skip-link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -84,6 +85,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh md:flex">
+      {/* First focusable element in the tree, ahead of the sidebar it lets a
+          keyboard user skip past. */}
+      <SkipLink />
       <DesktopSidebar pathname={pathname} />
       <MobileHeader />
 
@@ -92,8 +96,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           is a year of columns — pushed the whole app wider than the
           viewport and put a horizontal scrollbar on every screen beside
           the sidebar. The heatmap scrolls itself; it can only do that if
-          this is allowed to be narrower than it. */}
-      <div className="min-w-0 flex-1 pb-20 md:pb-0">
+          this is allowed to be narrower than it.
+
+          id + tabIndex={-1}: the skip link's target. Without tabIndex a
+          fragment jump to a plain div moves the scroll position in most
+          browsers but never moves actual DOM focus, so a screen reader user
+          who activates the link hears nothing change. */}
+      <div
+        id="main-content"
+        tabIndex={-1}
+        className="min-w-0 flex-1 pb-20 outline-none md:pb-0"
+      >
         <ServiceWorkerRegistration />
         <ReminderRunner />
         {/* Renders nothing. Here rather than inside the timer so presence
@@ -147,9 +160,9 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
       </nav>
 
       <Button className="mt-4" render={<Link href="/app/notes/new" />}>
-          <Plus />
-          New note
-        </Button>
+        <Plus />
+        New note
+      </Button>
 
       <div className="mt-auto space-y-3">
         {/* The timer lives here rather than on the calendar page, because the
@@ -172,7 +185,8 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
             className={cn(
               "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground grid size-9 shrink-0 place-items-center rounded-lg transition-colors",
               "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
-              pathname.startsWith("/app/settings") && "bg-sidebar-accent text-foreground",
+              pathname.startsWith("/app/settings") &&
+                "bg-sidebar-accent text-foreground",
             )}
           >
             <Settings className="size-4" />
@@ -209,7 +223,9 @@ function MobileNav({ pathname }: { pathname: string }) {
     setMoreOpen(false);
   }
 
-  const inMore = MORE_NAV.some((item) => isActive(pathname, item.href, item.exact));
+  const inMore = MORE_NAV.some((item) =>
+    isActive(pathname, item.href, item.exact),
+  );
 
   return (
     <>
@@ -267,46 +283,48 @@ function MobileNav({ pathname }: { pathname: string }) {
       </AnimatePresence>
 
       <nav className="bg-background/90 fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-      {MOBILE_NAV.map((item) => {
-        const active = isActive(pathname, item.href, item.exact);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors",
-              active ? "text-primary font-medium" : "text-muted-foreground",
-            )}
-          >
-            <item.icon className="size-5" />
-            {t.nav[item.key]}
-          </Link>
-        );
-      })}
-      <Link
-        href="/app/notes/new"
-        className="text-muted-foreground flex flex-col items-center gap-1 py-2.5 text-[11px]"
-      >
-        <span className="bg-primary text-primary-foreground grid size-5 place-items-center rounded-full">
-          <Plus className="size-3.5" strokeWidth={3} />
-        </span>
-        {t.nav.newNote}
-      </Link>
+        {MOBILE_NAV.map((item) => {
+          const active = isActive(pathname, item.href, item.exact);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors",
+                active ? "text-primary font-medium" : "text-muted-foreground",
+              )}
+            >
+              <item.icon className="size-5" />
+              {t.nav[item.key]}
+            </Link>
+          );
+        })}
+        <Link
+          href="/app/notes/new"
+          className="text-muted-foreground flex flex-col items-center gap-1 py-2.5 text-[11px]"
+        >
+          <span className="bg-primary text-primary-foreground grid size-5 place-items-center rounded-full">
+            <Plus className="size-3.5" strokeWidth={3} />
+          </span>
+          {t.nav.newNote}
+        </Link>
 
-      <button
-        type="button"
-        onClick={() => setMoreOpen((isOpen) => !isOpen)}
-        aria-expanded={moreOpen}
-        className={cn(
-          "flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors",
-          // Lit when you are on one of the pages it holds, so the bar still
-          // says where you are when the destination is behind it.
-          moreOpen || inMore ? "text-primary font-medium" : "text-muted-foreground",
-        )}
-      >
-        <MoreHorizontal className="size-5" />
-        {t.nav.more}
-      </button>
+        <button
+          type="button"
+          onClick={() => setMoreOpen((isOpen) => !isOpen)}
+          aria-expanded={moreOpen}
+          className={cn(
+            "flex flex-col items-center gap-1 py-2.5 text-[11px] transition-colors",
+            // Lit when you are on one of the pages it holds, so the bar still
+            // says where you are when the destination is behind it.
+            moreOpen || inMore
+              ? "text-primary font-medium"
+              : "text-muted-foreground",
+          )}
+        >
+          <MoreHorizontal className="size-5" />
+          {t.nav.more}
+        </button>
       </nav>
     </>
   );
@@ -345,29 +363,37 @@ function UserMenu({ align }: { align: "start" | "end" }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<button className="hover:bg-sidebar-accent/60 flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors" />}>
-          <Avatar className="size-8">
-            {photo ? <AvatarImage src={photo} alt="" /> : null}
-            <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
-              {initial}
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden min-w-0 flex-1 md:block">
-            <div className="truncate text-sm font-medium">{name}</div>
-            <div className="text-muted-foreground truncate text-xs">{context}</div>
+      <DropdownMenuTrigger
+        render={
+          <button className="hover:bg-sidebar-accent/60 flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors" />
+        }
+      >
+        <Avatar className="size-8">
+          {photo ? <AvatarImage src={photo} alt="" /> : null}
+          <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
+            {initial}
+          </AvatarFallback>
+        </Avatar>
+        <div className="hidden min-w-0 flex-1 md:block">
+          <div className="truncate text-sm font-medium">{name}</div>
+          <div className="text-muted-foreground truncate text-xs">
+            {context}
           </div>
-        </DropdownMenuTrigger>
+        </div>
+      </DropdownMenuTrigger>
 
       <DropdownMenuContent align={align} className="w-56">
         <DropdownMenuHeader>
           <div className="truncate text-sm font-medium">{name}</div>
-          <div className="text-muted-foreground truncate text-xs">{user?.email}</div>
+          <div className="text-muted-foreground truncate text-xs">
+            {user?.email}
+          </div>
         </DropdownMenuHeader>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/app/settings" />}>
-            <Settings className="size-4" />
-            {t.nav.settings}
-          </DropdownMenuItem>
+          <Settings className="size-4" />
+          {t.nav.settings}
+        </DropdownMenuItem>
         {/* Beside settings rather than in the sidebar rail: help is looked
             for when something is confusing, which is the same moment
             somebody goes hunting through their account menu. */}

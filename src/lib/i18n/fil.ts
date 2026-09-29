@@ -190,6 +190,7 @@ export const fil: Messages = {
   },
 
   common: {
+    skipToContent: "Lumaktaw sa nilalaman",
     save: "I-save",
     cancel: "Kanselahin",
     add: "Idagdag",

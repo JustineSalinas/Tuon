@@ -48,7 +48,11 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
       {
-        src: "/icon/512",
+        // A separate, more-inset render — see the SIZES comment in
+        // icon.tsx. The `any` icon's own 0.74 inset put the book's page
+        // tips outside Android's adaptive-mask safe zone; this reuses the
+        // same path at 0.55 so the mask crops margin, not the mark.
+        src: "/icon/512-maskable",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
