@@ -1,6 +1,6 @@
 "use client";
 
-import { ErrorCode, Purchases, PurchasesError } from "@revenuecat/purchases-js";
+import type { Purchases } from "@revenuecat/purchases-js";
 import type { Plan } from "@/lib/types";
 import type { BillingPeriod } from "@/lib/billing/plan-state";
 
@@ -19,6 +19,16 @@ import type { BillingPeriod } from "@/lib/billing/plan-state";
  * `pro_annual` — inside one offering, because `revenuecat.ts` on the server
  * parses the webhook's `product_id` the same way. Same four `Plan` values as
  * `PLANS` in `lib/ai/config.ts`; nothing here invents a fifth.
+ *
+ * Only `import type` at module scope. The real SDK — bundled, its single
+ * largest chunk in the whole app at roughly 1MB uncompressed — is loaded
+ * with a dynamic `import()` inside `purchases()`, so it downloads only on
+ * the click that actually needs it, not on every visit to Settings. Before
+ * this it was a static top-level import, which meant the full SDK shipped to
+ * every student who opened their plan page even while
+ * `NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY` was unset and the button using it
+ * could not even render — everyone paid the download for a feature nobody
+ * could reach.
  */
 
 /** `null` when the key is not set — the caller decides what "not offered" looks like. */
@@ -26,15 +36,17 @@ export function isRevenueCatAvailable(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY);
 }
 
-function purchases(appUserId: string): Purchases {
-  if (!Purchases.isConfigured()) {
-    const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY;
-    if (!apiKey) {
-      throw new Error("NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY is not set.");
-    }
-    return Purchases.configure({ apiKey, appUserId });
+async function purchases(appUserId: string): Promise<Purchases> {
+  const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY;
+  if (!apiKey) {
+    throw new Error("NEXT_PUBLIC_REVENUECAT_PUBLIC_KEY is not set.");
   }
-  return Purchases.getSharedInstance();
+  const { Purchases: PurchasesClass } =
+    await import("@revenuecat/purchases-js");
+  if (!PurchasesClass.isConfigured()) {
+    return PurchasesClass.configure({ apiKey, appUserId });
+  }
+  return PurchasesClass.getSharedInstance();
 }
 
 export type CardPurchaseOutcome =
@@ -60,7 +72,7 @@ export async function purchaseWithCard(
   const productId = `${plan}_${period}`;
 
   try {
-    const client = purchases(appUserId);
+    const client = await purchases(appUserId);
     const offerings = await client.getOfferings();
 
     const pkg = offerings.current?.availablePackages.find(
@@ -79,12 +91,25 @@ export async function purchaseWithCard(
   } catch (error) {
     // A cancelled Stripe sheet surfaces as PurchasesError with
     // ErrorCode.UserCancelledError (numeric 1) — not a failure worth a toast.
-    if (error instanceof PurchasesError && error.errorCode === ErrorCode.UserCancelledError) {
+    // Import again rather than keep a static one for these two: by the time
+    // execution reaches a catch here, the module load above already
+    // succeeded, so this resolves from the bundler's own module cache with
+    // no real second cost — see the module docstring for why nothing here is
+    // a static top-level import in the first place.
+    const { ErrorCode, PurchasesError } =
+      await import("@revenuecat/purchases-js");
+    if (
+      error instanceof PurchasesError &&
+      error.errorCode === ErrorCode.UserCancelledError
+    ) {
       return { status: "cancelled" };
     }
     return {
       status: "failed",
-      message: error instanceof Error ? error.message : "The purchase could not be started.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "The purchase could not be started.",
     };
   }
 }
