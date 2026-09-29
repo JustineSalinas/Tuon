@@ -8,6 +8,7 @@ import { ArrowRight, Check, Clock, Sparkles } from "lucide-react";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 import { SiteHeader } from "@/components/marketing/site-header";
+import { SkipLink } from "@/components/ui/skip-link";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Faq } from "@/components/marketing/faq";
 import {
@@ -41,8 +42,9 @@ export default function LandingPage() {
   return (
     <SmoothScroll>
       <div className="flex min-h-dvh flex-col">
+        <SkipLink />
         <SiteHeader />
-        <main className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           <Hero />
           <WhyItSticks />
           <HowItWorksSection />

@@ -190,6 +190,7 @@ export const en = {
   },
 
   common: {
+    skipToContent: "Skip to content",
     save: "Save",
     cancel: "Cancel",
     add: "Add",
