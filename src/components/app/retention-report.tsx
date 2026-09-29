@@ -280,6 +280,28 @@ function StatTile({
   );
 }
 
+/**
+ * A day's worth of pixels in a bar chart, made readable on a screen with no
+ * hover.
+ *
+ * It used to rely entirely on a floating tooltip that only `:hover` could
+ * open — on a phone that is most of this chart's audience, since retention
+ * is exactly the kind of thing a student checks between classes. The fix
+ * mirrors the `picked` pattern `study-heatmap.tsx` already uses: a tap opens
+ * the same detail a hover does, and a reserved-height line above the chart
+ * shows it, so nothing shifts layout when a value appears or disappears.
+ *
+ * The overdue bucket gets its own group, separated by a rule rather than
+ * left to blend into the fourteen day-bars beside it. Two reasons: it is an
+ * accumulation, not a day, so drawing it as "day zero" of the forecast
+ * mischaracterises what it is; and its colour — destructive red — sits only
+ * about ten degrees of hue from the primary terracotta the other bars use,
+ * close enough that the difference reads as a shade rather than a distinct
+ * colour, which matters most for exactly the readers a colour-only signal
+ * fails. The diagonal fill on that one bar is the second channel: a texture
+ * cue that survives colour-blindness, print and forced-colour modes, the
+ * same reasoning `dataviz`'s own guidance gives for status colours.
+ */
 function ForecastChart({
   forecast,
   t,
@@ -290,67 +312,115 @@ function ForecastChart({
   timeZone: string;
 }) {
   const max = Math.max(1, ...forecast.map((d) => d.count));
+  const [picked, setPicked] = useState<string | null>(null);
+  const pickedDay = picked ? forecast.find((d) => d.key === picked) : null;
+
+  const overdue = forecast[0]?.isOverdue ? forecast[0] : null;
+  const days = overdue ? forecast.slice(1) : forecast;
+
+  function bar(day: ForecastDay, index: number) {
+    const height = (day.count / max) * 100;
+    return (
+      <button
+        key={day.key}
+        type="button"
+        onClick={() => setPicked(day.key === picked ? null : day.key)}
+        onMouseEnter={() => setPicked(day.key)}
+        onMouseLeave={() => setPicked(null)}
+        aria-label={`${
+          day.isOverdue
+            ? t.stats.overdue
+            : formatDay(day.date, t.common.dateLocale, timeZone)
+        } — ${day.count}`}
+        className="focus-visible:ring-ring flex h-full flex-1 flex-col justify-end rounded-t-[4px] focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <motion.div
+          initial={{ scaleY: 0 }}
+          animate={{ scaleY: 1 }}
+          transition={{
+            duration: 0.5,
+            delay: Math.min(index * 0.02, 0.3),
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{
+            height: `${Math.max(day.count > 0 ? 4 : 1, height)}%`,
+            transformOrigin: "bottom",
+            backgroundColor: day.isOverdue
+              ? "var(--destructive)"
+              : day.count > 0
+                ? "var(--primary)"
+                : "var(--border)",
+            // The second channel: diagonal stripes, only on the accumulation
+            // bucket, so it reads as "a different kind of bar" even in
+            // grayscale or to a reader who cannot separate the two hues.
+            backgroundImage: day.isOverdue
+              ? "repeating-linear-gradient(135deg, rgb(255 255 255 / 0.28) 0 3px, transparent 3px 7px)"
+              : undefined,
+            // `--foreground`, not `--ring`: ring is a terracotta within a few
+            // degrees of hue of `--primary`, so a ring-coloured outline on a
+            // primary-coloured bar is very nearly invisible — which is the
+            // one thing a selection indicator cannot be. Foreground inverts
+            // with the theme and so contrasts against every bar colour here.
+            outline:
+              day.key === picked ? "2px solid var(--foreground)" : undefined,
+            outlineOffset: day.key === picked ? "-2px" : undefined,
+          }}
+          className="w-full rounded-t-[4px]"
+        />
+      </button>
+    );
+  }
 
   return (
     <div className="bg-card mt-4 rounded-2xl border p-5">
-      <div className="flex h-44 items-end gap-1.5">
-        {forecast.map((day) => {
-          const height = (day.count / max) * 100;
-          return (
-            <div
-              key={day.key}
-              className="group relative flex h-full flex-1 flex-col justify-end"
-            >
-              {/* Hover tooltip — the hit target is the whole column. */}
-              <div
-                role="tooltip"
-                className="bg-popover pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 -translate-x-1/2 rounded-lg border px-2 py-1 text-center text-xs opacity-0 shadow-md transition-opacity group-hover:opacity-100"
-              >
-                <div className="font-medium tabular-nums">{day.count}</div>
-                <div className="text-muted-foreground whitespace-nowrap">
-                  {day.isOverdue
-                    ? t.stats.overdue
-                    : formatDay(day.date, t.common.dateLocale, timeZone)}
-                </div>
-              </div>
+      {/* Reserved so picking a bar never nudges the chart underneath it. */}
+      <p
+        className="text-muted-foreground mb-2 text-xs tabular-nums"
+        style={{ minHeight: "1rem" }}
+      >
+        {pickedDay
+          ? `${pickedDay.isOverdue ? t.stats.overdue : formatDay(pickedDay.date, t.common.dateLocale, timeZone)} · ${pickedDay.count}`
+          : ""}
+      </p>
 
-              <motion.div
-                initial={{ scaleY: 0 }}
-                animate={{ scaleY: 1 }}
-                transition={{
-                  duration: 0.5,
-                  delay: Math.min(forecast.indexOf(day) * 0.02, 0.3),
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                style={{
-                  height: `${Math.max(day.count > 0 ? 4 : 1, height)}%`,
-                  transformOrigin: "bottom",
-                  backgroundColor: day.isOverdue
-                    ? "var(--destructive)"
-                    : day.count > 0
-                      ? "var(--primary)"
-                      : "var(--border)",
-                }}
-                className="w-full rounded-t-[4px]"
-              />
+      <div className="flex h-44 items-end gap-1.5">
+        {overdue ? (
+          <>
+            <div className="flex h-full w-8 shrink-0 flex-col justify-end">
+              {bar(overdue, 0)}
             </div>
-          );
-        })}
+            <div
+              className="bg-border mx-0.5 h-full w-px shrink-0"
+              aria-hidden="true"
+            />
+          </>
+        ) : null}
+        {days.map((day, index) => bar(day, overdue ? index + 1 : index))}
       </div>
 
-      {/* Sparse axis: only the ends and today carry a label. */}
+      {/* Sparse axis: only the ends and today carry a label — on a phone
+          every third day besides, so a reader is never more than a couple
+          of silent bars from a date. */}
       <div className="text-muted-foreground mt-2 flex gap-1.5 text-[10px]">
-        {forecast.map((day, index) => (
-          <div key={day.key} className="flex-1 text-center">
-            {day.isOverdue ? (
+        {overdue ? (
+          <>
+            <div className="w-8 shrink-0 text-center">
               <span className="text-destructive font-medium">
                 {t.stats.late}
               </span>
-            ) : day.isToday ? (
+            </div>
+            <div className="mx-0.5 w-px shrink-0" aria-hidden="true" />
+          </>
+        ) : null}
+        {days.map((day, index) => (
+          <div key={day.key} className="flex-1 text-center">
+            {day.isToday ? (
               <span className="text-foreground font-medium">
                 {t.stats.today}
               </span>
-            ) : index === forecast.length - 1 ? (
+            ) : index === days.length - 1 ? (
+              formatDay(day.date, t.common.dateLocale, timeZone)
+            ) : index % 3 === 0 ? (
               formatDay(day.date, t.common.dateLocale, timeZone)
             ) : (
               ""
