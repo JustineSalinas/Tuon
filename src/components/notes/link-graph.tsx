@@ -30,6 +30,18 @@ const STEPS = 300;
 const SIM_NODE_LIMIT = 200;
 
 /**
+ * The fixed coordinate box every layout is projected into.
+ *
+ * Module scope rather than component scope so the projection memo does not
+ * have to take them as dependencies. See the note on `placed` below for why
+ * the box is fixed at all.
+ */
+const BOX_W = 1000;
+const BOX_H = 620;
+/** Readable against BOX_W; see `placed`. */
+const LABEL_SIZE = 13;
+
+/**
  * Force-directed view of the note graph.
  *
  * The layout is solved **once**, synchronously, in a memo — then Motion
@@ -57,11 +69,15 @@ export function LinkGraph({ notes }: { notes: Note[] }) {
       linked.add(edge.source);
       linked.add(edge.target);
     }
-    const nodes = graph.nodes.filter((n) => linked.has(n.id)).slice(0, SIM_NODE_LIMIT);
+    const nodes = graph.nodes
+      .filter((n) => linked.has(n.id))
+      .slice(0, SIM_NODE_LIMIT);
     const visible = new Set(nodes.map((n) => n.id));
     return {
       nodes,
-      edges: graph.edges.filter((e) => visible.has(e.source) && visible.has(e.target)),
+      edges: graph.edges.filter(
+        (e) => visible.has(e.source) && visible.has(e.target),
+      ),
     };
   }, [graph]);
 
@@ -72,7 +88,10 @@ export function LinkGraph({ notes }: { notes: Note[] }) {
     connected.nodes.forEach((node, index) => {
       const angle = (index / Math.max(1, count)) * Math.PI * 2;
       const radius = 120 + (index % 5) * 26;
-      map.set(node.id, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
+      map.set(node.id, {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+      });
     });
     return map;
   }, [connected]);
@@ -92,35 +111,81 @@ export function LinkGraph({ notes }: { notes: Note[] }) {
     return set;
   }, [hovered, connected.edges]);
 
-  const viewBox = useMemo(() => {
+  /**
+   * The solved layout, rescaled into the FIXED coordinate box above.
+   *
+   * The `viewBox` used to auto-fit the layout's own extent, which meant its
+   * width varied with how far the simulation spread — a few hundred units
+   * for a handful of linked notes, a few thousand for a full vault. Every
+   * fixed-size thing drawn inside it (labels at `font-size: 11`, node radii,
+   * stroke widths) is measured in those same units, so all of them shrank on
+   * screen as a vault grew. That is backwards: the day the graph most needs
+   * to be readable is the day there is a lot on it.
+   *
+   * Normalising the positions instead of the viewBox keeps one unit worth a
+   * constant number of screen pixels, so a label is the same size whether it
+   * is plotting twelve notes or a hundred. Aspect ratio is preserved, so the
+   * shape of the graph is not distorted to fill the box.
+   */
+  const { placed, placedSeed } = useMemo(() => {
     const points = [...layout.values()];
-    if (points.length === 0) return "0 0 100 100";
-    const pad = 90;
+    const placed = new Map<string, Point>();
+    const placedSeed = new Map<string, Point>();
+    if (points.length === 0) return { placed, placedSeed };
+
+    const pad = 70;
     const xs = points.map((p) => p.x);
     const ys = points.map((p) => p.y);
-    const minX = Math.min(...xs) - pad;
-    const maxX = Math.max(...xs) + pad;
-    const minY = Math.min(...ys) - pad;
-    const maxY = Math.max(...ys) + pad;
-    return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
-  }, [layout]);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    // `|| 1` guards the single-node and perfectly-collinear cases, where one
+    // of these spans is zero and the scale would divide by it.
+    const spanX = maxX - minX || 1;
+    const spanY = maxY - minY || 1;
+    const scale = Math.min(
+      (BOX_W - pad * 2) / spanX,
+      (BOX_H - pad * 2) / spanY,
+    );
+
+    // Centre whatever is left over, so a wide graph does not hug the top and
+    // a tall one does not hug the left.
+    const offsetX = (BOX_W - spanX * scale) / 2;
+    const offsetY = (BOX_H - spanY * scale) / 2;
+
+    const project = (p: Point): Point => ({
+      x: (p.x - minX) * scale + offsetX,
+      y: (p.y - minY) * scale + offsetY,
+    });
+
+    for (const [id, p] of layout) placed.set(id, project(p));
+    // The entrance animates from the seed ring, so it has to travel through
+    // the SAME transform — left in raw simulation space it would fly in from
+    // somewhere off the top-left of the box instead of from the ring.
+    for (const [id, p] of seed) placedSeed.set(id, project(p));
+
+    return { placed, placedSeed };
+  }, [layout, seed]);
 
   if (connected.nodes.length === 0) return null;
 
   return (
     <svg
-      viewBox={viewBox}
+      viewBox={`0 0 ${BOX_W} ${BOX_H}`}
       className="h-[62vh] w-full touch-none select-none"
       role="img"
       aria-label={`Graph of ${connected.nodes.length} linked notes`}
     >
       <g>
         {connected.edges.map((edge, index) => {
-          const a = layout.get(edge.source);
-          const b = layout.get(edge.target);
+          const a = placed.get(edge.source);
+          const b = placed.get(edge.target);
           if (!a || !b) return null;
           const active =
-            !hovered || (neighbours.has(edge.source) && neighbours.has(edge.target));
+            !hovered ||
+            (neighbours.has(edge.source) && neighbours.has(edge.target));
           return (
             <motion.line
               key={index}
@@ -140,8 +205,8 @@ export function LinkGraph({ notes }: { notes: Note[] }) {
 
       <g>
         {connected.nodes.map((node, index) => {
-          const point = layout.get(node.id);
-          const from = seed.get(node.id) ?? point;
+          const point = placed.get(node.id);
+          const from = placedSeed.get(node.id) ?? point;
           if (!point || !from) return null;
 
           const active = !hovered || neighbours.has(node.id);
@@ -152,9 +217,7 @@ export function LinkGraph({ notes }: { notes: Note[] }) {
               key={node.id}
               className="cursor-pointer"
               initial={
-                reduceMotion
-                  ? false
-                  : { x: from.x, y: from.y, opacity: 0 }
+                reduceMotion ? false : { x: from.x, y: from.y, opacity: 0 }
               }
               animate={{ x: point.x, y: point.y, opacity: active ? 1 : 0.3 }}
               transition={{
@@ -172,15 +235,28 @@ export function LinkGraph({ notes }: { notes: Note[] }) {
                 opacity={node.id === hovered ? 1 : 0.85}
               />
               <text
-                y={radius + 13}
+                y={radius + LABEL_SIZE + 4}
                 textAnchor="middle"
+                // A stroke the same colour as the page behind it, wider than
+                // the glyphs and painted first, is a text halo: it keeps a
+                // label readable crossing an edge line or another node
+                // without a background rect that would itself need sizing
+                // per label. paint-order is what makes the stroke sit under
+                // the fill instead of over it.
+                stroke="var(--card)"
+                strokeWidth={LABEL_SIZE * 0.32}
+                paintOrder="stroke fill"
                 className={cn(
                   "pointer-events-none",
-                  node.id === hovered ? "fill-foreground" : "fill-muted-foreground",
+                  node.id === hovered
+                    ? "fill-foreground"
+                    : "fill-muted-foreground",
                 )}
-                style={{ fontSize: 11 }}
+                style={{ fontSize: LABEL_SIZE }}
               >
-                {node.title.length > 22 ? `${node.title.slice(0, 21)}…` : node.title}
+                {node.title.length > 22
+                  ? `${node.title.slice(0, 21)}…`
+                  : node.title}
               </text>
             </motion.g>
           );
