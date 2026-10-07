@@ -27,9 +27,15 @@ import {
   getSubjectGroups,
   isBoardReview,
   isSeniorHigh,
+  strandsAvailable,
 } from "@/lib/curriculum";
+import { countryName, isPhilippines, suggestCountries } from "@/lib/countries";
 import { CONSENT_VERSION } from "@/lib/legal/consent";
-import { MAX_SCHOOL_LENGTH, normaliseSchool, suggestSchools } from "@/lib/schools";
+import {
+  MAX_SCHOOL_LENGTH,
+  normaliseSchool,
+  suggestSchools,
+} from "@/lib/schools";
 import { useSchools } from "@/lib/hooks/use-schools";
 import type { EducationLevel, Strand } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -41,6 +47,7 @@ import { cn } from "@/lib/utils";
 
 type StepKey =
   | "name"
+  | "country"
   | "level"
   | "school"
   | "strand"
@@ -60,7 +67,11 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   const [saving, setSaving] = useState(false);
 
   const [displayName, setDisplayName] = useState(initialName);
-  const [educationLevel, setEducationLevel] = useState<EducationLevel | null>(null);
+  const [country, setCountry] = useState<string | null>(null);
+  const [countryQuery, setCountryQuery] = useState("");
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | null>(
+    null,
+  );
   const [strand, setStrand] = useState<Strand | null>(null);
   const [courses, setCourses] = useState<string[]>([]);
   const [customCourse, setCustomCourse] = useState("");
@@ -71,22 +82,46 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
   const [guardianConsent, setGuardianConsent] = useState(false);
 
-  // --- Step sequence depends on the education level ------------------------
+  // --- Step sequence depends on the country and the education level --------
+  //
+  // Country comes before level rather than after: it decides whether "Grade
+  // 11" leads to a Philippine strand picker or straight to free-text
+  // subjects, so asking afterward would mean silently discarding a strand
+  // the student had already picked the moment they said they were elsewhere.
   const steps = useMemo<StepKey[]>(() => {
-    if (educationLevel === null) return ["name", "level"];
-    return isSeniorHigh(educationLevel)
-      ? ["name", "level", "school", "strand", "subjects", "consent"]
-      : ["name", "level", "school", "program", "consent"];
-  }, [educationLevel]);
+    if (country === null) return ["name", "country"];
+    if (educationLevel === null) return ["name", "country", "level"];
+    const isPH = strandsAvailable(country);
+    if (isSeniorHigh(educationLevel)) {
+      return isPH
+        ? [
+            "name",
+            "country",
+            "level",
+            "school",
+            "strand",
+            "subjects",
+            "consent",
+          ]
+        : ["name", "country", "level", "school", "subjects", "consent"];
+    }
+    return ["name", "country", "level", "school", "program", "consent"];
+  }, [educationLevel, country]);
 
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
-  // Fetched only once this step is reached, so a student who never gets here
-  // never pays for it. Until it lands the curated shortlist answers.
-  const schools = useSchools(currentStep === "school");
+  // The index is a DepEd/CHED dataset — nine thousand Philippine
+  // institutions, meaningless to suggest to a student anywhere else. Fetched
+  // only once this step is reached AND the student said they are in the
+  // Philippines, so nobody else ever pays for the download.
+  const schools = useSchools(
+    currentStep === "school" && isPhilippines(country),
+  );
   // Computed once rather than twice: the old code called the suggester in the
   // guard and again in the map, which over nine thousand rows is two scans per
   // keystroke instead of one.
-  const schoolMatches = suggestSchools(school, schools);
+  const schoolMatches = isPhilippines(country)
+    ? suggestSchools(school, schools)
+    : [];
 
   // Until a level is picked the remaining steps are unknown, so `steps` is
   // only the two we are sure of. Claiming "2 / 2" there tells the student they
@@ -99,6 +134,8 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
     switch (currentStep) {
       case "name":
         return displayName.trim().length >= 2;
+      case "country":
+        return country !== null;
       case "level":
         return educationLevel !== null;
       case "school":
@@ -135,7 +172,9 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
 
   function toggleCourse(subject: string) {
     setCourses((prev) =>
-      prev.includes(subject) ? prev.filter((c) => c !== subject) : [...prev, subject],
+      prev.includes(subject)
+        ? prev.filter((c) => c !== subject)
+        : [...prev, subject],
     );
   }
 
@@ -165,6 +204,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
     try {
       await updateDoc(doc(db, "users", user.uid), {
         displayName: displayName.trim(),
+        country,
         educationLevel,
         strand: isSeniorHigh(educationLevel) ? strand : null,
         school: normaliseSchool(school) || null,
@@ -194,6 +234,18 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
     setEducationLevel(level);
   }
 
+  // Switching country can change which curriculum applies (a Philippine
+  // strand picked before switching away would otherwise survive as a value
+  // that step can no longer show or let them correct).
+  function handleCountryChange(next: string) {
+    if (next !== country) {
+      setStrand(null);
+      setCourses([]);
+    }
+    setCountry(next);
+    setCountryQuery("");
+  }
+
   function handleStrandChange(next: Strand) {
     if (next !== strand) setCourses([]);
     setStrand(next);
@@ -218,7 +270,9 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
           ))}
           {/* A faded tail while the length is still unknown, so the row does
               not read as "two steps and done". */}
-          {!totalKnown ? <span className="bg-border/60 h-1.5 w-2 rounded-full" /> : null}
+          {!totalKnown ? (
+            <span className="bg-border/60 h-1.5 w-2 rounded-full" />
+          ) : null}
         </div>
         <span className="text-muted-foreground text-xs tabular-nums">
           {totalKnown
@@ -259,6 +313,61 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                     maxLength={60}
                     className="h-14 text-lg"
                   />
+                </div>
+              </StepShell>
+            ) : null}
+
+            {currentStep === "country" ? (
+              <StepShell
+                title={t.onboarding.countryTitle}
+                subtitle={t.onboarding.countrySub}
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="country" className="sr-only">
+                    {t.onboarding.country}
+                  </Label>
+                  <Input
+                    id="country"
+                    autoFocus
+                    value={
+                      country ? (countryName(country) ?? "") : countryQuery
+                    }
+                    onChange={(e) => {
+                      // Typing again after a selection starts a fresh search
+                      // rather than editing the chosen name in place — the
+                      // value this field shows is never free text, only ever
+                      // a country someone actually picked from the list.
+                      setCountry(null);
+                      setCountryQuery(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      // Enter picks the top match rather than trying to
+                      // advance on free text — the stored value has to be a
+                      // real code, never whatever was typed.
+                      const top = suggestCountries(countryQuery)[0];
+                      if (top) handleCountryChange(top.code);
+                      else if (country) goNext();
+                    }}
+                    placeholder={t.onboarding.countryPlaceholder}
+                    autoComplete="country-name"
+                    className="h-14 text-lg"
+                  />
+
+                  {!country && countryQuery.trim() ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {suggestCountries(countryQuery).map((candidate) => (
+                        <button
+                          key={candidate.code}
+                          type="button"
+                          onClick={() => handleCountryChange(candidate.code)}
+                          className="border-border bg-card hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-ring rounded-full border px-3.5 py-2 text-sm transition-all focus-visible:ring-[3px] focus-visible:outline-none"
+                        >
+                          {candidate.name}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </StepShell>
             ) : null}
@@ -416,6 +525,34 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
               </StepShell>
             ) : null}
 
+            {/* Outside the Philippines, Grade 11-12 has no preset strand to
+                hang subjects off — the DepEd lists in getSubjectGroups only
+                mean anything there. Free text, the same shape college
+                already uses, is the honest version of "we do not have your
+                curriculum memorised" rather than a picker of subjects that
+                may not even exist where this student is. */}
+            {currentStep === "subjects" && !strand ? (
+              <StepShell
+                title={t.onboarding.subjectsTitle}
+                subtitle={t.onboarding.subjectsFreeTextSub}
+              >
+                <CustomCourses
+                  bare
+                  label={t.onboarding.subjects}
+                  placeholder={t.onboarding.subjectExample}
+                  value={customCourse}
+                  onChange={setCustomCourse}
+                  onAdd={addCustomCourse}
+                  custom={courses}
+                  onRemove={(c) => toggleCourse(c)}
+                />
+
+                <p className="text-muted-foreground mt-4 text-xs">
+                  {t.onboarding.selected(courses.length)}
+                </p>
+              </StepShell>
+            ) : null}
+
             {currentStep === "program" ? (
               <StepShell
                 title={
@@ -516,7 +653,9 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                   />
 
                   <div>
-                    <p className="text-sm font-medium">{t.onboarding.ageQuestion}</p>
+                    <p className="text-sm font-medium">
+                      {t.onboarding.ageQuestion}
+                    </p>
                     <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
                       <SelectCard
                         selected={isAdult === true}
@@ -605,7 +744,13 @@ export function OnboardingFlow() {
     if (profile?.onboardingCompleted) router.replace("/app");
   }, [profile?.onboardingCompleted, router]);
 
-  if (authLoading || profileLoading || !user || !profile || profile.onboardingCompleted) {
+  if (
+    authLoading ||
+    profileLoading ||
+    !user ||
+    !profile ||
+    profile.onboardingCompleted
+  ) {
     return (
       <main className="grid min-h-dvh place-items-center">
         <Loader2 className="text-muted-foreground size-6 animate-spin" />
@@ -691,10 +836,14 @@ function SelectCard({
         <div>
           <div className="font-medium">{title}</div>
           {description ? (
-            <div className="text-muted-foreground mt-0.5 text-sm">{description}</div>
+            <div className="text-muted-foreground mt-0.5 text-sm">
+              {description}
+            </div>
           ) : null}
           {footnote ? (
-            <div className="text-muted-foreground/80 mt-1.5 text-xs">{footnote}</div>
+            <div className="text-muted-foreground/80 mt-1.5 text-xs">
+              {footnote}
+            </div>
           ) : null}
         </div>
         <span
@@ -734,7 +883,9 @@ function CheckRow({
       <span className="text-sm leading-relaxed">
         {label}
         {hint ? (
-          <span className="text-muted-foreground mt-1 block text-xs">{hint}</span>
+          <span className="text-muted-foreground mt-1 block text-xs">
+            {hint}
+          </span>
         ) : null}
       </span>
     </label>
@@ -776,6 +927,7 @@ function CustomCourses({
   onAdd,
   custom,
   onRemove,
+  bare,
 }: {
   label: string;
   placeholder: string;
@@ -784,9 +936,12 @@ function CustomCourses({
   onAdd: () => void;
   custom: string[];
   onRemove: (course: string) => void;
+  /** No top divider/margin — for when this is the step's only content
+   *  rather than an addendum under a preset list above it. */
+  bare?: boolean;
 }) {
   return (
-    <div className="mt-6 border-t pt-5">
+    <div className={bare ? "" : "mt-6 border-t pt-5"}>
       <Label className="text-sm font-medium">{label}</Label>
       <div className="mt-2 flex gap-2">
         <Input
@@ -801,7 +956,12 @@ function CustomCourses({
           }}
           maxLength={80}
         />
-        <Button type="button" variant="outline" onClick={onAdd} disabled={!value.trim()}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onAdd}
+          disabled={!value.trim()}
+        >
           <Plus />
           <span className="sr-only sm:not-sr-only">Add</span>
         </Button>
@@ -810,7 +970,11 @@ function CustomCourses({
       {custom.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
           {custom.map((course) => (
-            <Badge key={course} variant="secondary" className="gap-1.5 py-1.5 pr-1.5 pl-3">
+            <Badge
+              key={course}
+              variant="secondary"
+              className="gap-1.5 py-1.5 pr-1.5 pl-3"
+            >
               {course}
               <button
                 type="button"

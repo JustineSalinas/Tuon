@@ -55,6 +55,7 @@ service cloud.firestore {
         'displayName',
         'educationLevel',
         'strand',
+        'country',
         'school',
         'examDate',
         'courses',
@@ -91,6 +92,11 @@ service cloud.firestore {
           'tvl_he', 'tvl_ict', 'tvl_ia', 'tvl_afa',
           'sports', 'arts'
         ])
+        // ISO 3166-1 alpha-2 shape, not full membership — the ~195-country
+        // allow-list is the client's `countries.ts`, the same split already
+        // drawn for `school`: trusted against the real list client-side,
+        // checked for shape rather than restated here server-side.
+        && (d.get('country', null) == null || d.country.matches('^[A-Z]{2}$'))
         && isOptionalText(d.get('school', null), 120)
         // YYYY-MM-DD or absent. A malformed value would silently disable the
         // exam clamp rather than erroring, so it is checked here.

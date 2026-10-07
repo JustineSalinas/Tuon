@@ -1,10 +1,22 @@
 import type { EducationLevel, Strand } from "./types";
+import { isPhilippines as countryIsPhilippines } from "./countries";
 
 /**
- * Philippine Senior High School (K-12) subjects and college degree programs.
+ * Curriculum content for two audiences sharing one profile shape.
  *
- * These lists are a *helpful default*, not an exhaustive registry — SHS
- * offerings vary school to school, so every picker also accepts free text.
+ * `EDUCATION_LEVELS`, `COLLEGE_PROGRAMS` and the general subject groups below
+ * are written to read naturally for a student anywhere — "Grade 11", "High
+ * school", "College" and "Licensure exam" are not Philippine coinages, they
+ * are just the words used. `STRANDS`, `BOARD_EXAMS` and the DepEd subject
+ * lists ARE Philippine-specific — a real K-12 track system and a real PRC
+ * exam list, not a generic stand-in — and are gated behind `strandsAvailable`
+ * so they only ever reach a student who said they are in the Philippines.
+ * Everyone else gets free-text subjects for Grade 11-12, the same shape
+ * college already used for every country.
+ *
+ * These lists are a *helpful default*, not an exhaustive registry — even
+ * within one country, offerings vary school to school, so every picker also
+ * accepts free text.
  */
 
 export const EDUCATION_LEVELS: {
@@ -12,15 +24,25 @@ export const EDUCATION_LEVELS: {
   label: string;
   hint: string;
 }[] = [
-  { value: "grade_11", label: "Grade 11", hint: "Senior High School" },
-  { value: "grade_12", label: "Grade 12", hint: "Senior High School" },
+  { value: "grade_11", label: "Grade 11", hint: "High school" },
+  { value: "grade_12", label: "Grade 12", hint: "High school" },
   { value: "college", label: "College", hint: "Undergraduate" },
   {
     value: "board_review",
     label: "Board or licensure review",
-    hint: "Reviewing for a PRC exam or the Bar",
+    hint: "Reviewing for a professional exam or the bar",
   },
 ];
+
+/**
+ * Whether this profile sees the Philippine Senior High strand picker and the
+ * PRC board-exam list, rather than free text. The one place in the whole
+ * curriculum model that reads `country` — everything downstream of this
+ * takes a plain boolean, not the country code itself.
+ */
+export function strandsAvailable(country: string | null | undefined): boolean {
+  return countryIsPhilippines(country);
+}
 
 /**
  * PRC licensure exams and the Bar. Single-select like a degree program: you
@@ -131,7 +153,10 @@ export const STRANDS: {
  */
 export const STRAND_TRACKS: { track: string; strands: Strand[] }[] = [
   { track: "Academic", strands: ["stem", "abm", "humss", "gas"] },
-  { track: "Tech-Voc Livelihood", strands: ["tvl_he", "tvl_ict", "tvl_ia", "tvl_afa"] },
+  {
+    track: "Tech-Voc Livelihood",
+    strands: ["tvl_he", "tvl_ict", "tvl_ia", "tvl_afa"],
+  },
   { track: "Sports and Arts", strands: ["sports", "arts"] },
 ];
 

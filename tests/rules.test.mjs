@@ -92,7 +92,10 @@ await seed(async (db) => {
     plan: "free",
     aiGenerationsUsedThisPeriod: 3,
   });
-  await setDoc(doc(db, set(ALICE, "private1")), { ...validSet, isShared: false });
+  await setDoc(doc(db, set(ALICE, "private1")), {
+    ...validSet,
+    isShared: false,
+  });
   await setDoc(doc(db, card(ALICE, "private1", "c1")), validCard);
   await setDoc(doc(db, set(ALICE, "shared1")), { ...validSet, isShared: true });
   await setDoc(doc(db, card(ALICE, "shared1", "c1")), validCard);
@@ -132,11 +135,14 @@ await check("a user cannot reset their own generation counter", async () => {
   );
 });
 
-await check("a no-op write to a protected field changes nothing and is harmless", async () => {
-  await assertSucceeds(
-    updateDoc(doc(alice, profile(ALICE)), { aiGenerationsUsedThisPeriod: 3 }),
-  );
-});
+await check(
+  "a no-op write to a protected field changes nothing and is harmless",
+  async () => {
+    await assertSucceeds(
+      updateDoc(doc(alice, profile(ALICE)), { aiGenerationsUsedThisPeriod: 3 }),
+    );
+  },
+);
 
 await check("a user cannot create their own profile document", async () => {
   await assertFails(
@@ -184,7 +190,12 @@ await check("consent flags must be booleans", async () => {
 });
 
 await check("every education level the app offers is accepted", async () => {
-  for (const educationLevel of ["grade_11", "grade_12", "college", "board_review"]) {
+  for (const educationLevel of [
+    "grade_11",
+    "grade_12",
+    "college",
+    "board_review",
+  ]) {
     await assertSucceeds(
       updateDoc(doc(alice, profile(ALICE)), { educationLevel }),
     );
@@ -201,21 +212,50 @@ await check("every SHS track DepEd actually has is accepted", async () => {
   // Regression guard: the rules enumerate strands, so adding a track to
   // curriculum.ts without adding it here locks those students out silently.
   for (const strand of [
-    "stem", "abm", "humss", "gas",
-    "tvl_he", "tvl_ict", "tvl_ia", "tvl_afa",
-    "sports", "arts",
+    "stem",
+    "abm",
+    "humss",
+    "gas",
+    "tvl_he",
+    "tvl_ict",
+    "tvl_ia",
+    "tvl_afa",
+    "sports",
+    "arts",
   ]) {
     await assertSucceeds(updateDoc(doc(alice, profile(ALICE)), { strand }));
   }
 });
 
 await check("an invented strand is still rejected", async () => {
-  await assertFails(updateDoc(doc(alice, profile(ALICE)), { strand: "wizardry" }));
+  await assertFails(
+    updateDoc(doc(alice, profile(ALICE)), { strand: "wizardry" }),
+  );
+});
+
+await check("a two-letter country code is accepted, and clears", async () => {
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { country: "US" }),
+  );
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { country: null }),
+  );
+});
+
+await check("a country code has to be shaped like one", async () => {
+  // Shape only — the ~195-country allow-list is the client's countries.ts,
+  // the same split already drawn for school: trusted client-side, checked
+  // for shape rather than restated here.
+  await assertFails(updateDoc(doc(alice, profile(ALICE)), { country: "usa" }));
+  await assertFails(updateDoc(doc(alice, profile(ALICE)), { country: "U" }));
+  await assertFails(updateDoc(doc(alice, profile(ALICE)), { country: "" }));
 });
 
 await check("a student can set and clear their school", async () => {
   await assertSucceeds(
-    updateDoc(doc(alice, profile(ALICE)), { school: "Batangas State University" }),
+    updateDoc(doc(alice, profile(ALICE)), {
+      school: "Batangas State University",
+    }),
   );
   await assertSucceeds(updateDoc(doc(alice, profile(ALICE)), { school: null }));
 });
@@ -230,24 +270,34 @@ await check("a reviewer can set and clear their exam date", async () => {
   await assertSucceeds(
     updateDoc(doc(alice, profile(ALICE)), { examDate: "2026-10-05" }),
   );
-  await assertSucceeds(updateDoc(doc(alice, profile(ALICE)), { examDate: null }));
+  await assertSucceeds(
+    updateDoc(doc(alice, profile(ALICE)), { examDate: null }),
+  );
 });
 
 await check("a malformed exam date is rejected", async () => {
   // The clamp silently does nothing on an unparseable value, so a bad date
   // would disable exam scheduling without any visible error. Reject at write.
-  for (const bad of ["05/10/2026", "2026-10", "tomorrow", "2026-10-05T00:00:00Z"]) {
+  for (const bad of [
+    "05/10/2026",
+    "2026-10",
+    "tomorrow",
+    "2026-10-05T00:00:00Z",
+  ]) {
     await assertFails(updateDoc(doc(alice, profile(ALICE)), { examDate: bad }));
   }
 });
 
-await check("ordinary profile edits still work after consent is on record", async () => {
-  // The acceptance time is pinned to request.time, so an unchanged
-  // termsAcceptedAt riding along on a later edit must not trip that check.
-  await assertSucceeds(
-    updateDoc(doc(alice, profile(ALICE)), { displayName: "Alice B." }),
-  );
-});
+await check(
+  "ordinary profile edits still work after consent is on record",
+  async () => {
+    // The acceptance time is pinned to request.time, so an unchanged
+    // termsAcceptedAt riding along on a later edit must not trip that check.
+    await assertSucceeds(
+      updateDoc(doc(alice, profile(ALICE)), { displayName: "Alice B." }),
+    );
+  },
+);
 
 console.log("\nWrite validation — the cost-abuse boundary");
 
@@ -262,7 +312,10 @@ await check("a note over the size ceiling is rejected", async () => {
 
 await check("a note within the ceiling is accepted", async () => {
   await assertSucceeds(
-    setDoc(doc(alice, note(ALICE, "ok")), { ...validNote, content: "x".repeat(1000) }),
+    setDoc(doc(alice, note(ALICE, "ok")), {
+      ...validNote,
+      content: "x".repeat(1000),
+    }),
   );
 });
 
@@ -280,23 +333,29 @@ await check("a non-string note title is rejected", async () => {
 
 await check("a flashcard with an empty front is rejected", async () => {
   await assertFails(
-    setDoc(doc(alice, card(ALICE, "private1", "empty")), { front: "", back: "A" }),
-  );
-});
-
-await check("a card cannot be stamped with someone else's ownerId", async () => {
-  // This is the whole security argument for the collection-group query: if a
-  // card could claim a foreign owner, it would surface in that student's
-  // review queue.
-  await assertFails(
-    setDoc(doc(alice, card(ALICE, "private1", "forged")), {
-      front: "Q",
+    setDoc(doc(alice, card(ALICE, "private1", "empty")), {
+      front: "",
       back: "A",
-      order: 0,
-      ownerId: MALLORY,
     }),
   );
 });
+
+await check(
+  "a card cannot be stamped with someone else's ownerId",
+  async () => {
+    // This is the whole security argument for the collection-group query: if a
+    // card could claim a foreign owner, it would surface in that student's
+    // review queue.
+    await assertFails(
+      setDoc(doc(alice, card(ALICE, "private1", "forged")), {
+        front: "Q",
+        back: "A",
+        order: 0,
+        ownerId: MALLORY,
+      }),
+    );
+  },
+);
 
 await check("a card stamped with its real owner is accepted", async () => {
   await assertSucceeds(
@@ -309,35 +368,57 @@ await check("a card stamped with its real owner is accepted", async () => {
   );
 });
 
-await check("a collection-group card query only returns your own cards", async () => {
-  await seed((db) =>
-    setDoc(doc(db, card(MALLORY, "mset", "m1")), { ...validCard, ownerId: MALLORY }),
-  );
-  const mine = await assertSucceeds(
-    getDocs(query(collectionGroup(alice, "flashcards"), where("ownerId", "==", ALICE))),
-  );
-  assert.ok(mine.size > 0, "own cards come back");
-  assert.ok(
-    mine.docs.every((d) => d.data().ownerId === ALICE),
-    "no other student's cards leak in",
-  );
-});
+await check(
+  "a collection-group card query only returns your own cards",
+  async () => {
+    await seed((db) =>
+      setDoc(doc(db, card(MALLORY, "mset", "m1")), {
+        ...validCard,
+        ownerId: MALLORY,
+      }),
+    );
+    const mine = await assertSucceeds(
+      getDocs(
+        query(
+          collectionGroup(alice, "flashcards"),
+          where("ownerId", "==", ALICE),
+        ),
+      ),
+    );
+    assert.ok(mine.size > 0, "own cards come back");
+    assert.ok(
+      mine.docs.every((d) => d.data().ownerId === ALICE),
+      "no other student's cards leak in",
+    );
+  },
+);
 
-await check("a collection-group query for someone else's cards is refused", async () => {
-  await assertFails(
-    getDocs(query(collectionGroup(alice, "flashcards"), where("ownerId", "==", MALLORY))),
-  );
-});
+await check(
+  "a collection-group query for someone else's cards is refused",
+  async () => {
+    await assertFails(
+      getDocs(
+        query(
+          collectionGroup(alice, "flashcards"),
+          where("ownerId", "==", MALLORY),
+        ),
+      ),
+    );
+  },
+);
 
-await check("a quiz question whose answer key is out of range is rejected", async () => {
-  await assertFails(
-    setDoc(doc(alice, `users/${ALICE}/studySets/private1/quizQuestions/q1`), {
-      question: "Pick",
-      choices: ["a", "b", "c", "d"],
-      correctIndex: 9,
-    }),
-  );
-});
+await check(
+  "a quiz question whose answer key is out of range is rejected",
+  async () => {
+    await assertFails(
+      setDoc(doc(alice, `users/${ALICE}/studySets/private1/quizQuestions/q1`), {
+        question: "Pick",
+        choices: ["a", "b", "c", "d"],
+        correctIndex: 9,
+      }),
+    );
+  },
+);
 
 await check("a student may turn typed recall on and off", async () => {
   await assertSucceeds(
@@ -353,7 +434,6 @@ await check("typed recall must be a boolean", async () => {
     updateDoc(doc(alice, profile(ALICE)), { typedRecall: "yes" }),
   );
 });
-
 
 await check("a quiz question may name the card it tests", async () => {
   const q = doc(alice, `users/${ALICE}/studySets/private1/quizQuestions/q2`);
@@ -377,19 +457,22 @@ await check("a quiz question may name the card it tests", async () => {
   );
 });
 
-await check("a review log with an impossible ease factor is rejected", async () => {
-  await assertFails(
-    setDoc(doc(alice, `users/${ALICE}/reviewLogs/c1`), {
-      flashcardId: "c1",
-      studySetId: "private1",
-      easeFactor: 999,
-      intervalDays: 1,
-      repetitions: 1,
-      nextReviewAt: new Date(),
-      lastRating: "good",
-    }),
-  );
-});
+await check(
+  "a review log with an impossible ease factor is rejected",
+  async () => {
+    await assertFails(
+      setDoc(doc(alice, `users/${ALICE}/reviewLogs/c1`), {
+        flashcardId: "c1",
+        studySetId: "private1",
+        easeFactor: 999,
+        intervalDays: 1,
+        repetitions: 1,
+        nextReviewAt: new Date(),
+        lastRating: "good",
+      }),
+    );
+  },
+);
 
 await check("a review log with an invalid rating is rejected", async () => {
   await assertFails(
@@ -453,23 +536,32 @@ await check("anyone can read a shared set", async () => {
 });
 
 await check("anyone can read a shared set's flashcards", async () => {
-  await assertSucceeds(getDocs(collection(anon, `users/${ALICE}/studySets/shared1/flashcards`)));
+  await assertSucceeds(
+    getDocs(collection(anon, `users/${ALICE}/studySets/shared1/flashcards`)),
+  );
 });
 
 await check("sharing one set does NOT expose the others", async () => {
   await assertFails(getDoc(doc(anon, set(ALICE, "private1"))));
 });
 
-await check("a stranger cannot LIST the library even when a set is shared", async () => {
-  await assertFails(getDocs(collection(anon, `users/${ALICE}/studySets`)));
-});
+await check(
+  "a stranger cannot LIST the library even when a set is shared",
+  async () => {
+    await assertFails(getDocs(collection(anon, `users/${ALICE}/studySets`)));
+  },
+);
 
 await check("a stranger cannot write to a shared set", async () => {
-  await assertFails(updateDoc(doc(mallory, set(ALICE, "shared1")), { title: "Hijacked" }));
+  await assertFails(
+    updateDoc(doc(mallory, set(ALICE, "shared1")), { title: "Hijacked" }),
+  );
 });
 
 await check("a stranger cannot add cards to a shared set", async () => {
-  await assertFails(setDoc(doc(mallory, card(ALICE, "shared1", "evil")), validCard));
+  await assertFails(
+    setDoc(doc(mallory, card(ALICE, "shared1", "evil")), validCard),
+  );
 });
 
 await check("a stranger cannot delete a shared set", async () => {
@@ -477,9 +569,13 @@ await check("a stranger cannot delete a shared set", async () => {
 });
 
 await check("unsharing revokes access immediately", async () => {
-  await seed((db) => updateDoc(doc(db, set(ALICE, "shared1")), { isShared: false }));
+  await seed((db) =>
+    updateDoc(doc(db, set(ALICE, "shared1")), { isShared: false }),
+  );
   await assertFails(getDoc(doc(anon, set(ALICE, "shared1"))));
-  await seed((db) => updateDoc(doc(db, set(ALICE, "shared1")), { isShared: true }));
+  await seed((db) =>
+    updateDoc(doc(db, set(ALICE, "shared1")), { isShared: true }),
+  );
 });
 
 await check("review history is never shared", async () => {
@@ -503,7 +599,9 @@ await check("the rate-limit ledger is invisible to clients", async () => {
   // Server-owned: if a student could read or clear it, the anti-farming layer
   // would be theirs to switch off.
   await assertFails(getDoc(doc(alice, "rateLimits/generate_1.2.3.4_0")));
-  await assertFails(setDoc(doc(alice, "rateLimits/generate_1.2.3.4_0"), { count: 0 }));
+  await assertFails(
+    setDoc(doc(alice, "rateLimits/generate_1.2.3.4_0"), { count: 0 }),
+  );
 });
 
 await check("the moderation queue is invisible to clients", async () => {
@@ -516,7 +614,9 @@ await check("the billing ledger is invisible to clients", async () => {
   // replay a paid event; one that could write a profile's plan would not even
   // need to.
   await assertFails(getDoc(doc(alice, "billingEvents/evt_1")));
-  await assertFails(setDoc(doc(alice, "billingEvents/evt_1"), { type: "payment.paid" }));
+  await assertFails(
+    setDoc(doc(alice, "billingEvents/evt_1"), { type: "payment.paid" }),
+  );
 });
 
 await check("a user cannot grant themselves a paid subscription", async () => {
@@ -531,7 +631,6 @@ await check("a user cannot grant themselves a paid subscription", async () => {
 await check("nothing outside /users is writable", async () => {
   await assertFails(setDoc(doc(alice, "config/flags"), { admin: true }));
 });
-
 
 /* --- the organiser --------------------------------------------------------
    One collection holding three shapes, so the branch in the validator is the
@@ -660,7 +759,10 @@ await check("an unknown kind is refused", async () => {
 
 await check("a blank title is refused", async () => {
   await assertFails(
-    setDoc(doc(alice, `users/${ALICE}/planItems/x2`), { kind: "todo", title: "" }),
+    setDoc(doc(alice, `users/${ALICE}/planItems/x2`), {
+      kind: "todo",
+      title: "",
+    }),
   );
 });
 
@@ -728,7 +830,6 @@ await check("a stranger cannot read someone else's study time", async () => {
   await assertFails(getDoc(doc(mallory, `users/${ALICE}/studySessions/s1`)));
 });
 
-
 /* --- study groups ---------------------------------------------------------
    Group data is the first thing in Tuon that more than one account can read,
    so these are the checks that matter most in this file. The shape of the risk
@@ -758,7 +859,11 @@ await seed(async (db) => {
   });
   // Alice belongs to GROUP; Mallory belongs only to OUTSIDER_GROUP.
   await setDoc(doc(db, profile(ALICE)), { groupIds: [GROUP] }, { merge: true });
-  await setDoc(doc(db, profile(MALLORY)), { groupIds: [OUTSIDER_GROUP] }, { merge: true });
+  await setDoc(
+    doc(db, profile(MALLORY)),
+    { groupIds: [OUTSIDER_GROUP] },
+    { merge: true },
+  );
   await setDoc(doc(db, `studyGroups/${GROUP}/sharedSets/shared1`), {
     ownerId: ALICE,
     studySetId: "private1",
@@ -788,17 +893,30 @@ await check("a student can query the groups they are actually in", async () => {
   // Which is a list operation, and the reason `list` is not simply denied:
   // fetching them one at a time would be a request per group per page load.
   await assertSucceeds(
-    getDocs(query(collection(alice, "studyGroups"), where(documentId(), "in", [GROUP]))),
+    getDocs(
+      query(
+        collection(alice, "studyGroups"),
+        where(documentId(), "in", [GROUP]),
+      ),
+    ),
   );
 });
 
-await check("naming someone else's group in a query does not get you in", async () => {
-  // The obvious attack on the rule above: ask for a specific id you were never
-  // invited to. It fails because the returned document would not satisfy it.
-  await assertFails(
-    getDocs(query(collection(mallory, "studyGroups"), where(documentId(), "in", [GROUP]))),
-  );
-});
+await check(
+  "naming someone else's group in a query does not get you in",
+  async () => {
+    // The obvious attack on the rule above: ask for a specific id you were never
+    // invited to. It fails because the returned document would not satisfy it.
+    await assertFails(
+      getDocs(
+        query(
+          collection(mallory, "studyGroups"),
+          where(documentId(), "in", [GROUP]),
+        ),
+      ),
+    );
+  },
+);
 
 await check("a signed-out visitor sees nothing", async () => {
   await assertFails(getDoc(doc(anon, `studyGroups/${GROUP}`)));
@@ -822,13 +940,17 @@ await check("a member cannot add themselves to a group", async () => {
   // THE critical one. memberIds is the access-control list; if a client could
   // edit it, anyone could join any group whose id they could guess.
   await assertFails(
-    updateDoc(doc(mallory, `studyGroups/${GROUP}`), { memberIds: [ALICE, MALLORY] }),
+    updateDoc(doc(mallory, `studyGroups/${GROUP}`), {
+      memberIds: [ALICE, MALLORY],
+    }),
   );
 });
 
 await check("even the owner cannot edit the member list", async () => {
   await assertFails(
-    updateDoc(doc(alice, `studyGroups/${GROUP}`), { memberIds: [ALICE, MALLORY] }),
+    updateDoc(doc(alice, `studyGroups/${GROUP}`), {
+      memberIds: [ALICE, MALLORY],
+    }),
   );
 });
 
@@ -840,22 +962,36 @@ await check("the owner may rename the group", async () => {
 
 await check("a member who is not the owner cannot rename it", async () => {
   await assertFails(
-    updateDoc(doc(mallory, `studyGroups/${OUTSIDER_GROUP}`), { ownerId: ALICE }),
+    updateDoc(doc(mallory, `studyGroups/${OUTSIDER_GROUP}`), {
+      ownerId: ALICE,
+    }),
   );
 });
 
-await check("the owner cannot hand ownership to themselves elsewhere", async () => {
-  await assertFails(updateDoc(doc(alice, `studyGroups/${GROUP}`), { ownerId: MALLORY }));
-});
+await check(
+  "the owner cannot hand ownership to themselves elsewhere",
+  async () => {
+    await assertFails(
+      updateDoc(doc(alice, `studyGroups/${GROUP}`), { ownerId: MALLORY }),
+    );
+  },
+);
 
 await check("a client cannot delete a group", async () => {
   await assertFails(deleteDoc(doc(alice, `studyGroups/${GROUP}`)));
 });
 
-await check("member records are readable inside the group and nowhere else", async () => {
-  await assertSucceeds(getDoc(doc(alice, `studyGroups/${GROUP}/members/${ALICE}`)));
-  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/members/${ALICE}`)));
-});
+await check(
+  "member records are readable inside the group and nowhere else",
+  async () => {
+    await assertSucceeds(
+      getDoc(doc(alice, `studyGroups/${GROUP}/members/${ALICE}`)),
+    );
+    await assertFails(
+      getDoc(doc(mallory, `studyGroups/${GROUP}/members/${ALICE}`)),
+    );
+  },
+);
 
 await check("a member cannot write a member record", async () => {
   await assertFails(
@@ -870,7 +1006,9 @@ await check("invite codes are invisible and unmintable", async () => {
   // Reading them would let anyone enumerate every code in the app; writing
   // them would let anyone mint an invite to a group they are not in.
   await assertFails(getDoc(doc(alice, "groupInvites/ABC123")));
-  await assertFails(setDoc(doc(alice, "groupInvites/ABC123"), { groupId: GROUP }));
+  await assertFails(
+    setDoc(doc(alice, "groupInvites/ABC123"), { groupId: GROUP }),
+  );
 });
 
 console.log("\n  Sharing a set into a group");
@@ -901,15 +1039,19 @@ await check("a member cannot list someone else's set as shared", async () => {
 });
 
 await check("a stranger cannot see what a group is studying", async () => {
-  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/sharedSets/shared1`)));
+  await assertFails(
+    getDoc(doc(mallory, `studyGroups/${GROUP}/sharedSets/shared1`)),
+  );
 });
 
 await check("a set shared to my group becomes readable to me", async () => {
   await seed(async (db) => {
-    await setDoc(
-      doc(db, set(ALICE, "grouped1")),
-      { title: "Shared with the batch", flashcardCount: 3, quizQuestionCount: 0, sharedWithGroups: [GROUP] },
-    );
+    await setDoc(doc(db, set(ALICE, "grouped1")), {
+      title: "Shared with the batch",
+      flashcardCount: 3,
+      quizQuestionCount: 0,
+      sharedWithGroups: [GROUP],
+    });
     await setDoc(doc(db, card(ALICE, "grouped1", "c1")), {
       front: "Q",
       back: "A",
@@ -922,7 +1064,11 @@ await check("a set shared to my group becomes readable to me", async () => {
       memberIds: [ALICE, "bob-uid"],
       memberCount: 2,
     });
-    await setDoc(doc(db, profile("bob-uid")), { groupIds: [GROUP] }, { merge: true });
+    await setDoc(
+      doc(db, profile("bob-uid")),
+      { groupIds: [GROUP] },
+      { merge: true },
+    );
   });
 
   const bob = env.authenticatedContext("bob-uid").firestore();
@@ -936,18 +1082,26 @@ await check("a set shared to one group is invisible to another", async () => {
   await assertFails(getDoc(doc(mallory, set(ALICE, "grouped1"))));
 });
 
-await check("group sharing does not expose the rest of the library", async () => {
-  const bob = env.authenticatedContext("bob-uid").firestore();
-  await assertFails(getDoc(doc(bob, set(ALICE, "private1"))));
-  await assertFails(getDocs(collection(bob, `users/${ALICE}/studySets`)));
-  await assertFails(getDoc(doc(bob, note(ALICE, "n1"))));
-});
+await check(
+  "group sharing does not expose the rest of the library",
+  async () => {
+    const bob = env.authenticatedContext("bob-uid").firestore();
+    await assertFails(getDoc(doc(bob, set(ALICE, "private1"))));
+    await assertFails(getDocs(collection(bob, `users/${ALICE}/studySets`)));
+    await assertFails(getDoc(doc(bob, note(ALICE, "n1"))));
+  },
+);
 
-await check("a student cannot put themselves in a group to read its sets", async () => {
-  // groupIds is server-owned for exactly this reason: if Mallory could add
-  // Alice's group to her own profile, every set shared into it would open up.
-  await assertFails(updateDoc(doc(mallory, profile(MALLORY)), { groupIds: [GROUP] }));
-});
+await check(
+  "a student cannot put themselves in a group to read its sets",
+  async () => {
+    // groupIds is server-owned for exactly this reason: if Mallory could add
+    // Alice's group to her own profile, every set shared into it would open up.
+    await assertFails(
+      updateDoc(doc(mallory, profile(MALLORY)), { groupIds: [GROUP] }),
+    );
+  },
+);
 
 console.log("\n  Group deadlines and presence");
 
@@ -1048,7 +1202,9 @@ await check("a negative score is refused", async () => {
 });
 
 await check("a stranger cannot read the standings", async () => {
-  await assertFails(getDoc(doc(mallory, `studyGroups/${GROUP}/scores/${ALICE}`)));
+  await assertFails(
+    getDoc(doc(mallory, `studyGroups/${GROUP}/scores/${ALICE}`)),
+  );
 });
 
 await check("a member can say they are studying", async () => {
@@ -1075,11 +1231,15 @@ await check("a member can clear their own presence", async () => {
   // by the shape validator refused it — and a member who stopped studying
   // stayed lit until the entry expired on its own. Found by pausing the timer
   // and looking at the group.
-  await assertSucceeds(deleteDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`)));
+  await assertSucceeds(
+    deleteDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`)),
+  );
 });
 
 await check("a member cannot clear someone else's presence", async () => {
-  await assertFails(deleteDoc(doc(alice, `studyGroups/${GROUP}/presence/bob-uid`)));
+  await assertFails(
+    deleteDoc(doc(alice, `studyGroups/${GROUP}/presence/bob-uid`)),
+  );
 });
 
 await check("presence cannot last forever", async () => {
@@ -1088,11 +1248,12 @@ await check("presence cannot last forever", async () => {
   await assertFails(
     setDoc(doc(alice, `studyGroups/${GROUP}/presence/${ALICE}`), {
       displayName: "Alice",
-      until: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
+      until: Timestamp.fromDate(
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      ),
     }),
   );
 });
-
 
 await env.cleanup();
 
