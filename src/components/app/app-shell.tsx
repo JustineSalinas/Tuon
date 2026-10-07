@@ -133,12 +133,12 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
   const courses = profile?.courses ?? [];
 
   return (
-    <aside className="bg-sidebar sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r p-4 md:flex">
-      <Link href="/app" className="px-2 py-1">
+    <aside className="bg-sidebar border-sidebar-border sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r p-5 md:flex">
+      <Link href="/app" className="px-1 py-1">
         <Wordmark />
       </Link>
 
-      <nav className="mt-8 flex flex-col gap-1">
+      <nav className="mt-9 flex flex-col gap-0.5">
         {NAV.map((item) => {
           const active = isActive(pathname, item.href, item.exact);
           return (
@@ -146,7 +146,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                   : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
@@ -159,22 +159,25 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
         })}
       </nav>
 
-      <Button className="mt-4" render={<Link href="/app/notes/new" />}>
+      <Button className="mt-6" render={<Link href="/app/notes/new" />}>
         <Plus />
         New note
       </Button>
 
-      <div className="mt-auto space-y-3">
+      {/* A rule separates "places you go" above from the utility widgets
+          below, so the nav doesn't read as one long, undifferentiated list
+          with a timer and an account switcher mixed into it. */}
+      <div className="border-sidebar-border mt-auto space-y-3 border-t pt-4">
         {/* The timer lives here rather than on the calendar page, because the
             one screen you could see it on there was the one screen you are not
             studying on. Its state was always global; only the UI was stuck. */}
         <PomodoroDock subjects={courses} />
-        <QuotaIndicator />
+        <QuotaIndicator className="border-sidebar-border" />
         {/* Settings had no visible entry point at all — it lived only inside
             the avatar menu, which does not look like a menu. A gear beside the
             name is where people look for it, and it keeps the nav above for
             places you go rather than things you configure. */}
-        <div className="flex items-center gap-1">
+        <div className="border-sidebar-border flex items-center gap-1 border-t pt-3">
           <div className="min-w-0 flex-1">
             <UserMenu align="start" />
           </div>

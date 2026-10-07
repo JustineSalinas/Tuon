@@ -153,7 +153,7 @@ export function PomodoroDock({ subjects }: { subjects: string[] }) {
   }, [complete, state.startedAt]);
 
   return (
-    <div className="bg-sidebar-accent/40 rounded-xl border p-2.5">
+    <div className="bg-sidebar-accent/40 border-sidebar-border rounded-xl border p-3">
       <div className="flex items-center gap-2">
         {focus ? (
           <Timer className={cn("size-3.5 shrink-0", running ? "text-primary" : "text-muted-foreground")} />

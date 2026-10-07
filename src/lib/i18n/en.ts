@@ -691,7 +691,7 @@ export const en = {
     schoolNote: "Optional. Only you can see this.",
     educationLevel: "Education level",
     strandNote:
-      "Changing your strand changes which subjects are offered. Your notes and study sets keep whatever tag they already have — nothing is retagged or deleted.",
+      "Changing your strand changes which subjects are offered. Your notes and study sets keep whatever tag they already have; nothing is retagged or deleted.",
     change: "Change",
     subjects: "Subjects",
     course: "Course",
@@ -938,7 +938,7 @@ export const en = {
     graceOneDay: "one more day",
     graceDays: (days: number) => `${days} more days`,
     graceBody: (window: string) =>
-      `You keep everything for ${window} while you sort it out. Nothing is deleted either way — after that the account just goes back to free limits.`,
+      `You keep everything for ${window} while you sort it out. Nothing is deleted either way; after that the account just goes back to free limits.`,
     cancelledUntil: (plan: string, date: string) =>
       `Cancelled. You keep ${plan} until ${date}.`,
     renews: (date: string) => `Renews ${date}.`,

@@ -36,7 +36,7 @@ export function QuotaIndicator({ className }: { className?: string }) {
   const isFree = quota.plan === "free";
 
   return (
-    <div className={cn("rounded-xl border p-3", className)}>
+    <div className={cn("rounded-xl border p-3.5", className)}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-medium">{t.banners.quotaTitle}</span>
         <span
