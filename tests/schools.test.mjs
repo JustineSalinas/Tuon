@@ -9,7 +9,14 @@
  */
 import assert from "node:assert/strict";
 
-import { acronymOf, suggestSchools } from "../src/lib/schools.ts";
+import {
+  US_SHORTLIST_POOL,
+  acronymOf,
+  isSchoolAutocompleteCountry,
+  schoolIndexPathFor,
+  shortlistPoolFor,
+  suggestSchools,
+} from "../src/lib/schools.ts";
 
 let passed = 0;
 function check(name, fn) {
@@ -144,6 +151,38 @@ check("nothing is suggested twice", () => {
 
 check("the limit is respected", () => {
   assert.ok(suggestSchools("san", POOL, 3).length <= 3);
+});
+
+console.log("\nA country other than the Philippines");
+
+check("UCLA finds its full name in the US shortlist", () => {
+  const results = suggestSchools("ucla", US_SHORTLIST_POOL);
+  assert.ok(
+    results.some((name) => name === "University of California, Los Angeles"),
+    `UCLA missing from ${JSON.stringify(results)}`,
+  );
+});
+
+check("NYU's acronym is built the same way a PH school's is", () => {
+  assert.equal(acronymOf("New York University"), "nyu");
+});
+
+check("PH and US both resolve to a real pool and a real index path", () => {
+  assert.ok(isSchoolAutocompleteCountry("PH"));
+  assert.ok(isSchoolAutocompleteCountry("US"));
+  assert.equal(schoolIndexPathFor("PH"), "/schools-ph.json");
+  assert.equal(schoolIndexPathFor("US"), "/schools-us.json");
+  assert.ok(shortlistPoolFor("US").hei.length > 0);
+});
+
+check("a country with no built index gets an empty pool and no fetch path", () => {
+  assert.ok(!isSchoolAutocompleteCountry("JP"));
+  assert.equal(schoolIndexPathFor("JP"), null);
+  const pool = shortlistPoolFor("JP");
+  assert.deepEqual(pool, { hei: [], secondary: [] });
+  // The empty pool must not throw or suggest anything — the field is
+  // plain free text for a country like this, exactly as advertised.
+  assert.deepEqual(suggestSchools("university", pool), []);
 });
 
 console.log(`\n${passed} checks passed.\n`);
