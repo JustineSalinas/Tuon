@@ -1651,7 +1651,7 @@ export const fil: Messages = {
         "Pilipinas: itinuturing na pangunahing subject ang paghahanda sa UPCAT, ACET at DCAT",
         "Nananatili kung paano mo isinulat ang mga notang naghahalo ng wika — Ingles at Tagalog, o kung ano pa man",
       ],
-      setupTitle: "Tatlong tanong at nag-aaral ka na.",
+      setupTitle: "Ang bansa mo, tapos tatlong tanong, at nag-aaral ka na.",
       yourSchool: "Ang eskwelahan mo",
       schoolHint:
         "I-type ang kahit ano — hindi kailangang nasa listahan ang eskwelahan mo.",
@@ -1728,7 +1728,7 @@ export const fil: Messages = {
         },
         {
           q: "Kailangan ko bang i-type ang bawat sagot?",
-          a: "Sa mga kard lang na sapat ang ikli para i-type, at pwede mo itong patayin sa settings o laktawan sa kahit anong kard. Naka-on ito bilang default dahil ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Pinapatawad ang spelling, ayos ng salita, accent at ang mga panandang Tagalog na baka isulat mo — hindi kailanman itinuturing na mali ang typo.",
+          a: "Sa mga kard lang na sapat ang ikli para i-type, at pwede mo itong patayin sa settings o laktawan sa kahit anong kard. Naka-on ito bilang default dahil ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Pinapatawad ang spelling, ayos ng salita, accent at ang mga marka ng wika mo na baka isulat mo — hindi kailanman itinuturing na mali ang typo.",
         },
         {
           q: "Pwede ba akong mag-aral kasama ang mga kaklase ko?",
@@ -1802,8 +1802,8 @@ export const fil: Messages = {
     body: (creature: string) =>
       `Tanungin si ${creature} kung sakop ba ng Tuón ang subject o board exam mo, kung magkano ito, o kung sino ang nakakakita ng mga nota mo.`,
     suggestions: [
-      "Sakop ba nito ang strand ko?",
-      "Pwede ko ba itong gamitin sa CPALE?",
+      "Sakop ba nito ang subject ko?",
+      "Pwede ko ba itong gamitin sa board exam ko?",
       "Libre ba talaga?",
       "Sino ang nakakakita ng mga nota ko?",
     ],

@@ -1655,7 +1655,7 @@ export const en = {
         "Philippines: UPCAT, ACET and DCAT prep treated as first-class subjects",
         "Notes that mix languages — English and Tagalog, English and anything else — stay exactly as you wrote them",
       ],
-      setupTitle: "Three questions and you are studying.",
+      setupTitle: "Your country, then three questions, and you are studying.",
       yourSchool: "Your school",
       schoolHint: "Type anything — your school does not have to be on a list.",
       yourStrand: "Your strand",
@@ -1736,7 +1736,7 @@ export const en = {
         },
         {
           q: "Do I have to type every answer?",
-          a: "Only on cards short enough to type, and you can turn it off in settings or skip it on any single card. It is on by default because reading the back and thinking “yeah, I knew that” is not the same as remembering it. Spelling, word order, accents and the Tagalog markers you might write are all forgiven — a typo never counts as wrong.",
+          a: "Only on cards short enough to type, and you can turn it off in settings or skip it on any single card. It is on by default because reading the back and thinking “yeah, I knew that” is not the same as remembering it. Spelling, word order, accents and whatever markers your language uses are all forgiven — a typo never counts as wrong.",
         },
         {
           q: "Can I study with my classmates?",
@@ -1810,8 +1810,8 @@ export const en = {
     body: (creature: string) =>
       `Ask ${creature} whether Tuón covers your subject or your board exam, what it costs, or who can see your notes.`,
     suggestions: [
-      "Does it cover my strand?",
-      "Can I use it for the CPALE?",
+      "Does it cover my subject?",
+      "Can I use it for my board exam?",
       "Is it really free?",
       "Who can see my notes?",
     ],
