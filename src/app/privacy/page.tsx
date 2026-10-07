@@ -35,8 +35,13 @@ export default function PrivacyPage() {
       }
     >
       <p>
-        This notice explains how Tuón handles personal information, in line with
-        the Philippine Data Privacy Act of 2012 (Republic Act No. 10173).
+        This notice explains how Tuón handles personal information, wherever
+        you are. It is written to meet the Philippine Data Privacy Act of 2012
+        (Republic Act No. 10173), since that is where Tuón started and where
+        most of its infrastructure runs — and we apply the same notice, the
+        same rights, and the same account controls to every account
+        regardless of country. If your own country gives you additional
+        rights, this notice does not reduce them.
       </p>
 
       <h2>What we collect</h2>
@@ -49,13 +54,16 @@ export default function PrivacyPage() {
           Authentication and are never visible to us.
         </li>
         <li>
-          <strong>Profile</strong> — the display name, education level, strand,
-          and subjects or degree program you choose during setup.
+          <strong>Profile</strong> — your display name, country, education
+          level, and strand, subjects, or degree program you choose during
+          setup. Country decides which curriculum helpers and payment methods
+          you see; nothing else in the app reads it.
         </li>
         <li>
           <strong>Study content</strong> — the notes you write or paste, text
-          extracted from PDFs you import, and the flashcards and quizzes
-          generated from them.
+          extracted from PDFs, Word documents, or photos you import, cards
+          brought in from an Anki deck, and the flashcards and quizzes
+          generated from any of that.
         </li>
       </ul>
 
@@ -78,12 +86,22 @@ export default function PrivacyPage() {
         materials you ask for.
       </p>
 
-      <h2>PDFs stay on your device</h2>
+      <h2>Most imports stay on your device</h2>
       <p>
-        When you import a PDF, the file is read in your browser and never
-        uploaded. Only the text you keep in the note is saved — and only that
-        text is later sent for generation. Nothing else about the file leaves
+        When you import a PDF or a Word document, the file is read in your
+        browser and never uploaded. When you import an Anki deck, it is
+        unzipped and read the same way — entirely in your browser, including
+        any cards it contains. In every one of these cases, only the text you
+        keep in the note or the resulting flashcards is saved, and only that
+        text is later sent for AI generation. The original file never leaves
         your device.
+      </p>
+      <p>
+        A photo is the one exception, and it is a real one: reading
+        handwriting needs the AI&rsquo;s vision, so a photo you import is sent
+        to Anthropic to be read into text. It is shrunk and compressed in
+        your browser first, used once to produce that text, and not stored by
+        us afterward.
       </p>
 
       <h2>Who else processes your data</h2>
@@ -93,10 +111,22 @@ export default function PrivacyPage() {
           account and study content are stored here.
         </li>
         <li>
-          <strong>Anthropic</strong> — the AI that writes your flashcards. The
-          text of a note is sent when, and only when, you press
-          &ldquo;Generate study set&rdquo;. Your name, email, and review history
-          are never sent.
+          <strong>Anthropic</strong> — the AI that writes your flashcards and
+          reads your imported photos. A note&rsquo;s text is sent when, and
+          only when, you press &ldquo;Generate study set&rdquo;; a photo is
+          sent when, and only when, you import one. Your name, email, and
+          review history are never sent.
+        </li>
+        <li>
+          <strong>PayMongo</strong> — payment processing for students paying
+          from the Philippines (GCash, Maya, and PH-issued cards). We never
+          see or store your card or wallet details; PayMongo handles them
+          directly and tells us only whether the payment succeeded.
+        </li>
+        <li>
+          <strong>RevenueCat and Stripe</strong> — payment processing for
+          students paying from anywhere else, by card. Same rule: we never
+          see your card details, only whether the payment succeeded.
         </li>
         <li>
           <strong>Vercel</strong> — hosting. Standard server logs, which may
@@ -105,7 +135,8 @@ export default function PrivacyPage() {
       </ul>
       <p>
         These providers process data on our instructions. Because they operate
-        internationally, your data may be processed outside the Philippines.
+        internationally, your data may be processed outside the Philippines
+        and outside your own country.
       </p>
 
       <h2>Why we are allowed to hold it</h2>
@@ -126,11 +157,19 @@ export default function PrivacyPage() {
 
       <h2>Students under 18</h2>
       <p>
-        Tuón is built for Senior High School and college students, so we expect
-        many of our users to be minors. If you are under 18, please review this
-        notice with a parent or guardian before creating an account. A parent or
-        guardian may contact us at any time to see, correct, or delete their
+        Tuón is built for Senior High School and college students everywhere,
+        so we expect many of our users to be minors, wherever they are
+        signing up from. If you are under 18, please review this notice with
+        a parent or guardian before creating an account. A parent or guardian
+        may contact us at any time to see, correct, or delete their
         child&rsquo;s information.
+      </p>
+      <p>
+        This is an attestation, not a verification: the account holder tells
+        us a guardian has agreed, and we record that answer, but we have no
+        way to confirm a guardian&rsquo;s identity at this scale. If your
+        country sets its own age of consent for an information service, that
+        age applies to you in addition to the question we ask.
       </p>
 
       <h2>How long we keep it</h2>
