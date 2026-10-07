@@ -861,7 +861,7 @@ export const en = {
     resend: "Resend",
     change: "Change",
     newEmail: "New email address",
-    emailPlaceholder: "juan@example.com",
+    emailPlaceholder: "alex@example.com",
     currentPassword: "Your current password",
     googleReauth:
       "You’ll be asked to sign in with Google once more to confirm.",
@@ -1238,7 +1238,7 @@ export const en = {
     signupSub: "Turn your class notes into flashcards and quizzes in seconds.",
     loginSub: "Pick up where you left off.",
     email: "Email",
-    emailPlaceholder: "juan@example.com",
+    emailPlaceholder: "alex@example.com",
     password: "Password",
     forgot: "Forgot password?",
     newPasswordPlaceholder: "At least 6 characters",
@@ -1259,11 +1259,12 @@ export const en = {
     newHere: "New to Tuón? ",
     createOne: "Create one",
     aside: {
-      meaning: "“Tuón” means to study — to give something your full attention.",
+      eyebrow: "Backed by the science of memory",
+      meaning: "“Tuón” means to study: to give something your full attention.",
       body: "Paste your notes from class. Get flashcards and a practice quiz back in seconds, then review them on a schedule that puts each card in front of you right before you would have forgotten it.",
       cardsPerNote: "flashcards per note",
       spacedRepetition: "spaced repetition",
-      strandsBuiltIn: "SHS strands built in",
+      freeStudySets: "free study sets a month",
     },
     reset: {
       heading: "Forgot your password?",
