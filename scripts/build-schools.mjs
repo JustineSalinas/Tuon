@@ -1,5 +1,6 @@
 /**
- * Builds `public/schools.json` — every school a Tuón student might attend.
+ * Builds `public/schools-ph.json` — every PH school a Tuón student might
+ * attend. See `build-us-schools.mjs` for the US counterpart.
  *
  * Run with two locally-downloaded source files rather than fetching at build
  * time. Both sources are third-party mirrors of government data, and a build
@@ -137,9 +138,9 @@ const heiKeys = new Set(hei.map((n) => n.toLowerCase()));
 const secondary = tidyList(secondaryNames, heiKeys);
 
 const json = JSON.stringify({ hei, secondary });
-writeFileSync("public/schools.json", json);
+writeFileSync("public/schools-ph.json", json);
 
 console.log(`elementary rows dropped   ${dropped}`);
 console.log(`higher education          ${hei.length}`);
 console.log(`secondary schools         ${secondary.length}`);
-console.log(`public/schools.json       ${(json.length / 1024).toFixed(0)} KB`);
+console.log(`public/schools-ph.json    ${(json.length / 1024).toFixed(0)} KB`);

@@ -2,30 +2,39 @@
 
 import { useEffect, useState } from "react";
 
-import { SHORTLIST_POOL, type SchoolPool } from "@/lib/schools";
+import {
+  schoolIndexPathFor,
+  shortlistPoolFor,
+  type SchoolPool,
+} from "@/lib/schools";
 
 /**
- * The full school index, fetched the first time someone needs it.
+ * The full school index for a country, fetched the first time someone needs
+ * it.
  *
- * 9,465 institutions is 335 KB, about 65 KB over the wire. That is small for a
- * desktop and not small for a student on prepaid mobile data in the middle of
- * signing up — so nobody pays for it until they put a cursor in the school
- * field, and nobody pays for it twice.
+ * ~9,000-30,000 institutions is a few hundred KB over the wire. That is small
+ * for a desktop and not small for a student on prepaid mobile data in the
+ * middle of signing up — so nobody pays for it until they put a cursor in the
+ * school field, and nobody pays for it twice. A second country's index is a
+ * second, independent cost: switching the country picker mid-onboarding must
+ * not silently fetch a file the student never asked for.
  *
- * Until it lands, and if it never lands, the curated shortlist stands in. That
- * is the important property: the field works with no network, works on a
- * failed fetch, and works while the index is still in flight. It is an
- * autocomplete over a free-text input, so the worst case is that a student
- * types their school in full — which is exactly what they did before this
- * existed.
+ * Until it lands, and if it never lands, the curated shortlist for that
+ * country stands in — or an empty pool, for a country with no built index at
+ * all. That is the important property: the field works with no network,
+ * works on a failed fetch, and works while the index is still in flight. It
+ * is an autocomplete over a free-text input, so the worst case is that a
+ * student types their school in full — which is exactly what they did before
+ * this existed, and what every unsupported country still does.
  *
- * One module-level promise rather than per-component state: three components
- * can mount with this hook and there is still one request and one array in
- * memory.
+ * One cache entry per country rather than one global promise: three
+ * components mounting this hook for the same country still cost one request,
+ * but a student who changes their country mid-onboarding gets the OTHER
+ * country's index, not a stale one.
  */
 
-let cache: SchoolPool | null = null;
-let inFlight: Promise<SchoolPool> | null = null;
+const cache = new Map<string, SchoolPool>();
+const inFlight = new Map<string, Promise<SchoolPool>>();
 
 /** Trust nothing about the shape: a captive portal returns HTML with a 200. */
 function readPool(data: unknown): SchoolPool | null {
@@ -37,43 +46,59 @@ function readPool(data: unknown): SchoolPool | null {
   return { hei: hei as string[], secondary: secondary as string[] };
 }
 
-function loadSchools(): Promise<SchoolPool> {
-  if (cache) return Promise.resolve(cache);
-  if (inFlight) return inFlight;
+function loadSchools(country: string, path: string, fallback: SchoolPool): Promise<SchoolPool> {
+  const cached = cache.get(country);
+  if (cached) return Promise.resolve(cached);
+  const pending = inFlight.get(country);
+  if (pending) return pending;
 
-  inFlight = fetch("/schools.json")
+  const request = fetch(path)
     .then((response) => (response.ok ? response.json() : null))
     .then((data: unknown) => {
       const pool = readPool(data);
-      if (!pool) return SHORTLIST_POOL;
-      cache = pool;
-      return cache;
+      if (!pool) return fallback;
+      cache.set(country, pool);
+      return pool;
     })
-    .catch(() => SHORTLIST_POOL)
+    .catch(() => fallback)
     .finally(() => {
-      inFlight = null;
+      inFlight.delete(country);
     });
 
-  return inFlight;
+  inFlight.set(country, request);
+  return request;
 }
 
 /**
  * @param enabled fetch only once the field is actually in use. Passing false
  *                keeps the shortlist and costs nothing.
+ * @param country ISO alpha-2. A country with no built index resolves to an
+ *                empty pool with no fetch attempted at all.
  */
-export function useSchools(enabled: boolean): SchoolPool {
-  const [schools, setSchools] = useState<SchoolPool>(cache ?? SHORTLIST_POOL);
+export function useSchools(enabled: boolean, country: string | null | undefined): SchoolPool {
+  const shortlist = shortlistPoolFor(country);
+  const path = schoolIndexPathFor(country);
+  const key = country ?? "";
+
+  // Only ever holds a RESOLVED fetch, tagged with the country it resolved
+  // for. A country switch before the fetch for the new one lands is handled
+  // below by comparing `loaded.key` to the current `key` at render time —
+  // never by resetting this in a second effect, which would just be
+  // setState moved one line down instead of removed.
+  const [loaded, setLoaded] = useState<{ key: string; pool: SchoolPool } | null>(null);
 
   useEffect(() => {
-    if (!enabled || cache) return;
+    if (!enabled || !path || cache.has(key)) return;
     let live = true;
-    void loadSchools().then((loaded) => {
-      if (live) setSchools(loaded);
+    void loadSchools(key, path, shortlist).then((pool) => {
+      if (live) setLoaded({ key, pool });
     });
     return () => {
       live = false;
     };
-  }, [enabled]);
+    // `shortlist` is derived from `country` each render, not its own input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, key, path]);
 
-  return schools;
+  return cache.get(key) ?? (loaded?.key === key ? loaded.pool : shortlist);
 }

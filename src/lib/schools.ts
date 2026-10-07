@@ -4,21 +4,26 @@
  * The field is still FREE TEXT and always was: a dropdown that cannot spell
  * your school tells you your school does not count, and no list of a country's
  * schools is ever complete or current. What has changed is the size of the
- * help — the suggester now searches 9,465 secondary schools and higher
- * education institutions from `public/schools.json`, built by
- * `scripts/build-schools.mjs` from the DepEd masterlist and CHED's list of
- * recognised HEIs.
+ * help — for the two countries with a built index (currently PH and US), the
+ * suggester searches a full secondary/higher-education list fetched from
+ * `public/schools-{country}.json`, built per country from that country's own
+ * government data (`scripts/build-schools.mjs` for PH, `build-us-schools.mjs`
+ * for US). Everywhere else, the field is exactly what it always was: free
+ * text alone, no suggestions — a missing index is a silent, honest gap, not
+ * an error.
  *
- * The list below survives as the INSTANT pool. It is in the bundle, so the
- * first keystroke answers with no network at all, and for the institutions
- * most students attend that is the entire interaction — the 335 KB index is
- * only fetched if these do not have the answer.
+ * The lists below survive as the INSTANT pools, one per supported country.
+ * Each is in the bundle, so the first keystroke answers with no network at
+ * all, and for the institutions most students attend that is the entire
+ * interaction — the full index is only fetched if these do not have the
+ * answer. See `shortlistPoolFor` and `schoolIndexPathFor` for how a country
+ * resolves to one of these, or to neither.
  *
  * Ordering is roughly by how many students an institution enrols, not by
  * prestige — the goal is fewer keystrokes, not a ranking.
  */
 
-export const SCHOOL_SUGGESTIONS = [
+export const PH_SCHOOL_SUGGESTIONS = [
   // Large public university systems
   "University of the Philippines",
   "Polytechnic University of the Philippines",
@@ -72,6 +77,70 @@ export const SCHOOL_SUGGESTIONS = [
   "Informatics College",
 ] as const;
 
+/**
+ * The US instant pool: large state-flagship and well-known private
+ * universities, plus a handful of the biggest public school districts.
+ * Unlike the Philippines, no single US high school is nationally
+ * recognisable enough to earn a spot here — the district is the thing a
+ * student would actually type and search for, same as PH students search for
+ * a university system rather than one specific campus.
+ */
+export const US_SCHOOL_SUGGESTIONS = [
+  // Large public university systems and flagships
+  "University of California, Los Angeles",
+  "University of California, Berkeley",
+  "University of Texas at Austin",
+  "Texas A&M University",
+  "Arizona State University",
+  "Ohio State University",
+  "Pennsylvania State University",
+  "University of Florida",
+  "Florida International University",
+  "University of Central Florida",
+  "University of Michigan",
+  "Michigan State University",
+  "University of Washington",
+  "University of Illinois Urbana-Champaign",
+  "Rutgers University",
+  "University of Georgia",
+  "Georgia State University",
+  "Indiana University Bloomington",
+  "University of Wisconsin-Madison",
+  "University of Minnesota",
+  "University of North Carolina at Chapel Hill",
+  "North Carolina State University",
+  "University of Virginia",
+  "Virginia Tech",
+  "University of Maryland",
+  "University of Arizona",
+  "San Diego State University",
+  "California State University, Long Beach",
+  "University of Hawaii at Manoa",
+
+  // Large private institutions
+  "New York University",
+  "Columbia University",
+  "Harvard University",
+  "Stanford University",
+  "Massachusetts Institute of Technology",
+  "University of Southern California",
+  "Boston University",
+  "Northeastern University",
+  "University of Chicago",
+  "Cornell University",
+  "Yale University",
+  "Princeton University",
+
+  // Large public school districts — the unit a K-12 student actually
+  // searches for, same role the university system plays above.
+  "New York City Department of Education",
+  "Los Angeles Unified School District",
+  "Chicago Public Schools",
+  "Miami-Dade County Public Schools",
+  "Clark County School District",
+  "Houston Independent School District",
+] as const;
+
 /** Longest school name we will store. Generous — some are very long. */
 export const MAX_SCHOOL_LENGTH = 120;
 
@@ -79,20 +148,56 @@ export const MAX_SCHOOL_LENGTH = 120;
  * The two tiers, kept apart on purpose.
  *
  * Not a cosmetic split: it is the only signal available about which of two
- * schools sharing a name is the bigger institution. There are 7,136 secondary
- * schools and 2,333 higher education institutions, and a search for a
- * distinctive name almost always means the one there are fewer of.
+ * schools sharing a name is the bigger institution. For the Philippines
+ * there are 7,136 secondary schools and 2,333 higher education institutions,
+ * and a search for a distinctive name almost always means the one there are
+ * fewer of.
  */
 export interface SchoolPool {
   readonly hei: readonly string[];
   readonly secondary: readonly string[];
 }
 
-/** The curated shortlist, as a pool. All of these are higher education. */
-export const SHORTLIST_POOL: SchoolPool = {
-  hei: SCHOOL_SUGGESTIONS,
+/** The curated PH shortlist, as a pool. All of these are higher education. */
+export const PH_SHORTLIST_POOL: SchoolPool = {
+  hei: PH_SCHOOL_SUGGESTIONS,
   secondary: [],
 };
+
+/** The curated US shortlist, as a pool. All of these are higher education or
+    a district standing in for its schools — see US_SCHOOL_SUGGESTIONS. */
+export const US_SHORTLIST_POOL: SchoolPool = {
+  hei: US_SCHOOL_SUGGESTIONS,
+  secondary: [],
+};
+
+const EMPTY_POOL: SchoolPool = { hei: [], secondary: [] };
+
+/** Countries with a built school index — see `scripts/build-schools.mjs`. */
+export type SchoolAutocompleteCountry = "PH" | "US";
+
+export function isSchoolAutocompleteCountry(
+  country: string | null | undefined,
+): country is SchoolAutocompleteCountry {
+  return country === "PH" || country === "US";
+}
+
+/** The bundled instant pool for a country, or an empty pool for anywhere
+    without a built index — the field still works, it just offers nothing
+    until the student has typed the whole name themselves. */
+export function shortlistPoolFor(country: string | null | undefined): SchoolPool {
+  if (country === "PH") return PH_SHORTLIST_POOL;
+  if (country === "US") return US_SHORTLIST_POOL;
+  return EMPTY_POOL;
+}
+
+/** Where the full index for a country is served from, or null if there is
+    none to fetch. */
+export function schoolIndexPathFor(country: string | null | undefined): string | null {
+  if (country === "PH") return "/schools-ph.json";
+  if (country === "US") return "/schools-us.json";
+  return null;
+}
 
 /**
  * Words that are never part of how anyone abbreviates a school.
@@ -110,9 +215,15 @@ const SKIPPED = new Set(["of", "the", "and", "de", "del", "des", "for", "in", "a
  * of the name anyone abbreviates: "West Visayas State University-Main" has to
  * answer to WVSU, and taking initials from the whole string would make it
  * WVSUM and match nothing anyone types.
+ *
+ * A comma does NOT introduce a campus suffix, even though a hyphen, en dash
+ * or open paren does: no PH name uses one this way, and plenty of US names
+ * use a comma as part of the institution's actual name rather than a
+ * separator — "University of California, Los Angeles" has to answer to UCLA,
+ * not UC, which is what splitting on the comma first used to produce.
  */
 export function acronymOf(name: string): string {
-  const base = name.split(/[-–,(]/)[0];
+  const base = name.split(/[-–(]/)[0];
   return base
     .split(/[^A-Za-zñÑ]+/)
     .filter((word) => word && !SKIPPED.has(word.toLowerCase()))
@@ -166,11 +277,7 @@ function rank(pool: readonly string[], q: string): string[] {
  * contain it — a student typing "tomas" should not have to know their school
  * files under U.
  */
-export function suggestSchools(
-  query: string,
-  pool: SchoolPool = SHORTLIST_POOL,
-  limit = 6,
-): string[] {
+export function suggestSchools(query: string, pool: SchoolPool, limit = 6): string[] {
   const q = query.trim().toLowerCase();
   if (q.length < 2) return [];
 

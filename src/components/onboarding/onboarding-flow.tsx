@@ -29,10 +29,11 @@ import {
   isSeniorHigh,
   strandsAvailable,
 } from "@/lib/curriculum";
-import { countryName, isPhilippines, suggestCountries } from "@/lib/countries";
+import { countryName, suggestCountries } from "@/lib/countries";
 import { CONSENT_VERSION } from "@/lib/legal/consent";
 import {
   MAX_SCHOOL_LENGTH,
+  isSchoolAutocompleteCountry,
   normaliseSchool,
   suggestSchools,
 } from "@/lib/schools";
@@ -109,17 +110,15 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
   }, [educationLevel, country]);
 
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
-  // The index is a DepEd/CHED dataset — nine thousand Philippine
-  // institutions, meaningless to suggest to a student anywhere else. Fetched
-  // only once this step is reached AND the student said they are in the
-  // Philippines, so nobody else ever pays for the download.
-  const schools = useSchools(
-    currentStep === "school" && isPhilippines(country),
-  );
+  // The index is government-built per country — thousands of institutions,
+  // meaningless to suggest to a student anywhere else. Fetched only once
+  // this step is reached AND the student's country has a built index, so
+  // nobody else ever pays for the download.
+  const schools = useSchools(currentStep === "school", country);
   // Computed once rather than twice: the old code called the suggester in the
-  // guard and again in the map, which over nine thousand rows is two scans per
+  // guard and again in the map, which over thousands of rows is two scans per
   // keystroke instead of one.
-  const schoolMatches = isPhilippines(country)
+  const schoolMatches = isSchoolAutocompleteCountry(country)
     ? suggestSchools(school, schools)
     : [];
 

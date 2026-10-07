@@ -60,3 +60,7 @@ ui-debug.log
 # weaknesses in this deployment, so they stay on the machine that ran the
 # audit rather than in a repo history anyone with read access can grep.
 .gstack/
+
+# Raw government data build-schools.mjs / build-us-schools.mjs read from —
+# tens of MB, and only the built public/schools-*.json output ships.
+/scripts/sources/
