@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/legal-page";
 import { POLICY_UPDATED } from "@/lib/legal/consent";
 import { PLANS } from "@/lib/ai/config";
+import { GRACE_DAYS } from "@/lib/billing/plan-state";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
@@ -42,7 +43,11 @@ export default function TermsPage() {
       </ul>
 
       <h2>What you may upload</h2>
-      <p>You keep ownership of everything you write or paste. You are telling us that:</p>
+      <p>
+        You keep ownership of everything you write, paste, or import — from a
+        typed note to a PDF, a Word document, a photo, or an Anki deck. You
+        are telling us that:
+      </p>
       <ul>
         <li>you have the right to use that material;</li>
         <li>
@@ -55,9 +60,10 @@ export default function TermsPage() {
         </li>
       </ul>
       <p>
-        We grant ourselves only the narrow permission needed to run the service:
-        to store your content, show it back to you, and send a note&rsquo;s text
-        for AI generation when you ask for it.
+        We grant ourselves only the narrow permission needed to run the
+        service: to store your content, show it back to you, and send a
+        note&rsquo;s text, or a photo you import, for AI processing when you
+        ask for it.
       </p>
 
       <h2>What the AI produces</h2>
@@ -84,25 +90,44 @@ export default function TermsPage() {
         </li>
         <li>
           <strong>{PLANS.plus.name}</strong> — {PLANS.plus.monthlyGenerations} a
-          month, at ₱{PLANS.plus.phpMonthly}.
+          month, at ₱{PLANS.plus.phpMonthly} inside the Philippines or $
+          {PLANS.plus.usdMonthly} elsewhere.
         </li>
         <li>
           <strong>{PLANS.pro.name}</strong> — {PLANS.pro.monthlyGenerations} a
-          month, at ₱{PLANS.pro.phpMonthly}.
+          month, at ₱{PLANS.pro.phpMonthly} inside the Philippines or $
+          {PLANS.pro.usdMonthly} elsewhere.
         </li>
       </ul>
       <p>
-        Writing notes, importing PDFs, making your own flashcards, and reviewing
-        are unlimited on every plan. Limits reset at the start of each calendar
-        month, Philippine time. If a generation fails, it is not counted against
-        your allowance.
+        Writing notes, importing PDFs and other documents, making your own
+        flashcards, and reviewing are unlimited on every plan. Limits reset at
+        the start of each calendar month, Philippine time, regardless of
+        where you are. If a generation fails, it is not counted against your
+        allowance.
       </p>
 
       <h2>Paying</h2>
       <p>
-        Paid plans are not yet available. When they are, these terms will be
-        updated to cover billing, renewal, and refunds before any payment is
-        taken, and we will tell you in the app first.
+        Inside the Philippines, paid plans are billed in pesos through
+        PayMongo — GCash, Maya, or a card. Everywhere else, they are billed in
+        US dollars through RevenueCat, processed by Stripe. Either way, a
+        subscription renews automatically each billing period until you
+        cancel; we never see or store your card or wallet details.
+      </p>
+      <p>
+        Your plan changes only once the payment provider confirms it
+        succeeded — not the moment you click to pay. If a renewal payment
+        fails, you keep full access for a {GRACE_DAYS}-day grace period while
+        we retry it; if it still has not gone through by the end of that
+        window, your account returns to {PLANS.free.name}. Cancelling keeps
+        your plan active through the period you already paid for, with no
+        partial refund for the unused remainder.
+      </p>
+      <p>
+        We do not currently offer refunds for a completed billing period,
+        beyond what the law in your country requires. If something about a
+        charge looks wrong, email us and we will look at it.
       </p>
 
       <h2>Things you must not do</h2>
