@@ -358,6 +358,9 @@ export const fil: Messages = {
     saving: "Sine-save",
     saved: "Na-save",
     saveFailed: "Hindi ma-save",
+    importMenu: "Mag-import",
+    imported: "Na-import sa notang ito.",
+    importClipped: "Na-import sa notang ito — pinutol ang teksto para kasya sa limitasyon.",
     dismiss: "Isara",
     deleteNote: "Burahin ang nota",
     deleteTitle: "Burahin ang notang ito?",
@@ -399,6 +402,29 @@ export const fil: Messages = {
       "Walang nabasang teksto. Mukhang scanned PDF ito o mga larawan ng pahina — hindi pa mabasa ni Tuón ang ganito. Subukan ang PDF na galing sa dokumento.",
     unknown:
       "May naging problema sa pagbasa ng PDF na iyon. Subukan ang ibang file.",
+  },
+
+  docx: {
+    importDocx: "Mag-import ng Word document",
+    tooLarge: (sizeMb: string) =>
+      `${sizeMb}MB ang dokumentong iyon. 25MB ang limitasyon.`,
+    notADocx:
+      "Hindi iyon .docx file. Hindi suportado ang lumang .doc — subukang gamitin ang “Save As” papuntang .docx.",
+    readerFailed: "Hindi masimulan ang document reader. Mag-refresh at subukan ulit.",
+    unreadable: "Hindi mabasa ang file na iyon. Maaaring sira ito.",
+    empty: "Walang nabasang teksto sa dokumentong iyon.",
+    unknown: "May naging problema sa pagbasa ng dokumentong iyon. Subukan ang ibang file.",
+  },
+
+  photo: {
+    importPhoto: "Mag-import ng larawan",
+    reading: "Binabasa ang larawan mo…",
+    canTakeAMoment: "Maaaring tumagal ng ilang segundo ito.",
+    tooLarge: (sizeMb: string) => `${sizeMb}MB ang larawang iyon. 20MB ang limitasyon.`,
+    notAnImage: "Hindi iyon image file.",
+    decodeFailed: "Hindi mabasa ang larawang iyon. Subukan ang iba.",
+    verifyEmail: "Pakikumpirma muna ang email address mo bago mag-import ng larawan.",
+    unknown: "May naging problema sa pagbasa ng larawang iyon. Subukan ulit.",
   },
 
   generate: {
@@ -453,6 +479,28 @@ export const fil: Messages = {
     nothingToExport: "Wala pang notang pwedeng i-export.",
     exported: (count: number) => `${count} nota ang na-export.`,
     exportFailed: "Hindi mabuo ang export na iyon.",
+  },
+
+  anki: {
+    importAction: "Mag-import ng Anki deck",
+    cardsFound: (count: number) => `${count} kard ang nakita`,
+    readyToImport: "Handa nang i-import bilang bagong study set.",
+    someSkipped: (count: number) =>
+      `${count} nota ang hindi nabasa at lalaktawan.`,
+    truncated: (total: number) =>
+      `Ang unang 500 lang sa ${total} na nota ang mai-import.`,
+    deckTitle: "Pamagat ng study set",
+    untitledDeck: "Na-import na deck",
+    imported: (count: number) => `${count} kard ang na-import.`,
+    importFailed: "Hindi ma-import ang deck na iyon. Walang na-save.",
+    tooLarge: (sizeMb: string) => `${sizeMb}MB ang file na iyon. 200MB ang limitasyon.`,
+    notAnApkg: "Hindi iyon .apkg file.",
+    noCollection: "Hindi mukhang Anki export ang file na iyon.",
+    unsupportedFormat:
+      "Ginawa ang deck na ito ng mas bagong bersyon ng Anki na hindi pa mabasa ni Tuón. Subukang i-export gamit ang “Support older Anki versions”.",
+    corrupt: "Hindi mabasa ang file na iyon. Maaaring sira o hindi kumpleto.",
+    empty: "Walang kard ang deck na iyon.",
+    unknown: "May naging problema sa pagbasa ng deck na iyon. Subukan ulit.",
   },
 
   calendar: {

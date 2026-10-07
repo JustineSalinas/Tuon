@@ -363,6 +363,9 @@ export const en = {
     saving: "Saving",
     saved: "Saved",
     saveFailed: "Could not save",
+    importMenu: "Import",
+    imported: "Imported into this note.",
+    importClipped: "Imported into this note — text was clipped to fit the limit.",
     dismiss: "Dismiss",
     deleteNote: "Delete note",
     deleteTitle: "Delete this note?",
@@ -403,6 +406,28 @@ export const en = {
     noTextLayer:
       "No readable text found. This looks like a scanned PDF or images of pages — Tuón cannot read those yet. Try a PDF exported from a document.",
     unknown: "Something went wrong reading that PDF. Please try another file.",
+  },
+
+  docx: {
+    importDocx: "Import Word document",
+    tooLarge: (sizeMb: string) => `That document is ${sizeMb}MB. The limit is 25MB.`,
+    notADocx:
+      "That is not a .docx file. Older .doc files aren’t supported — try “Save As” to .docx first.",
+    readerFailed: "Could not start the document reader. Please refresh and try again.",
+    unreadable: "That file could not be read. It may be corrupted.",
+    empty: "No readable text was found in that document.",
+    unknown: "Something went wrong reading that document. Please try another file.",
+  },
+
+  photo: {
+    importPhoto: "Import a photo",
+    reading: "Reading your photo…",
+    canTakeAMoment: "This can take a few seconds.",
+    tooLarge: (sizeMb: string) => `That photo is ${sizeMb}MB. The limit is 20MB.`,
+    notAnImage: "That is not an image file.",
+    decodeFailed: "That photo could not be read. Try another one.",
+    verifyEmail: "Please confirm your email address before importing a photo.",
+    unknown: "Something went wrong reading that photo. Please try again.",
   },
 
   generate: {
@@ -460,6 +485,28 @@ export const en = {
     exported: (count: number) =>
       `${count} ${count === 1 ? "note" : "notes"} exported.`,
     exportFailed: "Could not build that export.",
+  },
+
+  anki: {
+    importAction: "Import Anki deck",
+    cardsFound: (count: number) => `${count} ${count === 1 ? "card" : "cards"} found`,
+    readyToImport: "Ready to import as a new study set.",
+    someSkipped: (count: number) =>
+      `${count} ${count === 1 ? "note" : "notes"} could not be read and will be skipped.`,
+    truncated: (total: number) => `Only the first 500 of ${total} notes will be imported.`,
+    deckTitle: "Study set title",
+    untitledDeck: "Imported deck",
+    imported: (count: number) =>
+      `Imported ${count} ${count === 1 ? "card" : "cards"}.`,
+    importFailed: "Could not import that deck. Nothing was saved.",
+    tooLarge: (sizeMb: string) => `That file is ${sizeMb}MB. The limit is 200MB.`,
+    notAnApkg: "That is not an .apkg file.",
+    noCollection: "That file does not look like an Anki export.",
+    unsupportedFormat:
+      "This deck was exported by a newer version of Anki that Tuón cannot read yet. Try exporting with “Support older Anki versions” checked.",
+    corrupt: "That file could not be read. It may be corrupted or incomplete.",
+    empty: "That deck has no cards in it.",
+    unknown: "Something went wrong reading that deck. Please try again.",
   },
 
   calendar: {
