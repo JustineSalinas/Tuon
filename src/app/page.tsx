@@ -59,11 +59,11 @@ const productJsonLd = {
   operatingSystem: "Web",
   url: siteUrl(),
   description:
-    "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick. Built for Senior High and college students in the Philippines.",
+    "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick. Built for Senior High, college and licensure-exam students everywhere.",
   offers: {
     "@type": "Offer",
-    price: PLANS.free.phpMonthly,
-    priceCurrency: "PHP",
+    price: PLANS.free.usdMonthly,
+    priceCurrency: "USD",
   },
 };
 
@@ -235,6 +235,9 @@ function WhyItSticks() {
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
           {t.marketing.why.body}
+        </p>
+        <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">
+          {t.marketing.why.science}
         </p>
       </Reveal>
       <Reveal delay={0.05}>

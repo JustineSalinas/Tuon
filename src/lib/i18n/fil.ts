@@ -894,6 +894,8 @@ export const fil: Messages = {
     choose: (plan: string) => `Piliin ang ${plan}`,
     payWith:
       "Magbayad gamit ang GCash, Maya, o card. Pwede kang mag-cancel anumang oras — walang naisulat mo ang nabubura kapag natapos ang isang plan.",
+    payWithCard:
+      "Magbayad gamit ang card. Pwede kang mag-cancel anumang oras — walang naisulat mo ang nabubura kapag natapos ang isang plan.",
     notLive:
       "Hindi pa live ang mga bayad. Sandali lang — patuloy na gagana ang libreng plan mo.",
     checkoutFailed: "Hindi masimulan ang checkout.",
@@ -1485,7 +1487,7 @@ export const fil: Messages = {
       doneBody:
         "Anim na kard, mga apatnapung segundo. Ginagawa iyan ng Tuón gamit ang sarili mong notes, at siya na ang bahala kung kailan babalik ang bawat kard.",
       again: "Ulitin",
-      badge: "Gawa para sa mga estudyanteng Pilipino",
+      badge: "Suportado ng agham ng memorya",
       headline: "Epektibo ang cramming.",
       headlineAccent: " Sa loob ng mga tatlong araw.",
       body: "I-paste ang notes mo. Isusulat ng Tuón ang flashcards at practice quiz, tapos ibabalik ang bawat kard bago mo pa ito makalimutan — para ang reviewer na ginawa mo ngayong gabi ay gumagana pa rin sa susunod na semester.",
@@ -1503,6 +1505,8 @@ export const fil: Messages = {
       eyebrow: "Bakit ka nakakalimot",
       title: "Tinatapon ng utak mo ang hindi na niya nakikita",
       body: "Hindi ito depekto, at hindi ito problema sa disiplina — ganito talaga gumana ang memorya. Anumang nakita mo nang minsan at hindi na muli ay nililinis. Ang solusyon ay hindi mas maraming oras kagabi bago ang exam; ito ay ang muling pagharap sa parehong kard habang nagsisimula pa lang itong madulas. Ang manu-manong pag-iiskedyul niyan ang bahaging walang nakakasunod.",
+      science:
+        "Ito ang spacing effect — isa sa mga pinakapatunayang natuklasan sa pag-aaral ng memorya, unang sinukat mahigit isang siglo na ang nakalipas at pinatunayan nang maraming ulit mula noon. Ang pag-iiskedyul ng review habang nagsisimula pa lang maglaho ang memorya ay kailangan ng mas kaunting oras kumpara sa cramming para tandaan ang parehong materyal — ito talaga ang ibig sabihin ng mas kaunting effort para sa mas mahabang pagtatanda: hindi slogan, isang sukat na mapapanood mo sa ibaba.",
       aside:
         "Ang kard na tatlong linggo mo nang hindi nakikita ay tulog. Ginigising ito ng Tuón isang araw bago mo ito mawala.",
     },
@@ -1637,15 +1641,15 @@ export const fil: Messages = {
     },
 
     local: {
-      eyebrow: "Gawa para dito",
-      title: "Alam na nito ang kurikulum mo",
-      body: "Karamihan sa study app ay gawa para sa mga klase sa Amerika tapos isinalin. Nagsisimula ang Tuón sa Philippine K-12 system, kaya tatlong pindot lang ang pag-set up sa halip na i-type ang bawat subject nang mag-isa.",
+      eyebrow: "Gawa para sa kurikulum mo",
+      title: "Alam na nito kung paano ang eskwela sa lugar mo",
+      body: "Piliin ang bansa mo nang isang beses. Sa Pilipinas, alam na ng Tuón ang K-12 system — nakapaloob ang mga strand, core subjects at board exams, kaya tatlong pindot lang ang pag-set up. Kung saan ka man, i-type mo lang ang kinukuha mo — matututunan ni Tuón mula roon.",
       points: [
-        "Nakapaloob ang Senior High strands — STEM, ABM, HUMSS at GAS, kasama ang tamang subject sa bawat isa",
-        "Handa nang piliin ang core subjects tulad ng General Mathematics, Earth and Life Science at Oral Communication",
-        "Mga kursong pangkolehiyo mula BS Nursing hanggang AB Communication, na may puwang para sa sarili mong idagdag",
-        "Itinuturing na pangunahing subject ang paghahanda sa UPCAT, ACET at DCAT",
-        "Nananatili kung paano mo isinulat ang mga notang naghahalo ng Ingles at Tagalog o Cebuano",
+        "Pilipinas: nakapaloob ang Senior High strands — STEM, ABM, HUMSS at GAS, kasama ang tamang subject sa bawat isa",
+        "Pilipinas: handa nang piliin ang core subjects tulad ng General Mathematics, Earth and Life Science at Oral Communication",
+        "Mga kursong pangkolehiyo mula BS Nursing hanggang Computer Science, na may puwang para sa sarili mong idagdag, kahit saan",
+        "Pilipinas: itinuturing na pangunahing subject ang paghahanda sa UPCAT, ACET at DCAT",
+        "Nananatili kung paano mo isinulat ang mga notang naghahalo ng wika — Ingles at Tagalog, o kung ano pa man",
       ],
       setupTitle: "Tatlong tanong at nag-aaral ka na.",
       yourSchool: "Ang eskwelahan mo",
@@ -1707,8 +1711,8 @@ export const fil: Messages = {
           a: "Minsan, oo. Ang AI ay gumagawa lamang mula sa nota mo, kaya kung may mali ang nota, uulitin ito ng mga kard — at tulad ng anumang AI, minsan ay tiwala itong nagkakamali nang mag-isa. Suriin sa textbook mo ang anumang mahalaga. Pantulong ito sa pag-aaral, hindi pinagmumulan ng katotohanan.",
         },
         {
-          q: "Pwede ko ba itong gamitin sa UPCAT o board review?",
-          a: "Iyan ang pinakamagaling na gawin ng spaced repetition. Nakapaloob na sa setup ang mga subject sa entrance exam kasama ng strand mo, at ang iskedyul ay ginawa para sa materyal na kailangan mong tandaan nang ilang buwan sa halip na hanggang Biyernes.",
+          q: "Pwede ko ba itong gamitin sa entrance exam o board review?",
+          a: "Iyan ang pinakamagaling na gawin ng spaced repetition. Sa Pilipinas, nakapaloob na sa setup ang mga subject sa entrance exam tulad ng UPCAT kasama ng strand mo; kung saan ka man, idagdag mo lang bilang free text sa parehong paraan. Sa kahit alin, ang iskedyul ay ginawa para sa materyal na kailangan mong tandaan nang ilang buwan sa halip na hanggang Biyernes.",
         },
         {
           q: "Gumagana ba ito offline?",
@@ -1720,7 +1724,7 @@ export const fil: Messages = {
         },
         {
           q: "Ano ang pinagkaiba nito sa Quizlet o Anki?",
-          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”. Nababasa rin nito ang mga notang naghahalo ng Ingles at Tagalog o Cebuano, na siyang totoong paraan ng pagsulat ng karamihan sa mga estudyante rito.",
+          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”. Nababasa rin nito ang mga notang naghahalo ng wika — Ingles at Tagalog o Cebuano, o kahit anong pares — eksaktong kung paano ito isinulat, sa halip na asahan kang isalin muna.",
         },
         {
           q: "Kailangan ko bang i-type ang bawat sagot?",
@@ -1728,7 +1732,7 @@ export const fil: Messages = {
         },
         {
           q: "Pwede ba akong mag-aral kasama ang mga kaklase ko?",
-          a: "Oo, sa mga grupong imbitasyon lang: mag-share ng set, maglagay ng pinagsasaluhang deadline, at makita kung sino ang nag-aaral ngayon. Sadyang walang pampublikong silid at walang direktoryo — marami sa mga estudyante rito ay menor de edad, at ang espasyong mapapasok ng estranghero ay nangangailangan ng moderasyong hindi namin kayang ipangako. Sumasali ka sa grupo dahil may nagpadala sa iyo ng code.",
+          a: "Oo, sa mga grupong imbitasyon lang: mag-share ng set, maglagay ng pinagsasaluhang deadline, at makita kung sino ang nag-aaral ngayon. Sadyang walang pampublikong silid at walang direktoryo — marami sa mga gumagamit ng Tuón ay menor de edad, at ang espasyong mapapasok ng estranghero ay nangangailangan ng moderasyong hindi namin kayang ipangako. Sumasali ka sa grupo dahil may nagpadala sa iyo ng code.",
         },
         {
           q: "Makukuha ko bang muli ang mga nota ko?",
@@ -1766,7 +1770,7 @@ export const fil: Messages = {
       contact: "Kontakin kami",
       language: "Wika",
       draft: "draft",
-      madeIn: "Gawa sa Pilipinas, para sa mga estudyanteng Pilipino.",
+      madeIn: "Gawa sa Pilipinas, para sa mga estudyante kahit saan.",
       rights: (year: number) =>
         `© ${year} Tuón · Adrian Salinas. Nakalaan ang lahat ng karapatan.`,
     },

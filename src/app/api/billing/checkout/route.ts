@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { adminConfigError, verifyAppCheck, verifyRequest } from "@/lib/firebase/admin";
+import { adminConfigError, adminDb, verifyAppCheck, verifyRequest } from "@/lib/firebase/admin";
 import { createCheckoutSession, paymongoConfigError } from "@/lib/billing/paymongo";
 import type { BillingPeriod } from "@/lib/billing/plan-state";
+import { countryOrDefault, isPhilippines } from "@/lib/countries";
 import { RATE_LIMITS, checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/rate-limit";
 import { log } from "@/lib/observability/log";
 import type { Plan } from "@/lib/types";
@@ -68,6 +69,21 @@ export async function POST(request: Request) {
 
   if (!plan || !period) {
     return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
+  }
+
+  // GCash and Maya do not exist outside the Philippines, so a PayMongo
+  // session for anyone else would be a dead end at PayMongo's own checkout.
+  // Send them to the card path instead of letting that happen.
+  const profileSnap = await adminDb().collection("users").doc(caller.uid).get();
+  const country = countryOrDefault(profileSnap.data()?.country ?? null);
+  if (!isPhilippines(country)) {
+    return NextResponse.json(
+      {
+        error: "GCash and Maya are only available in the Philippines. Pay by card instead.",
+        code: "PAYMONGO_PH_ONLY",
+      },
+      { status: 400 },
+    );
   }
 
   const origin = new URL(request.url).origin;

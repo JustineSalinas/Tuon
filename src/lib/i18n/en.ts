@@ -905,6 +905,8 @@ export const en = {
     choose: (plan: string) => `Choose ${plan}`,
     payWith:
       "Pay with GCash, Maya, or a card. You can cancel any time — nothing you have written is ever deleted when a plan ends.",
+    payWithCard:
+      "Pay with a card. You can cancel any time — nothing you have written is ever deleted when a plan ends.",
     notLive:
       "Payments aren’t live yet. Hang tight — your free plan keeps working.",
     checkoutFailed: "Could not start checkout.",
@@ -1489,7 +1491,7 @@ export const en = {
       doneBody:
         "Six cards, about forty seconds. Tuón does that with your own notes, and decides when each card comes back so you do not have to.",
       again: "Run it again",
-      badge: "Built for Filipino students",
+      badge: "Backed by the science of memory",
       headline: "Cramming works.",
       headlineAccent: " For about three days.",
       body: "Paste your notes. Tuón writes the flashcards and a practice quiz, then brings each card back right before you would have forgotten it — so the reviewer you make tonight still works next semester.",
@@ -1507,6 +1509,8 @@ export const en = {
       eyebrow: "Why you forget",
       title: "Your brain throws away whatever it stops seeing",
       body: "That is not a flaw, and it is not a discipline problem — it is what memory is for. Anything you meet once and never again gets cleared out. The fix is not more hours the night before; it is meeting the same card again just as it starts to slip. Doing that scheduling by hand is the part nobody keeps up.",
+      science:
+        "This is the spacing effect — one of the most replicated findings in memory research, first measured over a century ago and confirmed many times since. Timing review to arrive right as a memory starts to fade needs far less total study time than cramming to hold the same material, which is what spaced repetition actually means by less effort for more retention: not a slogan, a measurable trade you can watch happen below.",
       aside:
         "A card you have not seen in three weeks is asleep. Tuón wakes it up the day before you would have lost it.",
     },
@@ -1641,15 +1645,15 @@ export const en = {
     },
 
     local: {
-      eyebrow: "Built for here",
-      title: "It already knows your curriculum",
-      body: "Most study apps are built for American classrooms and then translated. Tuón starts from the Philippine K-12 system, so setting up takes three taps instead of typing out every subject yourself.",
+      eyebrow: "Built for your curriculum",
+      title: "It already knows how school works where you are",
+      body: "Pick your country once. In the Philippines, Tuón already knows the K-12 system — strands, core subjects and board exams built in, so setting up takes three taps instead of typing out every subject yourself. Everywhere else, you just type what you're taking; Tuón learns it from there.",
       points: [
-        "Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
-        "Core subjects like General Mathematics, Earth and Life Science and Oral Communication ready to pick",
-        "College programs from BS Nursing to AB Communication, with room to add your own",
-        "UPCAT, ACET and DCAT prep treated as first-class subjects",
-        "Notes that mix English and Tagalog or Cebuano stay exactly as you wrote them",
+        "Philippines: Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
+        "Philippines: core subjects like General Mathematics, Earth and Life Science and Oral Communication ready to pick",
+        "College programs from BS Nursing to Computer Science, with room to add your own, anywhere",
+        "Philippines: UPCAT, ACET and DCAT prep treated as first-class subjects",
+        "Notes that mix languages — English and Tagalog, English and anything else — stay exactly as you wrote them",
       ],
       setupTitle: "Three questions and you are studying.",
       yourSchool: "Your school",
@@ -1715,8 +1719,8 @@ export const en = {
           a: "Sometimes, yes. The AI works only from your note, so if the note has an error the cards will repeat it — and like any AI it can occasionally be confidently wrong on its own. Check anything that matters against your textbook. It is a study aid, not a source of truth.",
         },
         {
-          q: "Can I use it for UPCAT or board review?",
-          a: "That is what spaced repetition is best at. Entrance-exam subjects are built into setup alongside your strand, and the schedule is designed for material you need to hold for months rather than until Friday.",
+          q: "Can I use it for entrance exams or board review?",
+          a: "That is what spaced repetition is best at. In the Philippines, entrance-exam subjects like UPCAT are built into setup alongside your strand; everywhere else you add them as free text the same way. Either way, the schedule is designed for material you need to hold for months rather than until Friday.",
         },
         {
           q: "Does it work offline?",
@@ -1728,7 +1732,7 @@ export const en = {
         },
         {
           q: "How is this different from Quizlet or Anki?",
-          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”. It also reads notes that mix English with Tagalog or Cebuano, which is how most students here actually write them.",
+          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”. It also reads notes that mix languages — English with Tagalog or Cebuano, or any other pair — exactly as written, rather than expecting you to translate first.",
         },
         {
           q: "Do I have to type every answer?",
@@ -1736,7 +1740,7 @@ export const en = {
         },
         {
           q: "Can I study with my classmates?",
-          a: "Yes, in invite-only groups: share a set, put a shared deadline in, and see who is studying right now. There is deliberately no public room and no directory — a lot of students here are minors, and a space strangers can walk into needs moderation we are not able to promise. You join a group because someone in it sent you a code.",
+          a: "Yes, in invite-only groups: share a set, put a shared deadline in, and see who is studying right now. There is deliberately no public room and no directory — many students on Tuón are minors, and a space strangers can walk into needs moderation we are not able to promise. You join a group because someone in it sent you a code.",
         },
         {
           q: "Can I get my notes back out?",
@@ -1774,7 +1778,7 @@ export const en = {
       contact: "Contact us",
       language: "Language",
       draft: "draft",
-      madeIn: "Made in the Philippines, for Filipino students.",
+      madeIn: "Made in the Philippines, for students everywhere.",
       rights: (year: number) =>
         `© ${year} Tuón · Adrian Salinas. All rights reserved.`,
     },

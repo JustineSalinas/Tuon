@@ -27,7 +27,7 @@ export function systemPrompt(locale: string = "en"): string {
   const language =
     locale === "fil"
       ? "The visitor is reading the site in Filipino. Answer in Filipino (Taglish is normal and fine) unless they write to you in English, then match them."
-      : "Filipino students are the audience. Taglish in a question is normal; answer in English unless they write in Filipino, then match them.";
+      : "Students from anywhere may be asking. Code-mixed English (like Taglish) in a question is normal; answer in English unless they write in another language, then match them.";
 
   return `You are the assistant on Tuón's landing page. You answer questions from visitors who are deciding whether to sign up.
 

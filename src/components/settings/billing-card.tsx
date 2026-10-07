@@ -9,6 +9,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { isRevenueCatAvailable, purchaseWithCard } from "@/lib/billing/revenuecat-client";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { useQuota } from "@/components/app/quota-indicator";
+import { countryOrDefault, isPhilippines } from "@/lib/countries";
 import {
   GENERATION_EXPLAINER,
   PLANS,
@@ -122,7 +123,7 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
         {!paid ? (
           <>
             <Separator />
-            <UpgradePicker />
+            <UpgradePicker country={profile.country} />
           </>
         ) : null}
       </CardContent>
@@ -130,7 +131,8 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
   );
 }
 
-function UpgradePicker() {
+function UpgradePicker({ country }: { country?: string | null }) {
+  const isPH = isPhilippines(countryOrDefault(country));
   const { authedFetch, user } = useAuth();
   const { t } = useI18n();
   const [period, setPeriod] = useState<BillingPeriod>("annual");
@@ -221,8 +223,13 @@ function UpgradePicker() {
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {PLAN_ORDER.filter((id) => id !== "free").map((id) => {
           const definition = PLANS[id];
-          const price =
-            period === "annual" ? definition.phpAnnual : definition.phpMonthly;
+          // PayMongo settles in PHP only — GCash and Maya do not exist outside
+          // the Philippines. Everywhere else the price is shown in USD, which
+          // is what RevenueCat's own Stripe-backed checkout actually charges.
+          const price = isPH
+            ? (period === "annual" ? definition.phpAnnual : definition.phpMonthly)
+            : (period === "annual" ? definition.usdAnnual : definition.usdMonthly);
+          const symbol = isPH ? "₱" : "$";
 
           return (
             <div
@@ -235,7 +242,8 @@ function UpgradePicker() {
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">{definition.name}</span>
                 <span className="font-display text-lg font-semibold tabular-nums">
-                  ₱{price?.toLocaleString(t.common.dateLocale)}
+                  {symbol}
+                  {price?.toLocaleString(t.common.dateLocale)}
                   <span className="text-muted-foreground text-xs font-normal">
                     /{period === "annual" ? t.billing.perYear : t.billing.perMonth}
                   </span>
@@ -252,45 +260,65 @@ function UpgradePicker() {
                   </li>
                 ))}
               </ul>
-              <Button
-                className="mt-3 w-full"
-                variant={id === upgrade.id ? "default" : "outline"}
-                onClick={() => checkout(id)}
-                disabled={pending !== null}
-              >
-                {pending === id ? <Loader2 className="animate-spin" /> : null}
-                {t.billing.choose(definition.name)}
-              </Button>
 
-              {/* A second path for a Visa/Mastercard from outside the
-                  Philippines — PayMongo already covers PH-issued cards
-                  through the button above, so this only appears when
-                  RevenueCat is actually configured, never as a dead link. */}
-              {isRevenueCatAvailable() ? (
+              {isPH ? (
+                <>
+                  <Button
+                    className="mt-3 w-full"
+                    variant={id === upgrade.id ? "default" : "outline"}
+                    onClick={() => checkout(id)}
+                    disabled={pending !== null}
+                  >
+                    {pending === id ? <Loader2 className="animate-spin" /> : null}
+                    {t.billing.choose(definition.name)}
+                  </Button>
+
+                  {/* A second path for a Visa/Mastercard — PayMongo already
+                      covers GCash, Maya and PH-issued cards through the
+                      button above, so this only appears when RevenueCat is
+                      actually configured, never as a dead link. */}
+                  {isRevenueCatAvailable() ? (
+                    <Button
+                      className="mt-1.5 w-full"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => payByCard(id)}
+                      disabled={cardPending !== null}
+                    >
+                      {cardPending === id ? <Loader2 className="animate-spin" /> : null}
+                      {t.billing.payByCard(definition.name)}
+                    </Button>
+                  ) : null}
+                </>
+              ) : (
+                // Outside the Philippines, RevenueCat's card checkout is the
+                // only rail there is — PayMongo's GCash/Maya buttons would be
+                // a dead end for a payment method that does not exist here.
                 <Button
-                  className="mt-1.5 w-full"
-                  variant="ghost"
-                  size="sm"
+                  className="mt-3 w-full"
+                  variant={id === upgrade.id ? "default" : "outline"}
                   onClick={() => payByCard(id)}
-                  disabled={cardPending !== null}
+                  disabled={cardPending !== null || !isRevenueCatAvailable()}
                 >
                   {cardPending === id ? <Loader2 className="animate-spin" /> : null}
-                  {t.billing.payByCard(definition.name)}
+                  {isRevenueCatAvailable()
+                    ? t.billing.choose(definition.name)
+                    : t.billing.notLive}
                 </Button>
-              ) : null}
+              )}
             </div>
           );
         })}
       </div>
 
-      {isRevenueCatAvailable() ? (
+      {isPH && isRevenueCatAvailable() ? (
         <p className="text-muted-foreground mt-2 text-xs">
           {t.billing.orPayAbroad}
         </p>
       ) : null}
 
       <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-        {t.billing.payWith}
+        {isPH ? t.billing.payWith : t.billing.payWithCard}
       </p>
     </div>
   );

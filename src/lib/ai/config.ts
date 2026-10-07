@@ -85,9 +85,18 @@ export interface PlanDefinition {
   tagline: string;
   /** Study sets included per calendar month. */
   monthlyGenerations: number;
+  /**
+   * Fallback display prices for the PayMongo path, which is Philippines-only
+   * (GCash and Maya do not exist outside it). Everywhere else, the real price
+   * is whatever RevenueCat's own catalog says — see
+   * `revenuecat-client.ts` — these USD figures are shown before that call
+   * resolves, or if it never does.
+   */
   phpMonthly: number;
   /** Prepaid for a year. Null on the free plan. */
   phpAnnual: number | null;
+  usdMonthly: number;
+  usdAnnual: number | null;
   /** Longest note this plan may send to the model. */
   maxNoteChars: number;
   /**
@@ -117,6 +126,8 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     monthlyGenerations: 5,
     phpMonthly: 0,
     phpAnnual: null,
+    usdMonthly: 0,
+    usdAnnual: null,
     maxNoteChars: 30_000,
     cooldownSeconds: 20,
     canExport: false,
@@ -143,6 +154,8 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     // Ten months' price for twelve months' access — the clearest way to say
     // "two months free", and far easier to grasp than a percentage.
     phpAnnual: 1_490,
+    usdMonthly: 2.99,
+    usdAnnual: 29.9,
     maxNoteChars: 60_000,
     cooldownSeconds: 5,
     canExport: true,
@@ -166,6 +179,8 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     monthlyGenerations: 120,
     phpMonthly: 299,
     phpAnnual: 2_990,
+    usdMonthly: 5.99,
+    usdAnnual: 59.9,
     maxNoteChars: 120_000,
     cooldownSeconds: 0,
     canExport: true,
