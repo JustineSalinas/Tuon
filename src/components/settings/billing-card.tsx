@@ -47,7 +47,7 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
   const paid = access.plan !== "free";
 
   return (
-    <Card className="mt-8">
+    <Card className="mt-6">
       <CardContent className="space-y-4">
         <CheckoutResultBanner />
 

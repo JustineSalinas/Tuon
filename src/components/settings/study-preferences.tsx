@@ -61,7 +61,7 @@ export function StudyPreferences() {
   const { t } = useI18n();
 
   return (
-    <section className="mt-8">
+    <section className="rounded-xl border bg-card p-6 shadow-sm">
       <h2 className="font-display text-lg font-semibold tracking-tight">
         {t.settings.studying}
       </h2>

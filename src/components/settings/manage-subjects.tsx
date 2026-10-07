@@ -91,7 +91,7 @@ export function ManageSubjects({ courses }: { courses: string[] }) {
   if (courses.length === 0 && orphans.length === 0) return null;
 
   return (
-    <section className="mt-8">
+    <section className="rounded-xl border bg-card p-6 shadow-sm">
       <div className="flex items-center gap-2">
         <Tags className="text-muted-foreground size-4" />
         <h2 className="font-display text-lg font-semibold tracking-tight">

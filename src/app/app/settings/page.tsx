@@ -37,7 +37,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
@@ -161,7 +160,7 @@ function SettingsForm({
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-6 md:px-8 md:py-10">
+    <main className="w-full max-w-none px-4 py-6 md:px-10 md:py-10">
       <h1 className="font-display text-3xl font-semibold tracking-tight">
         {t.settings.title}
       </h1>
@@ -169,8 +168,10 @@ function SettingsForm({
       {/* Plan */}
       <BillingCard profile={profile} />
 
-      {/* Profile */}
-      <section className="mt-8">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-6">
+          {/* Profile */}
+          <section className="rounded-xl border bg-card p-6 shadow-sm">
         <h2 className="font-display text-lg font-semibold tracking-tight">
           {t.settingsPage.profile}
         </h2>
@@ -472,43 +473,40 @@ function SettingsForm({
             {t.settingsPage.saveChanges}
           </Button>
         </div>
-      </section>
+          </section>
 
-      <Separator className="my-8" />
+          {/* Above "Manage subjects" on purpose: this decides which subjects
+              are on offer, and that one deals with the material already
+              tagged. */}
+          <section className="rounded-xl border bg-card p-6 shadow-sm">
+            <Semesters />
+          </section>
 
-      {/* Above "Manage subjects" on purpose: this decides which subjects are
-          on offer, and that one deals with the material already tagged. */}
-      <section className="mt-8">
-        <Semesters />
-      </section>
+          {/* After the profile form, because it operates on what that form
+              saved and is the only safe way to take a subject away again. */}
+          <ManageSubjects courses={profile.courses ?? []} />
 
-      {/* After the profile form, because it operates on what that form saved
-          and is the only safe way to take a subject away again. */}
-      <ManageSubjects courses={profile.courses ?? []} />
-
-      <StudyPreferences />
-
-      <Separator className="my-8" />
-
-      <AccountSecurity />
-
-      <Separator className="my-8" />
-
-      <DataAndAccount />
-
-      <Separator className="my-8" />
-
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{email}</p>
-          <p className="text-muted-foreground text-xs">
-            {t.settingsPage.signedIn}
-          </p>
+          <StudyPreferences />
         </div>
-        <Button variant="outline" onClick={handleSignOut}>
-          <LogOut />
-          {t.nav.signOut}
-        </Button>
+
+        <div className="space-y-6">
+          <AccountSecurity />
+
+          <DataAndAccount />
+
+          <div className="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{email}</p>
+              <p className="text-muted-foreground text-xs">
+                {t.settingsPage.signedIn}
+              </p>
+            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut />
+              {t.nav.signOut}
+            </Button>
+          </div>
+        </div>
       </div>
     </main>
   );

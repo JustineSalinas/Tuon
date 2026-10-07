@@ -41,7 +41,7 @@ export function AccountSecurity() {
   const usesPassword = user.providerData.some((p) => p.providerId === "password");
 
   return (
-    <section className="mt-8">
+    <section className="rounded-xl border bg-card p-6 shadow-sm">
       <h2 className="font-display text-lg font-semibold tracking-tight">
         {t.security.title}
       </h2>

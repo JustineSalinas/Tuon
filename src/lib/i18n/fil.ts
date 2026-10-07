@@ -686,7 +686,7 @@ export const fil: Messages = {
     schoolNote: "Opsyonal. Ikaw lang ang nakakakita nito.",
     educationLevel: "Antas ng pag-aaral",
     strandNote:
-      "Ang pagpapalit ng strand mo ay nagpapalit ng mga subject na inaalok. Mananatili sa mga nota at study set mo ang tag na meron na sila — walang mare-retag o mabubura.",
+      "Ang pagpapalit ng strand mo ay nagpapalit ng mga subject na inaalok. Mananatili sa mga nota at study set mo ang tag na meron na sila; walang mare-retag o mabubura.",
     change: "Palitan",
     subjects: "Mga subject",
     course: "Kurso",
@@ -927,7 +927,7 @@ export const fil: Messages = {
     graceOneDay: "isa pang araw",
     graceDays: (days: number) => `${days} pang araw`,
     graceBody: (window: string) =>
-      `Mananatili sa iyo ang lahat sa loob ng ${window} habang inaayos mo ito. Walang mabubura sa alinmang paraan — pagkatapos niyon, babalik lang sa libreng limitasyon ang account.`,
+      `Mananatili sa iyo ang lahat sa loob ng ${window} habang inaayos mo ito. Walang mabubura sa alinmang paraan; pagkatapos niyon, babalik lang sa libreng limitasyon ang account.`,
     cancelledUntil: (plan: string, date: string) =>
       `Kinansela. Sa iyo pa rin ang ${plan} hanggang ${date}.`,
     renews: (date: string) => `Magre-renew sa ${date}.`,
