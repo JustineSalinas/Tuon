@@ -86,10 +86,15 @@ export const LOCALE_STORAGE_KEY = "tuon.locale";
  * reader applied English pronunciation rules to Filipino text: a real WCAG
  * 3.1.1 (Language of Page) failure, not a cosmetic one.
  *
- * `"en"` and `"fil"` are both already valid BCP-47 primary language subtags,
- * so the locale id is used directly with no separate mapping table to drift
- * out of sync with `LOCALES` above.
+ * Every locale id here is already a valid BCP-47 primary language subtag
+ * (`"en"`, `"fil"`, …), so it is used directly with no separate mapping table
+ * to drift out of sync with `LOCALES` above. The allow-list is generated from
+ * `LOCALES` itself rather than hard-coded, so a third language dropped in
+ * there is covered here automatically — the first version of this checked
+ * `l==="en"||l==="fil"` literally, which would have silently left `<html>` on
+ * its default language for anyone who picked a locale added later.
  */
+const LOCALE_IDS = LOCALES.map((l) => l.id);
 export const localeScript = `(function(){try{var l=localStorage.getItem(${JSON.stringify(
   LOCALE_STORAGE_KEY,
-)});if(l==="en"||l==="fil"){document.documentElement.setAttribute('lang',l)}}catch(e){}})()`;
+)});if(${JSON.stringify(LOCALE_IDS)}.indexOf(l)!==-1){document.documentElement.setAttribute('lang',l)}}catch(e){}})()`;
