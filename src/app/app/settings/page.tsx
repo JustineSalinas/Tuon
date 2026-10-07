@@ -21,9 +21,9 @@ import { ExamDateField } from "@/components/profile/exam-date-field";
 import {
   BOARD_EXAMS,
   COLLEGE_PROGRAMS,
-  EDUCATION_LEVELS,
   STRANDS,
   educationLevelLabel,
+  educationLevelsFor,
   getSubjectGroups,
   isBoardReview,
   isSeniorHigh,
@@ -253,7 +253,7 @@ function SettingsForm({
                 </div>
 
                 <div className="grid gap-2 border-t pt-3 sm:grid-cols-3">
-                  {EDUCATION_LEVELS.map((option) => (
+                  {educationLevelsFor(country).map((option) => (
                     <Chip
                       key={option.value}
                       label={option.label}
@@ -319,7 +319,7 @@ function SettingsForm({
                   </Badge>
                 ) : null}
                 <Badge variant="secondary">
-                  {educationLevelLabel(profile.educationLevel)}
+                  {educationLevelLabel(profile.educationLevel, profile.country)}
                 </Badge>
                 {strandLabel(profile.strand) ? (
                   <Badge variant="secondary">
