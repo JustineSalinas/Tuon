@@ -1312,6 +1312,12 @@ export const en = {
     finish: "Finish setup",
     continue: "Continue",
     saveFailed: "Could not save your setup. Please try again.",
+    verifyEmailTitle: "Confirm your email first",
+    verifyEmailBody: (email: string) =>
+      `We sent a link to ${email}. Open it, then come back here to keep setting up your account.`,
+    verifyEmailBodyNoAddress:
+      "We sent a link to your email. Open it, then come back here to keep setting up your account.",
+    resendVerification: "Resend the link",
     nameTitle: "What should we call you?",
     nameSub: (creature: string) => `This is how ${creature} will greet you.`,
     displayName: "Display name",

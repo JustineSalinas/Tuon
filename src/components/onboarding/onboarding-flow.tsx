@@ -18,6 +18,7 @@ import {
 } from "@/components/brand/paper-creature";
 import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
 import { ExamDateField } from "@/components/profile/exam-date-field";
+import { VerifyEmailGate } from "@/components/onboarding/verify-email-gate";
 import {
   BOARD_EXAMS,
   COLLEGE_PROGRAMS,
@@ -756,6 +757,13 @@ export function OnboardingFlow() {
         <span className="sr-only">{t.onboarding.loading}</span>
       </main>
     );
+  }
+
+  // Google sign-in arrives already verified and never sees this. Email/
+  // password signup does, once, right here — see VerifyEmailGate for why
+  // this is the one deliberate exception to "verification never blocks".
+  if (!user.emailVerified) {
+    return <VerifyEmailGate email={user.email} />;
   }
 
   return (
