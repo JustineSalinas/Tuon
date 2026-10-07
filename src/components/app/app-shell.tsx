@@ -350,7 +350,7 @@ function UserMenu({ align }: { align: "start" | "end" }) {
   );
   const context = [
     term?.name,
-    educationLevelLabel(profile?.educationLevel ?? null),
+    educationLevelLabel(profile?.educationLevel ?? null, profile?.country),
     strandLabel(profile?.strand ?? null),
   ]
     .filter(Boolean)

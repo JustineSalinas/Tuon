@@ -35,10 +35,64 @@ export const EDUCATION_LEVELS: {
 ];
 
 /**
+ * How the last two years of high school are actually said, in the handful of
+ * countries where "Grade 11" / "Grade 12" is not the word a student there
+ * would use. `EDUCATION_LEVELS`' own "Grade 11" / "Grade 12" is the ISCED
+ * convention international schools already use worldwide — not wrong
+ * anywhere, just not *native* everywhere — so this only overrides it where a
+ * genuinely different, well-known term exists. `college` and `board_review`
+ * are left alone: both already read naturally in every country Tuón has
+ * real signal for.
+ *
+ * A short, researched list rather than an attempt at every country, same
+ * reasoning `schools.ts` uses for its own two-country pilot: a wrong local
+ * term is worse than the honest, understood default, so an unlisted country
+ * keeps that default rather than getting a guess.
+ */
+const LEVEL_WORDING_BY_COUNTRY: Record<
+  string,
+  { grade11: { label: string; hint: string }; grade12: { label: string; hint: string } }
+> = {
+  US: {
+    grade11: { label: "11th grade", hint: "Junior year" },
+    grade12: { label: "12th grade", hint: "Senior year" },
+  },
+  GB: {
+    grade11: { label: "Year 12", hint: "Lower sixth form" },
+    grade12: { label: "Year 13", hint: "Upper sixth form" },
+  },
+  IN: {
+    grade11: { label: "Class 11", hint: "Senior secondary" },
+    grade12: { label: "Class 12", hint: "Senior secondary" },
+  },
+  AU: {
+    grade11: { label: "Year 11", hint: "Senior secondary" },
+    grade12: { label: "Year 12", hint: "Senior secondary" },
+  },
+};
+
+/**
+ * `EDUCATION_LEVELS`, re-worded for the student's own country where a real
+ * local term exists. The VALUE stored on the profile never changes — still
+ * `"grade_11"` / `"grade_12"` regardless of country, since that is what
+ * `strandsAvailable` and the scheduler key off — only the label and hint a
+ * student actually reads change.
+ */
+export function educationLevelsFor(
+  country: string | null | undefined,
+): typeof EDUCATION_LEVELS {
+  const wording = LEVEL_WORDING_BY_COUNTRY[countryOrDefault(country)];
+  if (!wording) return EDUCATION_LEVELS;
+  return EDUCATION_LEVELS.map((level) => {
+    if (level.value === "grade_11") return { ...level, ...wording.grade11 };
+    if (level.value === "grade_12") return { ...level, ...wording.grade12 };
+    return level;
+  });
+}
+
+/**
  * Whether this profile sees the Philippine Senior High strand picker and the
- * PRC board-exam list, rather than free text. The one place in the whole
- * curriculum model that reads `country` — everything downstream of this
- * takes a plain boolean, not the country code itself.
+ * PRC board-exam list, rather than free text.
  */
 export function strandsAvailable(country: string | null | undefined): boolean {
   return countryIsPhilippines(countryOrDefault(country));
@@ -351,8 +405,12 @@ export function isBoardReview(level: EducationLevel | null): boolean {
   return level === "board_review";
 }
 
-export function educationLevelLabel(level: EducationLevel | null): string {
-  return EDUCATION_LEVELS.find((l) => l.value === level)?.label ?? "Student";
+export function educationLevelLabel(
+  level: EducationLevel | null,
+  country?: string | null,
+): string {
+  const levels = country === undefined ? EDUCATION_LEVELS : educationLevelsFor(country);
+  return levels.find((l) => l.value === level)?.label ?? "Student";
 }
 
 export function strandLabel(strand: Strand | null): string | null {

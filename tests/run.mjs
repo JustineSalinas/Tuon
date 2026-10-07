@@ -29,5 +29,6 @@ import "./companion.test.mjs";
 import "./rate-limit.test.mjs";
 import "./memory.test.mjs";
 import "./anki.test.mjs";
+import "./education-levels.test.mjs";
 import "./free-time.test.mjs";
 import "./schools.test.mjs";

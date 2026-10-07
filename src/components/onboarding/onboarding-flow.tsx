@@ -21,9 +21,9 @@ import { ExamDateField } from "@/components/profile/exam-date-field";
 import {
   BOARD_EXAMS,
   COLLEGE_PROGRAMS,
-  EDUCATION_LEVELS,
   STRANDS,
   STRAND_TRACKS,
+  educationLevelsFor,
   getSubjectGroups,
   isBoardReview,
   isSeniorHigh,
@@ -377,7 +377,7 @@ function OnboardingWizard({ initialName }: { initialName: string }) {
                 subtitle={t.onboarding.levelSub}
               >
                 <div className="grid gap-3">
-                  {EDUCATION_LEVELS.map((level) => (
+                  {educationLevelsFor(country).map((level) => (
                     <SelectCard
                       key={level.value}
                       selected={educationLevel === level.value}
