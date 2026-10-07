@@ -2,8 +2,8 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import { PaperCreature } from "@/components/brand/paper-creature";
 import { TuonMark } from "@/components/brand/logo";
-import { TalaPerch } from "@/components/marketing/tala";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { PLANS } from "@/lib/ai/config";
 
@@ -56,29 +56,36 @@ export function AuthAside() {
   return (
     <aside className="bg-secondary/60 paper-grain relative hidden items-center justify-center overflow-hidden border-r px-12 lg:flex">
       {/* Two soft terracotta blobs rather than a flat wash — depth without
-          a single hard gradient edge anywhere in the panel. */}
+          a single hard gradient edge anywhere in the panel. Clipped to the
+          panel by the aside's own overflow-hidden, so neither ever reaches
+          the divider against the form. */}
       <div
         aria-hidden="true"
         className="bg-primary/15 pointer-events-none absolute -top-24 -left-24 size-[380px] rounded-full blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="bg-primary/10 pointer-events-none absolute -right-32 bottom-0 size-[320px] rounded-full blur-3xl"
+        className="bg-primary/10 pointer-events-none absolute -bottom-32 left-1/2 size-[320px] -translate-x-1/2 rounded-full blur-3xl"
       />
 
-      <TalaPerch className="top-10 right-10 size-20" />
-
-      <motion.div className="relative z-10 max-w-md" {...container}>
-        <motion.div {...item} className="flex items-center gap-3">
-          <TuonMark className="text-primary size-9" />
-          <span className="text-primary text-xs font-medium tracking-widest uppercase">
-            {t.auth.aside.eyebrow}
-          </span>
+      <motion.div className="relative z-10 w-full max-w-md" {...container}>
+        {/* Tala sits IN the header row rather than floating free above it —
+            anchored to the mark and the eyebrow at the same baseline,
+            instead of pinned to the panel's own corner with nothing to
+            relate it to, which is what read as "just dropped there". */}
+        <motion.div {...item} className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <TuonMark className="text-primary size-9" />
+            <span className="text-primary text-xs font-medium tracking-widest uppercase">
+              {t.auth.aside.eyebrow}
+            </span>
+          </div>
+          <PaperCreature state="idle" className="size-14 shrink-0" />
         </motion.div>
 
         <motion.p
           {...item}
-          className="font-display mt-7 text-4xl leading-[1.1] font-semibold tracking-tight text-balance"
+          className="font-display mt-8 text-4xl leading-[1.1] font-semibold tracking-tight text-balance"
         >
           {t.auth.aside.meaning}
         </motion.p>
@@ -87,7 +94,7 @@ export function AuthAside() {
           {t.auth.aside.body}
         </motion.p>
 
-        <motion.dl {...item} className="mt-11 grid grid-cols-3 gap-3">
+        <motion.dl {...item} className="mt-10 grid grid-cols-3 gap-3">
           {[
             ["8–15", t.auth.aside.cardsPerNote],
             ["SM-2", t.auth.aside.spacedRepetition],
