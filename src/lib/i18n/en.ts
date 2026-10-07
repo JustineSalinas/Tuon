@@ -1695,6 +1695,8 @@ export const en = {
     faq: {
       eyebrow: "Questions",
       title: "The things people ask first",
+      show: "Show",
+      hide: "Hide",
       /**
        * Answers may carry a `{link}` placeholder, which the view replaces with
        * the entry's link. A placeholder rather than split fragments because

@@ -1693,6 +1693,8 @@ export const fil: Messages = {
     faq: {
       eyebrow: "Mga tanong",
       title: "Ang unang itinatanong ng mga tao",
+      show: "Ipakita",
+      hide: "Itago",
       items: [
         {
           q: "Libre ba talaga?",
