@@ -1309,6 +1309,12 @@ export const fil: Messages = {
     finish: "Tapusin ang setup",
     continue: "Magpatuloy",
     saveFailed: "Hindi ma-save ang setup mo. Subukan ulit.",
+    verifyEmailTitle: "Kumpirmahin muna ang email mo",
+    verifyEmailBody: (email: string) =>
+      `Nagpadala kami ng link sa ${email}. Buksan ito, tapos bumalik dito para ituloy ang pag-set up ng account mo.`,
+    verifyEmailBodyNoAddress:
+      "Nagpadala kami ng link sa email mo. Buksan ito, tapos bumalik dito para ituloy ang pag-set up ng account mo.",
+    resendVerification: "Ipadala ulit ang link",
     nameTitle: "Ano ang itatawag namin sa iyo?",
     nameSub: (creature: string) => `Ganito ka babatiin ni ${creature}.`,
     displayName: "Pangalang ipapakita",
