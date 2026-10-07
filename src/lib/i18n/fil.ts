@@ -60,6 +60,8 @@ export const fil: Messages = {
     startTheTimer: "Simulan ang timer",
     comingUp: "Paparating",
     allDeadlines: "Kalendaryo",
+    thisMonth: "Ngayong buwan",
+    openCalendar: "Buksan ang kalendaryo",
     nothingDue: "Walang nakatakda",
     addDeadline: "Magdagdag ng deadline sa kalendaryo",
     yearOfStudy: "Ang taon mo",

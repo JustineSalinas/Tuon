@@ -31,6 +31,7 @@ import {
 import { TodaysPlan } from "@/components/app/todays-plan";
 import { WeekStudy } from "@/components/app/week-study";
 import { Upcoming } from "@/components/app/upcoming";
+import { MiniCalendar } from "@/components/app/mini-calendar";
 import { buildReadiness } from "@/lib/stats/readiness";
 import { Button } from "@/components/ui/button";
 import { buildPlan } from "@/lib/stats/plan";
@@ -281,12 +282,15 @@ export default function DashboardPage() {
             ) : null}
           </div>
 
-          {/* The habit and the horizon, side by side. Everything above
-              answers a question about the cards; these two answer "have I
-              actually been doing this" and "for what" — and neither is much
-              use alone. An empty week is only alarming next to a deadline,
-              and a deadline is only reassuring next to a week of work. */}
-          <div className="mt-10 grid items-start gap-8 lg:grid-cols-2">
+          {/* The habit, the horizon and the shape of the month. Everything
+              above answers a question about the cards; these answer "have I
+              actually been doing this", "for what" and "what does the rest
+              of the month look like" — none of much use alone. An empty
+              week is only alarming next to a deadline, and a deadline is
+              only reassuring next to a week of work. The month card is the
+              lightest of the three on purpose: a dot per day, a tap to the
+              real calendar for anything past that. */}
+          <div className="mt-10 grid items-start gap-8 lg:grid-cols-3">
             <section className="min-w-0">
               <SectionHeading
                 title={t.dashboard.thisWeek}
@@ -306,6 +310,17 @@ export default function DashboardPage() {
               />
               <div className="mt-3">
                 <Upcoming />
+              </div>
+            </section>
+
+            <section className="min-w-0">
+              <SectionHeading
+                title={t.dashboard.thisMonth}
+                href="/app/calendar"
+                linkLabel={t.dashboard.allDeadlines}
+              />
+              <div className="mt-3">
+                <MiniCalendar />
               </div>
             </section>
           </div>

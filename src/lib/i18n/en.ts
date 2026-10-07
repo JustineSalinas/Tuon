@@ -54,6 +54,8 @@ export const en = {
     startTheTimer: "Start the timer",
     comingUp: "Coming up",
     allDeadlines: "Calendar",
+    thisMonth: "This month",
+    openCalendar: "Open calendar",
     nothingDue: "Nothing due",
     addDeadline: "Add a deadline in the calendar",
     yearOfStudy: "Your year",

@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Loader2, LogOut, RotateCcw } from "lucide-react";
+import { AlertTriangle, LogOut, RotateCcw } from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { AppShell } from "@/components/app/app-shell";
+import { Preloader } from "@/components/brand/preloader";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -40,12 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     authLoading || !user || profileLoading || !profile || !profile.onboardingCompleted;
 
   if (settling) {
-    return (
-      <div className="grid min-h-dvh place-items-center">
-        <Loader2 className="text-muted-foreground size-6 animate-spin" />
-        <span className="sr-only">Loading</span>
-      </div>
-    );
+    return <Preloader />;
   }
 
   return <AppShell>{children}</AppShell>;
