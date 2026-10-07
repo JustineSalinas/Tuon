@@ -10,7 +10,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock, Mail } from "lucide-react";
 
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { requestVerificationEmail } from "@/lib/email/request-verification";
@@ -145,123 +145,143 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-md">
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
         <Link href="/" className="inline-block">
           <Wordmark />
         </Link>
 
-        <h1 className="font-display mt-8 text-3xl font-semibold tracking-tight">
-          {isSignup ? t.auth.signupHeading : t.auth.loginHeading}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          {isSignup ? t.auth.signupSub : t.auth.loginSub}
-        </p>
+        <div className="bg-card border-border/70 shadow-primary/5 mt-7 rounded-3xl border p-8 shadow-xl sm:p-10">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-balance">
+            {isSignup ? t.auth.signupHeading : t.auth.loginHeading}
+          </h1>
+          <p className="text-muted-foreground mt-2.5 text-sm leading-relaxed">
+            {isSignup ? t.auth.signupSub : t.auth.loginSub}
+          </p>
 
-        {error ? (
-          <Alert variant="destructive" className="mt-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
+          {error ? (
+            <Alert variant="destructive" className="mt-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
-        <form onSubmit={handleEmailSubmit} className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t.auth.email}</Label>
-            <Input
-              id="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              required
-              placeholder={t.auth.emailPlaceholder}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={pending !== null}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="password">{t.auth.password}</Label>
-              {/* Sign-in only: on the signup form there is no account to
-                  recover yet, and offering it there just adds doubt. */}
-              {!isSignup ? (
-                <Link
-                  href="/reset-password"
-                  className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4"
-                >
-                  {t.auth.forgot}
-                </Link>
-              ) : null}
+          <form onSubmit={handleEmailSubmit} className="mt-8 space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t.auth.email}</Label>
+              <div className="relative">
+                <Mail
+                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  required
+                  placeholder={t.auth.emailPlaceholder}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={pending !== null}
+                  className="h-11 pl-9"
+                />
+              </div>
             </div>
-            <PasswordInput
-              id="password"
-              autoComplete={isSignup ? "new-password" : "current-password"}
-              required
-              placeholder={
-                isSignup
-                  ? t.auth.newPasswordPlaceholder
-                  : t.auth.passwordPlaceholder
-              }
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="password">{t.auth.password}</Label>
+                {/* Sign-in only: on the signup form there is no account to
+                    recover yet, and offering it there just adds doubt. */}
+                {!isSignup ? (
+                  <Link
+                    href="/reset-password"
+                    className="text-muted-foreground hover:text-primary text-sm underline underline-offset-4"
+                  >
+                    {t.auth.forgot}
+                  </Link>
+                ) : null}
+              </div>
+              <div className="relative">
+                <Lock
+                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2"
+                  aria-hidden="true"
+                />
+                <PasswordInput
+                  id="password"
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                  required
+                  placeholder={
+                    isSignup
+                      ? t.auth.newPasswordPlaceholder
+                      : t.auth.passwordPlaceholder
+                  }
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={pending !== null}
+                  className="h-11 pl-9"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full shadow-sm"
+              size="lg"
               disabled={pending !== null}
-            />
+            >
+              {pending === "email" ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  {isSignup ? t.auth.creatingAccount : t.auth.signingIn}
+                </>
+              ) : isSignup ? (
+                t.auth.createAccount
+              ) : (
+                t.auth.signIn
+              )}
+            </Button>
+          </form>
+
+          <div className="relative my-7">
+            <Separator />
+            <span className="bg-card text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 text-xs font-medium tracking-widest uppercase">
+              {t.auth.or}
+            </span>
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={pending !== null}>
-            {pending === "email" ? (
-              <>
-                <Loader2 className="animate-spin" />
-                {isSignup ? t.auth.creatingAccount : t.auth.signingIn}
-              </>
-            ) : isSignup ? (
-              t.auth.createAccount
-            ) : (
-              t.auth.signIn
-            )}
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={handleGoogle}
+            disabled={pending !== null}
+          >
+            {pending === "google" ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
+            {t.auth.continueWithGoogle}
           </Button>
-        </form>
 
-        <div className="my-6 flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-muted-foreground text-xs uppercase tracking-widest">
-            {t.auth.or}
-          </span>
-          <Separator className="flex-1" />
+          {isSignup ? (
+            <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
+              {t.auth.termsBefore}{" "}
+              <Link href="/terms" className="hover:text-primary underline underline-offset-4">
+                {t.auth.terms}
+              </Link>{" "}
+              {t.auth.termsAnd}{" "}
+              <Link href="/privacy" className="hover:text-primary underline underline-offset-4">
+                {t.auth.privacy}
+              </Link>
+              {t.auth.termsAfter}
+            </p>
+          ) : null}
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="w-full"
-          onClick={handleGoogle}
-          disabled={pending !== null}
-        >
-          {pending === "google" ? <Loader2 className="animate-spin" /> : <GoogleIcon />}
-          {t.auth.continueWithGoogle}
-        </Button>
-
-        {isSignup ? (
-          <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
-            {t.auth.termsBefore}{" "}
-            <Link href="/terms" className="hover:text-foreground underline underline-offset-4">
-              {t.auth.terms}
-            </Link>{" "}
-            {t.auth.termsAnd}{" "}
-            <Link href="/privacy" className="hover:text-foreground underline underline-offset-4">
-              {t.auth.privacy}
-            </Link>
-            {t.auth.termsAfter}
-          </p>
-        ) : null}
-
-        <p className="text-muted-foreground mt-8 text-center text-sm">
+        <p className="text-muted-foreground mt-7 text-center text-sm">
           {isSignup ? t.auth.haveAccount : t.auth.newHere}
           <Link
             href={isSignup ? "/login" : "/signup"}

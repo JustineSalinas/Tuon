@@ -848,7 +848,7 @@ export const fil: Messages = {
     resend: "Ipadala ulit",
     change: "Palitan",
     newEmail: "Bagong email address",
-    emailPlaceholder: "juan@example.com",
+    emailPlaceholder: "alex@example.com",
     currentPassword: "Kasalukuyang password mo",
     googleReauth:
       "Hihilingin sa iyong mag-sign in muli gamit ang Google para kumpirmahin.",
@@ -1231,7 +1231,7 @@ export const fil: Messages = {
       "Gawing flashcards at quiz ang notes mo sa klase sa loob ng ilang segundo.",
     loginSub: "Ituloy kung saan ka huminto.",
     email: "Email",
-    emailPlaceholder: "juan@example.com",
+    emailPlaceholder: "alex@example.com",
     password: "Password",
     forgot: "Nakalimutan ang password?",
     newPasswordPlaceholder: "Hindi bababa sa 6 na karakter",
@@ -1252,12 +1252,13 @@ export const fil: Messages = {
     newHere: "Bago sa Tuón? ",
     createOne: "Gumawa ng isa",
     aside: {
+      eyebrow: "Suportado ng agham ng memorya",
       meaning:
-        "Ang “Tuón” ay nangangahulugang mag-aral — ibigay ang buong atensyon mo sa isang bagay.",
+        "Ang “Tuón” ay nangangahulugang mag-aral: ibigay ang buong atensyon mo sa isang bagay.",
       body: "I-paste ang notes mo sa klase. Makakuha ng flashcards at practice quiz sa ilang segundo, tapos i-review ang mga ito sa iskedyul na naglalagay ng bawat kard sa harap mo bago mo pa ito makalimutan.",
       cardsPerNote: "flashcard kada nota",
       spacedRepetition: "spaced repetition",
-      strandsBuiltIn: "nakapaloob ang SHS strands",
+      freeStudySets: "libreng study set kada buwan",
     },
     reset: {
       heading: "Nakalimutan ang password mo?",
