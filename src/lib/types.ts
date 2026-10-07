@@ -7,10 +7,7 @@ import type { Timestamp } from "firebase/firestore";
  * so the door was closed on people the pricing already invited.
  */
 export type EducationLevel =
-  | "grade_11"
-  | "grade_12"
-  | "college"
-  | "board_review";
+  "grade_11" | "grade_12" | "college" | "board_review";
 /**
  * SHS track/strand. DepEd has four TRACKS; the Academic track is the one with
  * four strands under it, TVL has four, and Sports and Arts and Design have
@@ -52,8 +49,23 @@ export interface UserProfile {
    */
   semesters?: { id: string; name: string; subjects: string[] }[];
   activeSemesterId?: string | null;
-  /** Only meaningful for grade_11 / grade_12. Null for college. */
+  /** Only meaningful for grade_11 / grade_12, and only inside the Philippines
+   * — see `strandsAvailable` in lib/curriculum.ts. Null everywhere else. */
   strand: Strand | null;
+  /**
+   * ISO 3166-1 alpha-2, e.g. "PH", "US". Absent means never asked — onboarding
+   * added this after the Philippines-only build, so most existing accounts
+   * have no value here and are treated as Philippine until they set one,
+   * which is the one assumption `countryOrDefault` in lib/countries.ts makes
+   * on their behalf.
+   *
+   * The only three things this gates: which curriculum picker renders (see
+   * `strandsAvailable`), whether PayMongo is offered beside the card path,
+   * and the suggested default timezone. Nothing else in the app branches on
+   * it, and it should stay that way — a student's country is not a reason to
+   * change how spaced repetition or generation behaves.
+   */
+  country?: string | null;
   /**
    * Free text, self-reported, optional. Not validated against any
    * institution list — see lib/schools.ts for why.

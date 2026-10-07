@@ -1260,6 +1260,11 @@ export const fil: Messages = {
     nameSub: (creature: string) => `Ganito ka babatiin ni ${creature}.`,
     displayName: "Pangalang ipapakita",
     namePlaceholder: "Juan",
+    countryTitle: "Nasaan ka?",
+    countrySub:
+      "Ito ang magpapasya kung anong kurikulum ang ipapakita namin, at kung anong paraan ng pagbabayad ang maaalok.",
+    country: "Bansa",
+    countryPlaceholder: "Simulang i-type ang bansa mo",
     levelTitle: "Saan ka nag-aaral?",
     levelSub:
       "Binabago nito kung paano namin ita-tag ang mga nota mo at kung paano isusulat ang flashcards mo.",
@@ -1274,8 +1279,10 @@ export const fil: Messages = {
     strandSub: "Ipapakita namin ang mga subject na kasama nito.",
     subjectsTitle: "Anong mga subject ang kinukuha mo?",
     subjectsSub: "Pumili ng kahit ilan. Mababago mo ito mamaya.",
+    subjectsFreeTextSub: "Idagdag bawat isa. Mababago mo ito mamaya.",
+    subjects: "Mga subject",
     notListed: "Wala sa listahan? Idagdag mo",
-    subjectExample: "hal. Research in Daily Life 1",
+    subjectExample: "hal. Calculus 1",
     selected: (count: number) => `${count} ang napili`,
     examTitle: "Anong exam ang inirereview mo?",
     programTitle: "Anong kurso ang kinukuha mo?",

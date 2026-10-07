@@ -28,7 +28,9 @@ import {
   isBoardReview,
   isSeniorHigh,
   strandLabel,
+  strandsAvailable,
 } from "@/lib/curriculum";
+import { countryName, suggestCountries } from "@/lib/countries";
 import { MAX_SCHOOL_LENGTH, normaliseSchool } from "@/lib/schools";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -69,10 +71,18 @@ function SettingsForm({
   const [saving, setSaving] = useState(false);
 
   // Students change strand and they graduate; onboarding is not the last word.
+  // Country lives in the same edit/save pair as level and strand, not the
+  // page's main save: changing it can invalidate strand exactly the way
+  // changing level does (a Philippine track picked before moving abroad), so
+  // the three travel together.
   const [editingLevel, setEditingLevel] = useState(false);
   const [level, setLevel] = useState(profile.educationLevel);
   const [strand, setStrand] = useState(profile.strand);
-  const levelValid = level !== null && (!isSeniorHigh(level) || strand !== null);
+  const [country, setCountry] = useState(profile.country ?? null);
+  const [countryQuery, setCountryQuery] = useState("");
+  const countryIsPH = strandsAvailable(country);
+  const levelValid =
+    level !== null && (!isSeniorHigh(level) || !countryIsPH || strand !== null);
 
   const seniorHigh = isSeniorHigh(profile.educationLevel);
   const dirty =
@@ -104,8 +114,9 @@ function SettingsForm({
     setSaving(true);
     try {
       await updateDoc(doc(db, "users", user.uid), {
+        country,
         educationLevel: level,
-        strand: isSeniorHigh(level) ? strand : null,
+        strand: isSeniorHigh(level) && countryIsPH ? strand : null,
         updatedAt: serverTimestamp(),
       });
       setEditingLevel(false);
@@ -133,7 +144,10 @@ function SettingsForm({
 
   function addCustom() {
     const value = customCourse.trim();
-    if (!value || courses.some((c) => c.toLowerCase() === value.toLowerCase())) {
+    if (
+      !value ||
+      courses.some((c) => c.toLowerCase() === value.toLowerCase())
+    ) {
       setCustomCourse("");
       return;
     }
@@ -195,7 +209,50 @@ function SettingsForm({
             <Label>{t.settingsPage.educationLevel}</Label>
             {editingLevel ? (
               <div className="space-y-3 rounded-xl border p-4">
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="settings-country"
+                    className="text-muted-foreground text-xs"
+                  >
+                    {t.onboarding.country}
+                  </Label>
+                  <Input
+                    id="settings-country"
+                    value={
+                      country ? (countryName(country) ?? "") : countryQuery
+                    }
+                    onChange={(e) => {
+                      setCountry(null);
+                      setCountryQuery(e.target.value);
+                    }}
+                    placeholder={t.onboarding.countryPlaceholder}
+                    autoComplete="country-name"
+                  />
+                  {!country && countryQuery.trim() ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {suggestCountries(countryQuery).map((candidate) => (
+                        <button
+                          key={candidate.code}
+                          type="button"
+                          onClick={() => {
+                            setCountry(candidate.code);
+                            setCountryQuery("");
+                            // Moving away from the Philippines invalidates a
+                            // Philippine strand the same way changing level
+                            // does — see the state comment above.
+                            if (!strandsAvailable(candidate.code))
+                              setStrand(null);
+                          }}
+                          className="border-border bg-card hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-ring rounded-full border px-3 py-1.5 text-sm transition-all focus-visible:ring-[3px] focus-visible:outline-none"
+                        >
+                          {candidate.name}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="grid gap-2 border-t pt-3 sm:grid-cols-3">
                   {EDUCATION_LEVELS.map((option) => (
                     <Chip
                       key={option.value}
@@ -211,7 +268,7 @@ function SettingsForm({
                   ))}
                 </div>
 
-                {isSeniorHigh(level) ? (
+                {isSeniorHigh(level) && countryIsPH ? (
                   <div className="flex flex-wrap gap-2 border-t pt-3">
                     {STRANDS.map((option) => (
                       <Chip
@@ -224,12 +281,18 @@ function SettingsForm({
                   </div>
                 ) : null}
 
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  {t.settingsPage.strandNote}
-                </p>
+                {countryIsPH ? (
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    {t.settingsPage.strandNote}
+                  </p>
+                ) : null}
 
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={saveLevel} disabled={!levelValid || saving}>
+                  <Button
+                    size="sm"
+                    onClick={saveLevel}
+                    disabled={!levelValid || saving}
+                  >
                     {saving ? <Loader2 className="animate-spin" /> : <Check />}
                     {t.common.save}
                   </Button>
@@ -240,6 +303,8 @@ function SettingsForm({
                       setEditingLevel(false);
                       setLevel(profile.educationLevel);
                       setStrand(profile.strand);
+                      setCountry(profile.country ?? null);
+                      setCountryQuery("");
                     }}
                   >
                     {t.common.cancel}
@@ -248,11 +313,18 @@ function SettingsForm({
               </div>
             ) : (
               <div className="flex flex-wrap items-center gap-2 text-sm">
+                {countryName(profile.country) ? (
+                  <Badge variant="secondary">
+                    {countryName(profile.country)}
+                  </Badge>
+                ) : null}
                 <Badge variant="secondary">
                   {educationLevelLabel(profile.educationLevel)}
                 </Badge>
                 {strandLabel(profile.strand) ? (
-                  <Badge variant="secondary">{strandLabel(profile.strand)}</Badge>
+                  <Badge variant="secondary">
+                    {strandLabel(profile.strand)}
+                  </Badge>
                 ) : null}
                 <Button
                   size="sm"
@@ -267,7 +339,9 @@ function SettingsForm({
           </div>
 
           <div className="space-y-3">
-            <Label>{seniorHigh ? t.settingsPage.subjects : t.settingsPage.course}</Label>
+            <Label>
+              {seniorHigh ? t.settingsPage.subjects : t.settingsPage.course}
+            </Label>
 
             {/* Once semesters exist they own this list, and two editors on one
                 field is a data-loss path: this form holds its own copy from
@@ -286,83 +360,99 @@ function SettingsForm({
               </p>
             ) : (
               <>
-
-            {seniorHigh && profile.strand ? (
-              <div className="space-y-4">
-                {getSubjectGroups(profile.strand).map((group) => (
-                  <div key={group.label}>
-                    <p className="text-muted-foreground mb-2 text-xs">{group.label}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {group.subjects.map((subject) => (
-                        <Chip
-                          key={subject}
-                          label={subject}
-                          selected={courses.includes(subject)}
-                          onClick={() => toggleCourse(subject)}
-                        />
-                      ))}
-                    </div>
+                {seniorHigh && profile.strand ? (
+                  <div className="space-y-4">
+                    {getSubjectGroups(profile.strand).map((group) => (
+                      <div key={group.label}>
+                        <p className="text-muted-foreground mb-2 text-xs">
+                          {group.label}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {group.subjects.map((subject) => (
+                            <Chip
+                              key={subject}
+                              label={subject}
+                              selected={courses.includes(subject)}
+                              onClick={() => toggleCourse(subject)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {(isBoardReview(profile.educationLevel)
-                  ? BOARD_EXAMS
-                  : COLLEGE_PROGRAMS
-                ).map((program) => (
-                  <Chip
-                    key={program}
-                    label={program}
-                    selected={courses[0] === program}
-                    onClick={() => setCourses([program])}
+                ) : seniorHigh ? // Senior High outside the Philippines: no strand, so no preset
+                // list means anything — the add field below is the whole
+                // picker, same as onboarding's equivalent step. Rendering the
+                // college/board-exam single-select here instead, which used to
+                // happen, replaced a multi-subject student's list with one
+                // program the moment they added their second subject.
+                null : (
+                  <div className="flex flex-wrap gap-2">
+                    {(isBoardReview(profile.educationLevel)
+                      ? BOARD_EXAMS
+                      : COLLEGE_PROGRAMS
+                    ).map((program) => (
+                      <Chip
+                        key={program}
+                        label={program}
+                        selected={courses[0] === program}
+                        onClick={() => setCourses([program])}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Anything the student typed themselves */}
+                {courses.filter((c) => !isPreset(c, profile.strand, seniorHigh))
+                  .length > 0 ? (
+                  <div className="flex flex-wrap gap-2 border-t pt-3">
+                    {courses
+                      .filter((c) => !isPreset(c, profile.strand, seniorHigh))
+                      .map((course) => (
+                        <Badge
+                          key={course}
+                          variant="secondary"
+                          className="gap-1.5 py-1.5 pr-1.5 pl-3"
+                        >
+                          {course}
+                          <button
+                            type="button"
+                            onClick={() => toggleCourse(course)}
+                            className="hover:bg-foreground/10 rounded-full p-0.5"
+                            aria-label={t.settingsPage.removeChip(course)}
+                          >
+                            <X className="size-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                  </div>
+                ) : null}
+
+                <div className="flex gap-2">
+                  <Input
+                    value={customCourse}
+                    onChange={(e) => setCustomCourse(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustom();
+                      }
+                    }}
+                    placeholder={
+                      seniorHigh
+                        ? t.settingsPage.addAnotherSubject
+                        : t.settingsPage.addYourOwnCourse
+                    }
+                    maxLength={80}
                   />
-                ))}
-              </div>
-            )}
-
-            {/* Anything the student typed themselves */}
-            {courses.filter((c) => !isPreset(c, profile.strand, seniorHigh)).length > 0 ? (
-              <div className="flex flex-wrap gap-2 border-t pt-3">
-                {courses
-                  .filter((c) => !isPreset(c, profile.strand, seniorHigh))
-                  .map((course) => (
-                    <Badge key={course} variant="secondary" className="gap-1.5 py-1.5 pr-1.5 pl-3">
-                      {course}
-                      <button
-                        type="button"
-                        onClick={() => toggleCourse(course)}
-                        className="hover:bg-foreground/10 rounded-full p-0.5"
-                        aria-label={t.settingsPage.removeChip(course)}
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  ))}
-              </div>
-            ) : null}
-
-            <div className="flex gap-2">
-              <Input
-                value={customCourse}
-                onChange={(e) => setCustomCourse(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addCustom();
-                  }
-                }}
-                placeholder={
-                  seniorHigh
-                    ? t.settingsPage.addAnotherSubject
-                    : t.settingsPage.addYourOwnCourse
-                }
-                maxLength={80}
-              />
-              <Button variant="outline" onClick={addCustom} disabled={!customCourse.trim()}>
-                <Plus />
-              </Button>
-            </div>
+                  <Button
+                    variant="outline"
+                    onClick={addCustom}
+                    disabled={!customCourse.trim()}
+                  >
+                    <Plus />
+                  </Button>
+                </div>
               </>
             )}
           </div>
@@ -411,7 +501,9 @@ function SettingsForm({
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{email}</p>
-          <p className="text-muted-foreground text-xs">{t.settingsPage.signedIn}</p>
+          <p className="text-muted-foreground text-xs">
+            {t.settingsPage.signedIn}
+          </p>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
           <LogOut />

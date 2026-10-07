@@ -1263,7 +1263,12 @@ export const en = {
     nameTitle: "What should we call you?",
     nameSub: (creature: string) => `This is how ${creature} will greet you.`,
     displayName: "Display name",
-    namePlaceholder: "Juan",
+    namePlaceholder: "Alex",
+    countryTitle: "Where are you?",
+    countrySub:
+      "This decides which curriculum we show you, and which payment methods are offered.",
+    country: "Country",
+    countryPlaceholder: "Start typing your country",
     levelTitle: "Where are you studying?",
     levelSub: "This changes how we tag your notes and pitch your flashcards.",
     schoolTitle: "Where do you study?",
@@ -1277,8 +1282,12 @@ export const en = {
     strandSub: "We will show the subjects that go with it.",
     subjectsTitle: "Which subjects are you taking?",
     subjectsSub: "Pick as many as you like. You can change these later.",
+    /** Same step, no preset list to pick from — see the onboarding flow's
+     *  own comment on why outside the Philippines this is free text. */
+    subjectsFreeTextSub: "Add each one. You can change these later.",
+    subjects: "Subjects",
     notListed: "Not listed? Add it",
-    subjectExample: "e.g. Research in Daily Life 1",
+    subjectExample: "e.g. Calculus 1",
     selected: (count: number) => `${count} selected`,
     examTitle: "Which exam are you reviewing for?",
     programTitle: "What course are you taking?",
