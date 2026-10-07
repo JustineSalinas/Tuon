@@ -57,10 +57,10 @@ or licensure reviewers.
 "Tuón" is Cebuano and Tagalog: to study, to give something your full attention.
 
 HOW IT WORKS
-1. Paste notes — lecture notes, a textbook excerpt, a typed-up reviewer.
-2. Generate — Tuón writes 8 to 15 flashcards and a 5-question practice quiz from
+1. Paste notes: lecture notes, a textbook excerpt, a typed-up reviewer.
+2. Generate: Tuón writes 8 to 15 flashcards and a 5-question practice quiz from
    that material and nothing else.
-3. Review on schedule — rate each card Again, Hard, Good or Easy. SM-2 decides
+3. Review on schedule: rate each card Again, Hard, Good or Easy. SM-2 decides
    when it comes back.
 
 Every new account starts with a sample study set already made, so you can try a

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Plus } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 import type { Messages } from "@/lib/i18n/en";
@@ -14,8 +14,14 @@ import { cn } from "@/lib/utils";
  * The questions a student actually has before signing up.
  *
  * Written to answer them, not to reassure. Where the honest answer is a
- * limitation — offline, AI mistakes — it says so; a FAQ that only says yes is
+ * limitation (offline, AI mistakes) it says so; a FAQ that only says yes is
  * marketing copy with a chevron on it, and students spot that immediately.
+ *
+ * One numbered list rather than a two-column card grid: a number, the
+ * question and answer in one left-aligned stack, and a show/hide label on
+ * the trailing edge, all on one row above the breakpoint and stacked
+ * (number and label on top, question below) under it. A spring on the
+ * expand rather than a tween, so it settles rather than stopping dead.
  *
  * The words live in the message catalogue. Two of the answers carry numbers
  * that come from the plan config rather than from prose, and three carry a
@@ -24,6 +30,9 @@ import { cn } from "@/lib/utils";
  * before/after fragments because word order moves between languages, and the
  * link has to be free to move with it.
  */
+
+const SPRING = { type: "spring" as const, stiffness: 280, damping: 30, mass: 0.9 };
+
 function renderAnswer(
   answer: string,
   link: { href: string; label: string } | null,
@@ -51,68 +60,107 @@ function renderAnswer(
     whichever locale is active, and those are different strings. */
 type FaqEntry = Messages["marketing"]["faq"]["items"][number];
 
-function FaqItem({
+function FaqRow({
+  index,
   item,
   expanded,
   onToggle,
   values,
 }: {
+  index: number;
   item: FaqEntry;
   expanded: boolean;
   onToggle: () => void;
   values: { count: number; explainer: string };
 }) {
-  return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-2xl border transition-colors",
-        expanded ? "border-primary/40 bg-accent/20" : "bg-card",
+  const reduceMotion = useReducedMotion();
+  const transition = reduceMotion ? { duration: 0 } : SPRING;
+  const { t } = useI18n();
+  const number = String(index + 1).padStart(2, "0");
+
+  const answer = (
+    <p className="text-muted-foreground max-w-2xl pt-2 text-[15px] leading-relaxed">
+      {renderAnswer(
+        item.a,
+        "linkHref" in item && item.linkHref
+          ? { href: item.linkHref, label: item.linkLabel }
+          : null,
+        values,
       )}
-    >
+    </p>
+  );
+
+  return (
+    <div className="py-5 sm:py-6">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="hover:bg-accent/30 focus-visible:ring-ring flex w-full items-start gap-4 px-6 py-5 text-left transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
+        className="focus-visible:ring-ring group flex w-full flex-col gap-2 text-left focus-visible:ring-[3px] focus-visible:outline-none sm:flex-row sm:items-start sm:gap-5"
       >
-        <span className="flex-1 leading-snug font-medium">{item.q}</span>
-        <ChevronDown
-          className={cn(
-            "text-muted-foreground mt-0.5 size-4 shrink-0 transition-transform duration-200",
-            expanded && "rotate-180",
-          )}
-        />
-      </button>
-
-      <AnimatePresence initial={false}>
-        {expanded ? (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
+        {/* Mobile: number and the show/hide label share a row above the
+            question. Desktop: the number moves to the row's leading edge
+            and the label to its trailing edge, with the question between. */}
+        <span className="flex items-center justify-between sm:contents">
+          <span
+            className={cn(
+              "font-display text-lg font-semibold tabular-nums transition-colors sm:w-8 sm:shrink-0 sm:pt-0.5",
+              expanded ? "text-primary" : "text-muted-foreground/50",
+            )}
           >
-            <p className="text-muted-foreground px-6 pb-6 text-[15px] leading-relaxed">
-              {renderAnswer(
-                item.a,
-                "linkHref" in item && item.linkHref
-                  ? { href: item.linkHref, label: item.linkLabel }
-                  : null,
-                values,
+            {number}
+          </span>
+
+          <span
+            className={cn(
+              "order-last flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-widest uppercase transition-colors sm:pt-1",
+              expanded ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            {expanded ? t.marketing.faq.hide : t.marketing.faq.show}
+            <Plus
+              className={cn(
+                "size-3.5 transition-transform duration-200",
+                expanded && "rotate-45",
               )}
-            </p>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+            />
+          </span>
+        </span>
+
+        <span className="flex-1">
+          <span
+            className={cn(
+              "block leading-snug font-medium transition-colors",
+              expanded ? "text-foreground" : "text-foreground/90 group-hover:text-foreground",
+            )}
+          >
+            {item.q}
+          </span>
+
+          {/* Desktop: the answer sits directly under the question in the
+              same column, rather than spanning full width under the
+              number. Mobile keeps the same stack, just narrower. */}
+          <AnimatePresence initial={false}>
+            {expanded ? (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={transition}
+                className="overflow-hidden"
+              >
+                {answer}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </span>
+      </button>
     </div>
   );
 }
 
 export function Faq() {
   const { t } = useI18n();
-  // A set rather than one index: in two columns, making someone close a
-  // question on the left to read one on the right is a rule with no reason.
   const [open, setOpen] = useState<ReadonlySet<number>>(() => new Set([0]));
 
   function toggle(index: number) {
@@ -129,22 +177,16 @@ export function Faq() {
   };
 
   return (
-    <div className="mx-auto mt-12 grid max-w-4xl items-start gap-3 md:grid-cols-2 md:gap-4">
-      {[0, 1].map((column) => (
-        <div key={column} className="flex flex-col gap-3 md:gap-4">
-          {t.marketing.faq.items
-            .map((item, index) => ({ item, index }))
-            .filter(({ index }) => index % 2 === column)
-            .map(({ item, index }) => (
-              <FaqItem
-                key={item.q}
-                item={item}
-                expanded={open.has(index)}
-                onToggle={() => toggle(index)}
-                values={values}
-              />
-            ))}
-        </div>
+    <div className="border-border bg-card mx-auto mt-12 max-w-3xl divide-y rounded-2xl border px-6 sm:px-8">
+      {t.marketing.faq.items.map((item, index) => (
+        <FaqRow
+          key={item.q}
+          index={index}
+          item={item}
+          expanded={open.has(index)}
+          onToggle={() => toggle(index)}
+          values={values}
+        />
       ))}
     </div>
   );

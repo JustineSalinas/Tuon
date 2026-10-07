@@ -161,6 +161,19 @@ export const RATE_LIMITS = {
     limit: envLimit("RATE_LIMIT_CHECKOUT", 10),
     windowSeconds: 3600,
   },
+  /**
+   * Transcribing a photo of notes. Keyed on the account, like `companion` —
+   * it hits the same paid vision call `generate` does, but a photo import is
+   * one step before a generation rather than the generation itself, so it is
+   * not worth a whole second quota system. The ceiling just has to be well
+   * above any honest use: a student photographing one notebook page at a
+   * time will never get near it.
+   */
+  transcribePhoto: {
+    scope: "transcribe-photo",
+    limit: envLimit("RATE_LIMIT_TRANSCRIBE_PHOTO", 40),
+    windowSeconds: 3600,
+  },
 } satisfies Record<string, RateLimitRule>;
 
 export async function checkRateLimit(

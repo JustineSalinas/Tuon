@@ -15,7 +15,7 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Tuón — turn your notes into study sets",
+    name: "Tuón: turn your notes into study sets",
     short_name: "Tuón",
     description:
       "Paste your notes and get flashcards and a practice quiz, scheduled so each card comes back right before you would have forgotten it.",

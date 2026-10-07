@@ -34,7 +34,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Tuón — Turn your notes into study sets",
+    default: "Tuón: Turn your notes into study sets",
     template: "%s · Tuón",
   },
   description:
@@ -48,13 +48,13 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Tuón",
     locale: "en_PH",
-    title: "Tuón — Turn your notes into study sets",
+    title: "Tuón: Turn your notes into study sets",
     description:
       "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tuón — Turn your notes into study sets",
+    title: "Tuón: Turn your notes into study sets",
     description:
       "Flashcards and quizzes from your own class notes, on a schedule that makes things stick.",
   },

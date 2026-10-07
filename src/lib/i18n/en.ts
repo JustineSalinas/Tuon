@@ -54,6 +54,8 @@ export const en = {
     startTheTimer: "Start the timer",
     comingUp: "Coming up",
     allDeadlines: "Calendar",
+    thisMonth: "This month",
+    openCalendar: "Open calendar",
     nothingDue: "Nothing due",
     addDeadline: "Add a deadline in the calendar",
     yearOfStudy: "Your year",
@@ -361,6 +363,9 @@ export const en = {
     saving: "Saving",
     saved: "Saved",
     saveFailed: "Could not save",
+    importMenu: "Import",
+    imported: "Imported into this note.",
+    importClipped: "Imported into this note — text was clipped to fit the limit.",
     dismiss: "Dismiss",
     deleteNote: "Delete note",
     deleteTitle: "Delete this note?",
@@ -401,6 +406,28 @@ export const en = {
     noTextLayer:
       "No readable text found. This looks like a scanned PDF or images of pages — Tuón cannot read those yet. Try a PDF exported from a document.",
     unknown: "Something went wrong reading that PDF. Please try another file.",
+  },
+
+  docx: {
+    importDocx: "Import Word document",
+    tooLarge: (sizeMb: string) => `That document is ${sizeMb}MB. The limit is 25MB.`,
+    notADocx:
+      "That is not a .docx file. Older .doc files aren’t supported — try “Save As” to .docx first.",
+    readerFailed: "Could not start the document reader. Please refresh and try again.",
+    unreadable: "That file could not be read. It may be corrupted.",
+    empty: "No readable text was found in that document.",
+    unknown: "Something went wrong reading that document. Please try another file.",
+  },
+
+  photo: {
+    importPhoto: "Import a photo",
+    reading: "Reading your photo…",
+    canTakeAMoment: "This can take a few seconds.",
+    tooLarge: (sizeMb: string) => `That photo is ${sizeMb}MB. The limit is 20MB.`,
+    notAnImage: "That is not an image file.",
+    decodeFailed: "That photo could not be read. Try another one.",
+    verifyEmail: "Please confirm your email address before importing a photo.",
+    unknown: "Something went wrong reading that photo. Please try again.",
   },
 
   generate: {
@@ -458,6 +485,28 @@ export const en = {
     exported: (count: number) =>
       `${count} ${count === 1 ? "note" : "notes"} exported.`,
     exportFailed: "Could not build that export.",
+  },
+
+  anki: {
+    importAction: "Import Anki deck",
+    cardsFound: (count: number) => `${count} ${count === 1 ? "card" : "cards"} found`,
+    readyToImport: "Ready to import as a new study set.",
+    someSkipped: (count: number) =>
+      `${count} ${count === 1 ? "note" : "notes"} could not be read and will be skipped.`,
+    truncated: (total: number) => `Only the first 500 of ${total} notes will be imported.`,
+    deckTitle: "Study set title",
+    untitledDeck: "Imported deck",
+    imported: (count: number) =>
+      `Imported ${count} ${count === 1 ? "card" : "cards"}.`,
+    importFailed: "Could not import that deck. Nothing was saved.",
+    tooLarge: (sizeMb: string) => `That file is ${sizeMb}MB. The limit is 200MB.`,
+    notAnApkg: "That is not an .apkg file.",
+    noCollection: "That file does not look like an Anki export.",
+    unsupportedFormat:
+      "This deck was exported by a newer version of Anki that Tuón cannot read yet. Try exporting with “Support older Anki versions” checked.",
+    corrupt: "That file could not be read. It may be corrupted or incomplete.",
+    empty: "That deck has no cards in it.",
+    unknown: "Something went wrong reading that deck. Please try again.",
   },
 
   calendar: {
@@ -905,6 +954,8 @@ export const en = {
     choose: (plan: string) => `Choose ${plan}`,
     payWith:
       "Pay with GCash, Maya, or a card. You can cancel any time — nothing you have written is ever deleted when a plan ends.",
+    payWithCard:
+      "Pay with a card. You can cancel any time — nothing you have written is ever deleted when a plan ends.",
     notLive:
       "Payments aren’t live yet. Hang tight — your free plan keeps working.",
     checkoutFailed: "Could not start checkout.",
@@ -940,12 +991,12 @@ export const en = {
       ],
     },
     plus: {
-      tagline: "A full course load — six subjects, twice a week.",
+      tagline: "A full course load: six subjects, twice a week.",
       features: [
         "50 AI study sets a month",
         "Notes up to 60,000 characters",
         "Export study sets to Anki, CSV, or PDF",
-        "Retention stats — what you're about to forget",
+        "Retention stats: what you're about to forget",
         "Share a set by link with your blockmates",
         "Everything in Free",
       ],
@@ -953,9 +1004,9 @@ export const en = {
     pro: {
       tagline: "For finals week, thesis season, and board review.",
       features: [
-        "120 AI study sets a month — about four a day",
+        "120 AI study sets a month, about four a day",
         "Notes up to 120,000 characters",
-        "Priority generation — no waiting between sets",
+        "Priority generation: no waiting between sets",
         "Everything in Plus",
       ],
     },
@@ -1472,7 +1523,7 @@ export const en = {
       tapToReveal: "Tap to see the answer",
       hoursMinutes: (h: number, m: number) => `${h}h ${m}m`,
       thisSession: "This session",
-      requeued: "Back before you finish — that is what Again is for.",
+      requeued: "Back before you finish. That is what Again is for.",
       interval: (days: number) =>
         days <= 0
           ? "Today"
@@ -1483,16 +1534,16 @@ export const en = {
               : `${Math.round(days / 30)} months`,
       scheduled: (days: number) =>
         days <= 1
-          ? "Scheduled — back tomorrow."
-          : `Scheduled — back in ${days} days.`,
+          ? "Scheduled, back tomorrow."
+          : `Scheduled, back in ${days} days.`,
       doneTitle: "That is the whole loop.",
       doneBody:
         "Six cards, about forty seconds. Tuón does that with your own notes, and decides when each card comes back so you do not have to.",
       again: "Run it again",
-      badge: "Built for Filipino students",
+      badge: "Backed by the science of memory",
       headline: "Cramming works.",
       headlineAccent: " For about three days.",
-      body: "Paste your notes. Tuón writes the flashcards and a practice quiz, then brings each card back right before you would have forgotten it — so the reviewer you make tonight still works next semester.",
+      body: "Paste your notes. Tuón writes the flashcards and a practice quiz, then brings each card back right before you would have forgotten it, so the reviewer you make tonight still works next semester.",
       startFree: "Start free",
       haveAccount: "I already have an account",
       freeForever: (count: number) =>
@@ -1506,7 +1557,12 @@ export const en = {
     why: {
       eyebrow: "Why you forget",
       title: "Your brain throws away whatever it stops seeing",
-      body: "That is not a flaw, and it is not a discipline problem — it is what memory is for. Anything you meet once and never again gets cleared out. The fix is not more hours the night before; it is meeting the same card again just as it starts to slip. Doing that scheduling by hand is the part nobody keeps up.",
+      body: "That is not a flaw, and it is not a discipline problem. It is what memory is for: anything you meet once and never again gets cleared out. The fix is not more hours the night before. It is meeting the same card again just as it starts to slip, and doing that scheduling by hand is the part nobody keeps up.",
+      scienceLabel: "The spacing effect",
+      scienceStat: "100+",
+      scienceStatUnit: "years of replication",
+      science:
+        "One of the most replicated findings in memory research, first measured over a century ago and confirmed many times since. Timing review to arrive right as a memory starts to fade needs far less total study time than cramming to hold the same material. That is the whole mechanism behind spaced repetition: not a slogan, a measurable trade you can watch happen below.",
       aside:
         "A card you have not seen in three weeks is asleep. Tuón wakes it up the day before you would have lost it.",
     },
@@ -1526,7 +1582,7 @@ export const en = {
       fourReviews: "Four reviews. About six minutes in total.",
       wholeDifference: "That is the whole difference between these two cards.",
       source:
-        "Based on the forgetting curve first measured by Hermann Ebbinghaus in 1885 and reproduced many times since. Drawn to show the mechanism — these are not measurements of Tuón users.",
+        "Based on the forgetting curve first measured by Hermann Ebbinghaus in 1885 and reproduced many times since. Drawn to show the mechanism; these are not measurements of Tuón users.",
     },
 
     how: {
@@ -1555,7 +1611,7 @@ export const en = {
     versus: {
       eyebrow: "Versus doing it yourself",
       title: "You already know how to make a reviewer",
-      body: "Long bond paper, four colours of pen, an evening gone. It works — and then the exam ends and it goes in the bin. Here is the same job, done the other way.",
+      body: "Long bond paper, four colours of pen, an evening gone. It works, and then the exam ends and it goes in the bin. Here is the same job, done the other way.",
       byHand: "By hand",
       withTuon: "With Tuón",
       rows: [
@@ -1590,7 +1646,7 @@ export const en = {
     devices: {
       eyebrow: "Every device you own",
       title: "Open it on whatever is in front of you",
-      body: "Tuón runs in the browser, so there is nothing to install and nothing to sideload. Review on your phone on the jeep, write notes on the library desktop — your schedule is the same in both, because it lives with your account and not the device.",
+      body: "Tuón runs in the browser, so there is nothing to install and nothing to sideload. Review on your phone on the jeep, write notes on the library desktop: your schedule is the same in both, because it lives with your account and not the device.",
       desktopCaption: "Stats on the library desktop",
       tabletCaption: "Notes and their links",
       phoneCaption: "Reviewing on the jeep",
@@ -1636,24 +1692,27 @@ export const en = {
       inTheWorks: "IN THE WORKS",
       nativeTitle: "Native apps are coming to iPhone and Android",
       nativeBody:
-        "Offline review and a home-screen icon, without giving up the web version. You do not have to wait for them — everything above works in your browser today.",
+        "Offline review and a home-screen icon, without giving up the web version. You do not have to wait for them; everything above works in your browser today.",
       soonOn: "Soon on",
     },
 
     local: {
-      eyebrow: "Built for here",
-      title: "It already knows your curriculum",
-      body: "Most study apps are built for American classrooms and then translated. Tuón starts from the Philippine K-12 system, so setting up takes three taps instead of typing out every subject yourself.",
+      eyebrow: "Built for your curriculum",
+      title: "It already knows how school works where you are",
+      body: "Pick your country once. In the Philippines, Tuón already knows the K-12 system: strands, core subjects and board exams built in, so setting up takes three taps instead of typing out every subject yourself. Everywhere else, you just type what you're taking; Tuón learns it from there.",
+      phLabel: "In the Philippines",
+      everywhereLabel: "Everywhere",
       points: [
-        "Senior High strands built in — STEM, ABM, HUMSS and GAS, with the right subjects for each",
-        "Core subjects like General Mathematics, Earth and Life Science and Oral Communication ready to pick",
-        "College programs from BS Nursing to AB Communication, with room to add your own",
-        "UPCAT, ACET and DCAT prep treated as first-class subjects",
-        "Notes that mix English and Tagalog or Cebuano stay exactly as you wrote them",
+        { ph: true, text: "Senior High strands built in (STEM, ABM, HUMSS and GAS), with the right subjects for each" },
+        { ph: true, text: "Core subjects like General Mathematics, Earth and Life Science and Oral Communication ready to pick" },
+        { ph: false, text: "College programs from BS Nursing to Computer Science, with room to add your own, anywhere" },
+        { ph: true, text: "UPCAT, ACET and DCAT prep treated as first-class subjects" },
+        { ph: false, text: "Notes that mix languages, English and Tagalog, English and anything else, stay exactly as you wrote them" },
       ],
-      setupTitle: "Three questions and you are studying.",
+      setupTitle: "Your country, then three questions, and you are studying.",
+      yourCountry: "Your country",
       yourSchool: "Your school",
-      schoolHint: "Type anything — your school does not have to be on a list.",
+      schoolHint: "Type anything. Your school does not have to be on a list.",
       yourStrand: "Your strand",
       strandHint: "College instead? You pick a degree program here.",
       yourSubjects: "Your subjects",
@@ -1668,7 +1727,7 @@ export const en = {
       bodyBefore: "One",
       studySet: "study set",
       bodyAfter: (explainer: string) =>
-        `is ${explainer}. Writing notes, importing PDFs, making your own flashcards, and the entire review schedule are unlimited on every plan — including Free.`,
+        `is ${explainer}. Writing notes, importing PDFs, making your own flashcards, and the entire review schedule are unlimited on every plan, including Free.`,
       billingPeriod: "Billing period",
       monthly: "Monthly",
       yearly: (freeMonths: number) => `Yearly · ${freeMonths} months free`,
@@ -1685,6 +1744,8 @@ export const en = {
     faq: {
       eyebrow: "Questions",
       title: "The things people ask first",
+      show: "Show",
+      hide: "Hide",
       /**
        * Answers may carry a `{link}` placeholder, which the view replaces with
        * the entry's link. A placeholder rather than split fragments because
@@ -1694,7 +1755,7 @@ export const en = {
       items: [
         {
           q: "Is it really free?",
-          a: "Yes, and the free plan is not a trial. You get {count} AI study sets a month, forever. Writing notes, importing PDFs, making your own flashcards, and the whole review schedule are unlimited on every plan — the only thing that costs money is the AI turning a note into cards, because that is the only thing that costs us money.",
+          a: "Yes, and the free plan is not a trial. You get {count} AI study sets a month, forever. Writing notes, importing PDFs, making your own flashcards, and the whole review schedule are unlimited on every plan. The only thing that costs money is the AI turning a note into cards, because that is the only thing that costs us money.",
         },
         {
           q: "What happens when I hit the monthly cap?",
@@ -1702,21 +1763,21 @@ export const en = {
         },
         {
           q: "Who can see my notes?",
-          a: "Only you. Sharing is off by default and per study set — turn it on and anyone with that link can see those cards; turn it off and access stops immediately. Your notes and review history are never shared. {link} spells out exactly what we hold and who processes it.",
+          a: "Only you. Sharing is off by default and per study set: turn it on and anyone with that link can see those cards; turn it off and access stops immediately. Your notes and review history are never shared. {link} spells out exactly what we hold and who processes it.",
           linkHref: "/privacy",
           linkLabel: "The privacy notice",
         },
         {
           q: "Does my note get sent to an AI company?",
-          a: "The text of a note is sent to Anthropic when — and only when — you press Generate. Your name, email, and review history are not. Nothing is sent while you are just writing or reviewing, and PDFs are read in your browser and never uploaded.",
+          a: "The text of a note is sent to Anthropic only when you press Generate. Your name, email, and review history are not. Nothing is sent while you are just writing or reviewing, and PDFs are read in your browser and never uploaded.",
         },
         {
           q: "Are the flashcards ever wrong?",
-          a: "Sometimes, yes. The AI works only from your note, so if the note has an error the cards will repeat it — and like any AI it can occasionally be confidently wrong on its own. Check anything that matters against your textbook. It is a study aid, not a source of truth.",
+          a: "Sometimes, yes. The AI works only from your note, so if the note has an error the cards will repeat it, and like any AI it can occasionally be confidently wrong on its own. Check anything that matters against your textbook. It is a study aid, not a source of truth.",
         },
         {
-          q: "Can I use it for UPCAT or board review?",
-          a: "That is what spaced repetition is best at. Entrance-exam subjects are built into setup alongside your strand, and the schedule is designed for material you need to hold for months rather than until Friday.",
+          q: "Can I use it for entrance exams or board review?",
+          a: "That is what spaced repetition is best at. In the Philippines, entrance-exam subjects like UPCAT are built into setup alongside your strand; everywhere else you add them as free text the same way. Either way, the schedule is designed for material you need to hold for months rather than until Friday.",
         },
         {
           q: "Does it work offline?",
@@ -1728,27 +1789,27 @@ export const en = {
         },
         {
           q: "How is this different from Quizlet or Anki?",
-          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”. It also reads notes that mix English with Tagalog or Cebuano, which is how most students here actually write them.",
+          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”. It also reads notes that mix languages (English with Tagalog or Cebuano, or any other pair) exactly as written, rather than expecting you to translate first.",
         },
         {
           q: "Do I have to type every answer?",
-          a: "Only on cards short enough to type, and you can turn it off in settings or skip it on any single card. It is on by default because reading the back and thinking “yeah, I knew that” is not the same as remembering it. Spelling, word order, accents and the Tagalog markers you might write are all forgiven — a typo never counts as wrong.",
+          a: "Only on cards short enough to type, and you can turn it off in settings or skip it on any single card. It is on by default because reading the back and thinking “yeah, I knew that” is not the same as remembering it. Spelling, word order, accents and whatever markers your language uses are all forgiven: a typo never counts as wrong.",
         },
         {
           q: "Can I study with my classmates?",
-          a: "Yes, in invite-only groups: share a set, put a shared deadline in, and see who is studying right now. There is deliberately no public room and no directory — a lot of students here are minors, and a space strangers can walk into needs moderation we are not able to promise. You join a group because someone in it sent you a code.",
+          a: "Yes, in invite-only groups: share a set, put a shared deadline in, and see who is studying right now. There is deliberately no public room and no directory. Many students on Tuón are minors, and a space strangers can walk into needs moderation we are not able to promise. You join a group because someone in it sent you a code.",
         },
         {
           q: "Can I get my notes back out?",
-          a: "Any time, as Markdown, with your [[links]] intact — one download for the whole library. You can bring a folder of Markdown in the same way. Locking the exit is how apps keep people who want to leave, and it is not a plan.",
+          a: "Any time, as Markdown, with your [[links]] intact: one download for the whole library. You can bring a folder of Markdown in the same way. Locking the exit is how apps keep people who want to leave, and it is not a plan.",
         },
         {
           q: "What if I miss a week?",
-          a: "Nothing breaks and nothing is lost. Cards you missed are simply still due, and a session is capped at a daily goal you set, so a backlog never arrives as a wall of 300 cards. There is a study grid on your dashboard that counts the days you studied, but it is a record rather than a threat — nothing nags you about keeping it going, and your best run stays on screen even after a gap.",
+          a: "Nothing breaks and nothing is lost. Cards you missed are simply still due, and a session is capped at a daily goal you set, so a backlog never arrives as a wall of 300 cards. There is a study grid on your dashboard that counts the days you studied, but it is a record rather than a threat. Nothing nags you about keeping it going, and your best run stays on screen even after a gap.",
         },
         {
           q: "Can I use it on my phone?",
-          a: "Yes — it is a website, so there is nothing to install, and you can add it to your home screen if you want it to open like an app. Reviewing is built thumb-first, because most of it happens on a phone between classes.",
+          a: "Yes. It is a website, so there is nothing to install, and you can add it to your home screen if you want it to open like an app. Reviewing is built thumb-first, because most of it happens on a phone between classes.",
         },
       ],
     },
@@ -1774,7 +1835,7 @@ export const en = {
       contact: "Contact us",
       language: "Language",
       draft: "draft",
-      madeIn: "Made in the Philippines, for Filipino students.",
+      madeIn: "Made in the Philippines, for students everywhere.",
       rights: (year: number) =>
         `© ${year} Tuón · Adrian Salinas. All rights reserved.`,
     },
@@ -1785,7 +1846,7 @@ export const en = {
     noAccount: "Real notes, real output, no account needed.",
     reading: "Reading your note…",
     staged:
-      "In the app this takes about twelve seconds. Here it’s staged — the cards below were generated ahead of time.",
+      "In the app this takes about twelve seconds. Here it’s staged: the cards below were generated ahead of time.",
     cardsAndQuiz: (count: number) => `${count} flashcards and a quiz`,
     progress: (index: number, total: number) => `${index} / ${total}`,
     showQuestion: "Show question",
@@ -1806,8 +1867,8 @@ export const en = {
     body: (creature: string) =>
       `Ask ${creature} whether Tuón covers your subject or your board exam, what it costs, or who can see your notes.`,
     suggestions: [
-      "Does it cover my strand?",
-      "Can I use it for the CPALE?",
+      "Does it cover my subject?",
+      "Can I use it for my board exam?",
       "Is it really free?",
       "Who can see my notes?",
     ],

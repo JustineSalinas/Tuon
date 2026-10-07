@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePagedStudySets, useReviewLogs } from "@/lib/hooks/use-firestore";
 import { LoadMore } from "@/components/app/load-more";
+import { AnkiImport } from "@/components/sets/anki-import";
 import { useNow } from "@/lib/hooks/use-now";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,10 +88,13 @@ export default function StudySetsPage() {
     <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-8 md:py-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-semibold tracking-tight">{t.sets.title}</h1>
-        <Button render={<Link href="/app/notes/new" />}>
+        <div className="flex flex-wrap items-center gap-2">
+          <AnkiImport />
+          <Button render={<Link href="/app/notes/new" />}>
             <Plus />
             {t.nav.newNote}
           </Button>
+        </div>
       </header>
 
       {sets.length > 0 ? (

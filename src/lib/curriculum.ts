@@ -1,5 +1,5 @@
 import type { EducationLevel, Strand } from "./types";
-import { isPhilippines as countryIsPhilippines } from "./countries";
+import { countryOrDefault, isPhilippines as countryIsPhilippines } from "./countries";
 
 /**
  * Curriculum content for two audiences sharing one profile shape.
@@ -41,7 +41,7 @@ export const EDUCATION_LEVELS: {
  * takes a plain boolean, not the country code itself.
  */
 export function strandsAvailable(country: string | null | undefined): boolean {
-  return countryIsPhilippines(country);
+  return countryIsPhilippines(countryOrDefault(country));
 }
 
 /**

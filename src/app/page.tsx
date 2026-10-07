@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { ArrowRight, Check, Clock, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Clock } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
@@ -59,11 +59,11 @@ const productJsonLd = {
   operatingSystem: "Web",
   url: siteUrl(),
   description:
-    "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick. Built for Senior High and college students in the Philippines.",
+    "Paste your class notes. Tuón turns them into flashcards and practice quizzes, then schedules your reviews so things actually stick. Built for Senior High, college and licensure-exam students everywhere.",
   offers: {
     "@type": "Offer",
-    price: PLANS.free.phpMonthly,
-    priceCurrency: "PHP",
+    price: PLANS.free.usdMonthly,
+    priceCurrency: "USD",
   },
 };
 
@@ -97,6 +97,27 @@ export default function LandingPage() {
   );
 }
 
+/**
+ * Three marks, each gap and each dot a little larger than the last: the
+ * spacing effect itself, as a mark rather than a sparkle. A wide viewBox so
+ * it reads as a widening sequence rather than an ellipsis at badge size.
+ * Plain geometry in `currentColor`, no gradient or shadow.
+ */
+function SpacingMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 26 10"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="1.5" cy="5" r="1.3" />
+      <circle cx="9" cy="5" r="1.6" />
+      <circle cx="22" cy="5" r="2" />
+    </svg>
+  );
+}
+
 function Hero() {
   const { t } = useI18n();
   const reduceMotion = useReducedMotion();
@@ -110,8 +131,8 @@ function Hero() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="mx-auto max-w-3xl text-center"
         >
-          <Badge variant="secondary" className="gap-1.5">
-            <Sparkles className="size-3" />
+          <Badge variant="secondary" className="gap-2">
+            <SpacingMark className="h-2 w-5" />
             {t.marketing.hero.badge}
           </Badge>
 
@@ -232,16 +253,41 @@ function WhyItSticks() {
       title={t.marketing.why.title}
       muted
     >
-      <Reveal>
-        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-          {t.marketing.why.body}
-        </p>
-      </Reveal>
-      <Reveal delay={0.05}>
-        <TalaAside state="asleep" className="mt-8">
-          {t.marketing.why.aside}
-        </TalaAside>
-      </Reveal>
+      <div className="mt-8 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
+        <div>
+          <Reveal>
+            <p className="text-muted-foreground max-w-xl leading-relaxed">
+              {t.marketing.why.body}
+            </p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <TalaAside state="asleep" className="mt-8">
+              {t.marketing.why.aside}
+            </TalaAside>
+          </Reveal>
+        </div>
+
+        {/* The citation, set apart as a fact rather than folded into the
+            pitch's own paragraph rhythm — a claim this specific earns a
+            different typographic register than the sentence beside it. */}
+        <Reveal delay={0.05}>
+          <div className="border-primary/25 bg-background rounded-2xl border p-6">
+            <p className="text-primary text-xs font-medium tracking-widest uppercase">
+              {t.marketing.why.scienceLabel}
+            </p>
+            <p className="font-display mt-3 text-4xl font-semibold tracking-tight">
+              {t.marketing.why.scienceStat}
+              <span className="text-muted-foreground ml-2 font-sans text-sm font-normal tracking-normal normal-case">
+                {t.marketing.why.scienceStatUnit}
+              </span>
+            </p>
+            <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+              {t.marketing.why.science}
+            </p>
+          </div>
+        </Reveal>
+      </div>
+
       <Reveal delay={0.1}>
         <MemoryDecay />
       </Reveal>
@@ -326,9 +372,28 @@ function EveryDevice() {
   );
 }
 
+function PointGroup({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div>
+      <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+        {label}
+      </p>
+      <ul className="mt-3 space-y-3">
+        {items.map((item) => (
+          <li key={item} className="border-primary/40 border-l-2 py-0.5 pl-3.5">
+            <span className="text-sm leading-relaxed">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function BuiltForPH() {
   const { t } = useI18n();
   const points = t.marketing.local.points;
+  const ph = points.filter((p) => p.ph).map((p) => p.text);
+  const everywhere = points.filter((p) => !p.ph).map((p) => p.text);
 
   return (
     <Section
@@ -347,25 +412,18 @@ function BuiltForPH() {
         />
       }
     >
-      <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-16">
-        <Reveal>
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            {t.marketing.local.body}
-          </p>
-        </Reveal>
+      <Reveal>
+        <p className="text-muted-foreground mt-4 max-w-2xl text-lg leading-relaxed">
+          {t.marketing.local.body}
+        </p>
+      </Reveal>
 
+      <div className="mt-10 grid gap-10 sm:grid-cols-2 sm:gap-12">
+        <Reveal delay={0.05}>
+          <PointGroup label={t.marketing.local.phLabel} items={ph} />
+        </Reveal>
         <Reveal delay={0.1}>
-          <ul className="space-y-3.5">
-            {points.map((point) => (
-              <li key={point} className="flex gap-3">
-                <Check
-                  className="text-primary mt-0.5 size-4 shrink-0"
-                  strokeWidth={3}
-                />
-                <span className="text-sm leading-relaxed">{point}</span>
-              </li>
-            ))}
-          </ul>
+          <PointGroup label={t.marketing.local.everywhereLabel} items={everywhere} />
         </Reveal>
       </div>
 

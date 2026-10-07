@@ -11,7 +11,16 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { ArrowLeft, Check, FileUp, Loader2, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Check,
+  ChevronDown,
+  FileText,
+  FileUp,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -26,6 +35,18 @@ import {
   usePdfImport,
   type ImportedPdf,
 } from "@/components/notes/pdf-import";
+import { useDocxImport, type ImportedDocx } from "@/components/notes/docx-import";
+import {
+  PhotoImportOverlay,
+  usePhotoImport,
+  type ImportedPhoto,
+} from "@/components/notes/photo-import";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { isSeniorHigh } from "@/lib/curriculum";
 import { normaliseTitle, parseWikiLinks } from "@/lib/notes/links";
 import { MIN_NOTE_CHARS, maxNoteCharsFor } from "@/lib/ai/config";
@@ -161,6 +182,39 @@ ${text}` : text;
   );
 
   const pdf = usePdfImport(handlePdfImported, maxNoteChars);
+
+  const handleDocxImported = useCallback(
+    ({ title: docxTitle, text, clipped }: ImportedDocx) => {
+      setContent((prev) => {
+        const next = prev.trim() ? `${prev.trim()}
+
+${text}` : text;
+        return next.slice(0, maxNoteChars);
+      });
+      setTitle((prev) => prev.trim() || docxTitle);
+      dirtyRef.current = true;
+      setSaveState("idle");
+      toast.success(clipped ? t.notes.importClipped : t.notes.imported);
+    },
+    [maxNoteChars, t],
+  );
+  const docx = useDocxImport(handleDocxImported, maxNoteChars);
+
+  const handlePhotoImported = useCallback(
+    ({ text }: ImportedPhoto) => {
+      setContent((prev) => {
+        const next = prev.trim() ? `${prev.trim()}
+
+${text}` : text;
+        return next.slice(0, maxNoteChars);
+      });
+      dirtyRef.current = true;
+      setSaveState("idle");
+      toast.success(t.notes.imported);
+    },
+    [maxNoteChars, t],
+  );
+  const photo = usePhotoImport(handlePhotoImported, maxNoteChars);
 
   const linkAutocomplete = useLinkAutocomplete({
     setContent: (next) => {
@@ -325,16 +379,40 @@ ${text}` : text;
             <Label htmlFor="content" className="sr-only">
               {t.notes.contentLabel}
             </Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={pdf.openPicker}
-              disabled={pdf.importing}
-            >
-              {pdf.importing ? <Loader2 className="animate-spin" /> : <FileUp />}
-              {t.pdf.importPdf}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={pdf.importing || docx.importing || photo.importing}
+                  >
+                    {pdf.importing || docx.importing || photo.importing ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <FileUp />
+                    )}
+                    {t.notes.importMenu}
+                    <ChevronDown className="size-3.5" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={pdf.openPicker}>
+                  <FileUp className="size-4" />
+                  {t.pdf.importPdf}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={docx.openPicker}>
+                  <FileText className="size-4" />
+                  {t.docx.importDocx}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={photo.openPicker}>
+                  <Camera className="size-4" />
+                  {t.photo.importPhoto}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <span className="text-muted-foreground text-xs">
               {t.pdf.orDrop}
             </span>
@@ -364,17 +442,24 @@ ${text}` : text;
               importing={pdf.importing}
               progress={pdf.progress}
             />
+            <PhotoImportOverlay importing={photo.importing} />
           </div>
 
           {pdf.inputElement}
+          {docx.inputElement}
+          {photo.inputElement}
 
-          {pdf.error ? (
+          {pdf.error || docx.error || photo.error ? (
             <Alert variant="destructive">
               <AlertDescription className="flex flex-wrap items-center gap-x-2">
-                <span>{pdf.error}</span>
+                <span>{pdf.error || docx.error || photo.error}</span>
                 <button
                   type="button"
-                  onClick={pdf.clearError}
+                  onClick={() => {
+                    pdf.clearError();
+                    docx.clearError();
+                    photo.clearError();
+                  }}
                   className="font-medium underline underline-offset-4"
                 >
                   {t.notes.dismiss}
