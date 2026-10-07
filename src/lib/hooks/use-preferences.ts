@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/providers/auth-provider";
-import { DEFAULT_TIME_ZONE, normaliseTimeZone } from "@/lib/time-zone";
+import { DEFAULT_TIME_ZONE, detectTimeZone, normaliseTimeZone } from "@/lib/time-zone";
 import { clampGoal, readTypedRecall } from "@/lib/preferences";
 import {
   readPomodoroSettings,
@@ -34,7 +34,15 @@ export function usePreferences(): Preferences {
   const { profile } = useAuth();
 
   return {
-    timeZone: normaliseTimeZone(profile?.timeZone ?? DEFAULT_TIME_ZONE),
+    // Manila only as a last resort, when the browser genuinely will not say.
+    // Before the international pivot every account was reasonably assumed to
+    // be there; now an unset timeZone is just as likely to belong to a
+    // student somewhere else, and silently scheduling their "due today" on
+    // Manila's clock is exactly the wrong-answer-that-looks-right failure
+    // this module's own docstring warns about.
+    timeZone: normaliseTimeZone(
+      profile?.timeZone ?? detectTimeZone() ?? DEFAULT_TIME_ZONE,
+    ),
     dailyCardGoal: clampGoal(profile?.dailyCardGoal),
     typedRecall: readTypedRecall(profile?.typedRecall),
     pomodoro: readPomodoroSettings(profile ?? {}),
