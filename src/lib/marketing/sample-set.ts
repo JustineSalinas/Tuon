@@ -17,11 +17,11 @@ export const SAMPLE_NOTE = {
   courseTag: "General Chemistry 1",
   excerpt: `Le Chatelier's Principle: if a system at equilibrium is disturbed, it shifts to counteract the disturbance and restore equilibrium.
 
-Concentration — adding reactant shifts right (toward products); adding product shifts left. Removing a substance shifts toward the side it was removed from.
+Concentration: adding reactant shifts right (toward products); adding product shifts left. Removing a substance shifts toward the side it was removed from.
 
-Pressure — only affects gases. Increasing pressure shifts toward the side with FEWER moles of gas. If both sides have equal moles, no shift.
+Pressure: only affects gases. Increasing pressure shifts toward the side with FEWER moles of gas. If both sides have equal moles, no shift.
 
-Temperature — treat heat as a reactant or product. Exothermic (heat is a product): raising temperature shifts LEFT. Endothermic (heat is a reactant): raising temperature shifts RIGHT. Temperature is the only factor that changes K.
+Temperature: treat heat as a reactant or product. Exothermic (heat is a product): raising temperature shifts LEFT. Endothermic (heat is a reactant): raising temperature shifts RIGHT. Temperature is the only factor that changes K.
 
 Catalysts do NOT shift equilibrium. They speed up both directions equally, so the system reaches equilibrium faster at the same position.`,
 };

@@ -14,7 +14,7 @@ import { ImageResponse } from "next/og";
  * this size.
  */
 
-export const alt = "Tuón — turn your class notes into flashcards and quizzes";
+export const alt = "Tuón: turn your class notes into flashcards and quizzes";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

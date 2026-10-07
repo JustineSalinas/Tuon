@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 
@@ -9,8 +9,13 @@ import { useI18n } from "@/components/providers/i18n-provider";
  *
  * Deliberately compares against DOING IT YOURSELF rather than a named rival.
  * Handwriting a reviewer is what this audience actually does, it is what Tuón
- * actually replaces, and every row can be defended — which is not true of a
+ * actually replaces, and every row can be defended, which is not true of a
  * competitor feature grid drawn up by the side that wrote it.
+ *
+ * Built as a sequence rather than a scorecard: no header row, no X/check
+ * columns scoring Tuón against an opponent. Each row is one habit, read
+ * left to right as it actually changes, with the old way struck through
+ * rather than marked wrong.
  *
  * "Eleven seconds" is a measured figure from a real generation, not a
  * marketing round number. If the model or prompt changes enough to move it,
@@ -22,47 +27,27 @@ export function ByHand() {
   const rows = t.marketing.versus.rows;
 
   return (
-    <div className="mt-12 overflow-hidden rounded-2xl border">
-      {/* Header row — hidden on phones, where each row becomes its own block. */}
-      <div className="bg-secondary/60 hidden border-b sm:grid sm:grid-cols-[1.1fr_1fr_1fr]">
-        <div className="px-5 py-3" />
-        <div className="text-muted-foreground px-5 py-3 text-xs font-medium tracking-widest uppercase">
-          {t.marketing.versus.byHand}
-        </div>
-        <div className="text-primary px-5 py-3 text-xs font-medium tracking-widest uppercase">
-          {t.marketing.versus.withTuon}
-        </div>
-      </div>
-
+    <div className="mt-12 flex flex-col">
       {rows.map((row, index) => (
         <div
           key={row.label}
           className={
-            "grid gap-x-5 gap-y-2 px-5 py-4 sm:grid-cols-[1.1fr_1fr_1fr] sm:items-center " +
+            "grid gap-x-6 gap-y-2 py-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center " +
             (index > 0 ? "border-t" : "")
           }
         >
-          <div className="text-sm font-medium">{row.label}</div>
-
-          <div className="text-muted-foreground flex items-start gap-2.5 text-sm">
-            <X className="mt-0.5 size-4 shrink-0" strokeWidth={2.5} />
-            <span>
-              <span className="text-muted-foreground/80 mr-1.5 text-xs sm:hidden">
-                {t.marketing.versus.byHand} —
-              </span>
+          <div>
+            <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+              {row.label}
+            </p>
+            <p className="text-muted-foreground/70 decoration-muted-foreground/40 mt-1.5 text-sm line-through">
               {row.byHand}
-            </span>
+            </p>
           </div>
 
-          <div className="flex items-start gap-2.5 text-sm">
-            <Check className="text-primary mt-0.5 size-4 shrink-0" strokeWidth={3} />
-            <span>
-              <span className="text-muted-foreground mr-1.5 text-xs sm:hidden">
-                {t.marketing.versus.withTuon} —
-              </span>
-              {row.tuon}
-            </span>
-          </div>
+          <ArrowRight className="text-muted-foreground/50 hidden size-4 sm:block" />
+
+          <p className="font-display text-base font-medium sm:text-lg">{row.tuon}</p>
         </div>
       ))}
     </div>

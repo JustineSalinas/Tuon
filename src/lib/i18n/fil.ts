@@ -926,12 +926,12 @@ export const fil: Messages = {
     },
     plus: {
       tagline:
-        "Buong course load — anim na subject, dalawang beses sa isang linggo.",
+        "Buong course load: anim na subject, dalawang beses sa isang linggo.",
       features: [
         "50 AI study set kada buwan",
         "Mga notang hanggang 60,000 karakter",
         "I-export ang study set sa Anki, CSV, o PDF",
-        "Retention stats — kung ano ang malilimutan mo na",
+        "Retention stats: kung ano ang malilimutan mo na",
         "Mag-share ng set sa link kasama ang mga blockmate mo",
         "Lahat ng nasa Free",
       ],
@@ -939,9 +939,9 @@ export const fil: Messages = {
     pro: {
       tagline: "Para sa finals week, thesis season, at board review.",
       features: [
-        "120 AI study set kada buwan — mga apat sa isang araw",
+        "120 AI study set kada buwan, mga apat sa isang araw",
         "Mga notang hanggang 120,000 karakter",
-        "Priority generation — walang paghihintay sa pagitan ng mga set",
+        "Priority generation: walang paghihintay sa pagitan ng mga set",
         "Lahat ng nasa Plus",
       ],
     },
@@ -1470,7 +1470,7 @@ export const fil: Messages = {
       tapToReveal: "I-tap para makita ang sagot",
       hoursMinutes: (h: number, m: number) => `${h}h ${m}m`,
       thisSession: "Ngayong sesyon",
-      requeued: "Babalik bago ka matapos — para diyan ang Ulit.",
+      requeued: "Babalik bago ka matapos. Para diyan ang Ulit.",
       interval: (days: number) =>
         days <= 0
           ? "Ngayon"
@@ -1481,8 +1481,8 @@ export const fil: Messages = {
               : `${Math.round(days / 30)} buwan`,
       scheduled: (days: number) =>
         days <= 1
-          ? "Nakaiskedyul na — babalik bukas."
-          : `Nakaiskedyul na — babalik sa loob ng ${days} araw.`,
+          ? "Nakaiskedyul na, babalik bukas."
+          : `Nakaiskedyul na, babalik sa loob ng ${days} araw.`,
       doneTitle: "Iyan ang buong proseso.",
       doneBody:
         "Anim na kard, mga apatnapung segundo. Ginagawa iyan ng Tuón gamit ang sarili mong notes, at siya na ang bahala kung kailan babalik ang bawat kard.",
@@ -1490,7 +1490,7 @@ export const fil: Messages = {
       badge: "Suportado ng agham ng memorya",
       headline: "Epektibo ang cramming.",
       headlineAccent: " Sa loob ng mga tatlong araw.",
-      body: "I-paste ang notes mo. Isusulat ng Tuón ang flashcards at practice quiz, tapos ibabalik ang bawat kard bago mo pa ito makalimutan — para ang reviewer na ginawa mo ngayong gabi ay gumagana pa rin sa susunod na semester.",
+      body: "I-paste ang notes mo. Isusulat ng Tuón ang flashcards at practice quiz, tapos ibabalik ang bawat kard bago mo pa ito makalimutan, para ang reviewer na ginawa mo ngayong gabi ay gumagana pa rin sa susunod na semester.",
       startFree: "Magsimula nang libre",
       haveAccount: "May account na ako",
       freeForever: (count: number) =>
@@ -1504,9 +1504,12 @@ export const fil: Messages = {
     why: {
       eyebrow: "Bakit ka nakakalimot",
       title: "Tinatapon ng utak mo ang hindi na niya nakikita",
-      body: "Hindi ito depekto, at hindi ito problema sa disiplina — ganito talaga gumana ang memorya. Anumang nakita mo nang minsan at hindi na muli ay nililinis. Ang solusyon ay hindi mas maraming oras kagabi bago ang exam; ito ay ang muling pagharap sa parehong kard habang nagsisimula pa lang itong madulas. Ang manu-manong pag-iiskedyul niyan ang bahaging walang nakakasunod.",
+      body: "Hindi ito depekto, at hindi ito problema sa disiplina. Ganito talaga gumana ang memorya: anumang nakita mo nang minsan at hindi na muli ay nililinis. Ang solusyon ay hindi mas maraming oras kagabi bago ang exam. Ito ay ang muling pagharap sa parehong kard habang nagsisimula pa lang itong madulas, at ang manu-manong pag-iiskedyul niyan ang bahaging walang nakakasunod.",
+      scienceLabel: "Ang spacing effect",
+      scienceStat: "100+",
+      scienceStatUnit: "taon ng pagpapatunay",
       science:
-        "Ito ang spacing effect — isa sa mga pinakapatunayang natuklasan sa pag-aaral ng memorya, unang sinukat mahigit isang siglo na ang nakalipas at pinatunayan nang maraming ulit mula noon. Ang pag-iiskedyul ng review habang nagsisimula pa lang maglaho ang memorya ay kailangan ng mas kaunting oras kumpara sa cramming para tandaan ang parehong materyal — ito talaga ang ibig sabihin ng mas kaunting effort para sa mas mahabang pagtatanda: hindi slogan, isang sukat na mapapanood mo sa ibaba.",
+        "Isa sa mga pinakapatunayang natuklasan sa pag-aaral ng memorya, unang sinukat mahigit isang siglo na ang nakalipas at pinatunayan nang maraming ulit mula noon. Ang pag-iiskedyul ng review habang nagsisimula pa lang maglaho ang memorya ay kailangan ng mas kaunting oras kumpara sa cramming para tandaan ang parehong materyal. Iyan ang buong mekanismo sa likod ng spaced repetition: hindi slogan, isang sukat na mapapanood mo sa ibaba.",
       aside:
         "Ang kard na tatlong linggo mo nang hindi nakikita ay tulog. Ginigising ito ng Tuón isang araw bago mo ito mawala.",
     },
@@ -1527,7 +1530,7 @@ export const fil: Messages = {
       fourReviews: "Apat na review. Mga anim na minuto lahat-lahat.",
       wholeDifference: "Iyan ang buong pagkakaiba ng dalawang kard na ito.",
       source:
-        "Batay sa forgetting curve na unang sinukat ni Hermann Ebbinghaus noong 1885 at paulit-ulit nang naipakita mula noon. Iginuhit para ipakita ang mekanismo — hindi ito sukat ng mga gumagamit ng Tuón.",
+        "Batay sa forgetting curve na unang sinukat ni Hermann Ebbinghaus noong 1885 at paulit-ulit nang naipakita mula noon. Iginuhit para ipakita ang mekanismo; hindi ito sukat ng mga gumagamit ng Tuón.",
     },
 
     how: {
@@ -1556,7 +1559,7 @@ export const fil: Messages = {
     versus: {
       eyebrow: "Kumpara sa manu-mano",
       title: "Marunong ka nang gumawa ng reviewer",
-      body: "Long bond paper, apat na kulay ng panulat, isang gabing nawala. Gumagana ito — tapos matatapos ang exam at mapupunta ito sa basurahan. Narito ang parehong trabaho, ginawa sa ibang paraan.",
+      body: "Long bond paper, apat na kulay ng panulat, isang gabing nawala. Gumagana ito, tapos matatapos ang exam at mapupunta ito sa basurahan. Narito ang parehong trabaho, ginawa sa ibang paraan.",
       byHand: "Manu-mano",
       withTuon: "Gamit ang Tuón",
       rows: [
@@ -1591,7 +1594,7 @@ export const fil: Messages = {
     devices: {
       eyebrow: "Bawat device na meron ka",
       title: "Buksan ito kahit ano ang nasa harap mo",
-      body: "Tumatakbo ang Tuón sa browser, kaya walang i-i-install at walang isa-sideload. Mag-review sa telepono mo habang nasa jeep, magsulat ng nota sa desktop ng library — pareho ang iskedyul mo sa dalawa, dahil nasa account mo ito at hindi sa device.",
+      body: "Tumatakbo ang Tuón sa browser, kaya walang i-i-install at walang isa-sideload. Mag-review sa telepono mo habang nasa jeep, magsulat ng nota sa desktop ng library: pareho ang iskedyul mo sa dalawa, dahil nasa account mo ito at hindi sa device.",
       desktopCaption: "Stats sa desktop ng library",
       tabletCaption: "Mga nota at ang kanilang ugnayan",
       phoneCaption: "Nagre-review sa jeep",
@@ -1636,25 +1639,28 @@ export const fil: Messages = {
       inTheWorks: "GINAGAWA PA",
       nativeTitle: "Paparating na ang native apps sa iPhone at Android",
       nativeBody:
-        "Offline na review at icon sa home screen, nang hindi isinusuko ang web version. Hindi mo kailangang maghintay — gumagana na sa browser mo ngayon ang lahat ng nasa itaas.",
+        "Offline na review at icon sa home screen, nang hindi isinusuko ang web version. Hindi mo kailangang maghintay; gumagana na sa browser mo ngayon ang lahat ng nasa itaas.",
       soonOn: "Malapit nang nasa",
     },
 
     local: {
       eyebrow: "Gawa para sa kurikulum mo",
       title: "Alam na nito kung paano ang eskwela sa lugar mo",
-      body: "Piliin ang bansa mo nang isang beses. Sa Pilipinas, alam na ng Tuón ang K-12 system — nakapaloob ang mga strand, core subjects at board exams, kaya tatlong pindot lang ang pag-set up. Kung saan ka man, i-type mo lang ang kinukuha mo — matututunan ni Tuón mula roon.",
+      body: "Piliin ang bansa mo nang isang beses. Sa Pilipinas, alam na ng Tuón ang K-12 system: nakapaloob ang mga strand, core subjects at board exams, kaya tatlong pindot lang ang pag-set up. Kung saan ka man, i-type mo lang ang kinukuha mo; matututunan ni Tuón mula roon.",
+      phLabel: "Sa Pilipinas",
+      everywhereLabel: "Kahit saan",
       points: [
-        "Pilipinas: nakapaloob ang Senior High strands — STEM, ABM, HUMSS at GAS, kasama ang tamang subject sa bawat isa",
-        "Pilipinas: handa nang piliin ang core subjects tulad ng General Mathematics, Earth and Life Science at Oral Communication",
-        "Mga kursong pangkolehiyo mula BS Nursing hanggang Computer Science, na may puwang para sa sarili mong idagdag, kahit saan",
-        "Pilipinas: itinuturing na pangunahing subject ang paghahanda sa UPCAT, ACET at DCAT",
-        "Nananatili kung paano mo isinulat ang mga notang naghahalo ng wika — Ingles at Tagalog, o kung ano pa man",
+        { ph: true, text: "Nakapaloob ang Senior High strands (STEM, ABM, HUMSS at GAS), kasama ang tamang subject sa bawat isa" },
+        { ph: true, text: "Handa nang piliin ang core subjects tulad ng General Mathematics, Earth and Life Science at Oral Communication" },
+        { ph: false, text: "Mga kursong pangkolehiyo mula BS Nursing hanggang Computer Science, na may puwang para sa sarili mong idagdag, kahit saan" },
+        { ph: true, text: "Itinuturing na pangunahing subject ang paghahanda sa UPCAT, ACET at DCAT" },
+        { ph: false, text: "Nananatili kung paano mo isinulat ang mga notang naghahalo ng wika, Ingles at Tagalog, o kung ano pa man" },
       ],
       setupTitle: "Ang bansa mo, tapos tatlong tanong, at nag-aaral ka na.",
+      yourCountry: "Ang bansa mo",
       yourSchool: "Ang eskwelahan mo",
       schoolHint:
-        "I-type ang kahit ano — hindi kailangang nasa listahan ang eskwelahan mo.",
+        "I-type ang kahit ano. Hindi kailangang nasa listahan ang eskwelahan mo.",
       yourStrand: "Ang strand mo",
       strandHint: "Kolehiyo ba? Dito ka pipili ng degree program.",
       yourSubjects: "Ang mga subject mo",
@@ -1669,7 +1675,7 @@ export const fil: Messages = {
       bodyBefore: "Ang isang",
       studySet: "study set",
       bodyAfter: (explainer: string) =>
-        `ay ${explainer}. Walang limitasyon sa lahat ng plan — pati sa Free — ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule.`,
+        `ay ${explainer}. Walang limitasyon sa lahat ng plan, pati sa Free, ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule.`,
       billingPeriod: "Panahon ng pagbabayad",
       monthly: "Buwanan",
       yearly: (freeMonths: number) => `Taunan · ${freeMonths} buwang libre`,
@@ -1690,7 +1696,7 @@ export const fil: Messages = {
       items: [
         {
           q: "Libre ba talaga?",
-          a: "Oo, at hindi trial ang libreng plan. Makakakuha ka ng {count} AI study set kada buwan, habambuhay. Walang limitasyon sa lahat ng plan ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule — ang tanging may bayad ay ang AI na gumagawa ng kard mula sa nota, dahil iyon lang ang may gastos sa amin.",
+          a: "Oo, at hindi trial ang libreng plan. Makakakuha ka ng {count} AI study set kada buwan, habambuhay. Walang limitasyon sa lahat ng plan ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule. Ang tanging may bayad ay ang AI na gumagawa ng kard mula sa nota, dahil iyon lang ang may gastos sa amin.",
         },
         {
           q: "Ano ang mangyayari kapag naabot ko ang buwanang limitasyon?",
@@ -1698,17 +1704,17 @@ export const fil: Messages = {
         },
         {
           q: "Sino ang nakakakita ng mga nota ko?",
-          a: "Ikaw lang. Naka-off ang pag-share bilang default at kada study set — buksan ito at makikita ng kahit sinong may link ang mga kard na iyon; patayin ito at agad na hihinto ang access. Hindi kailanman ibinabahagi ang mga nota at review history mo. Detalyado sa {link} kung ano ang hawak namin at sino ang nagpoproseso nito.",
+          a: "Ikaw lang. Naka-off ang pag-share bilang default at kada study set: buksan ito at makikita ng kahit sinong may link ang mga kard na iyon; patayin ito at agad na hihinto ang access. Hindi kailanman ibinabahagi ang mga nota at review history mo. Detalyado sa {link} kung ano ang hawak namin at sino ang nagpoproseso nito.",
           linkHref: "/privacy",
           linkLabel: "paunawa sa privacy",
         },
         {
           q: "Ipinapadala ba ang nota ko sa isang kompanya ng AI?",
-          a: "Ipinapadala ang teksto ng nota sa Anthropic kapag — at kapag lang — pinindot mo ang Generate. Hindi ipinapadala ang pangalan, email, at review history mo. Walang ipinapadala habang nagsusulat o nagre-review ka lang, at binabasa ang mga PDF sa browser mo at hindi kailanman ina-upload.",
+          a: "Ipinapadala ang teksto ng nota sa Anthropic kapag lang pinindot mo ang Generate. Hindi ipinapadala ang pangalan, email, at review history mo. Walang ipinapadala habang nagsusulat o nagre-review ka lang, at binabasa ang mga PDF sa browser mo at hindi kailanman ina-upload.",
         },
         {
           q: "Nagkakamali ba ang mga flashcard?",
-          a: "Minsan, oo. Ang AI ay gumagawa lamang mula sa nota mo, kaya kung may mali ang nota, uulitin ito ng mga kard — at tulad ng anumang AI, minsan ay tiwala itong nagkakamali nang mag-isa. Suriin sa textbook mo ang anumang mahalaga. Pantulong ito sa pag-aaral, hindi pinagmumulan ng katotohanan.",
+          a: "Minsan, oo. Ang AI ay gumagawa lamang mula sa nota mo, kaya kung may mali ang nota, uulitin ito ng mga kard, at tulad ng anumang AI, minsan ay tiwala itong nagkakamali nang mag-isa. Suriin sa textbook mo ang anumang mahalaga. Pantulong ito sa pag-aaral, hindi pinagmumulan ng katotohanan.",
         },
         {
           q: "Pwede ko ba itong gamitin sa entrance exam o board review?",
@@ -1724,27 +1730,27 @@ export const fil: Messages = {
         },
         {
           q: "Ano ang pinagkaiba nito sa Quizlet o Anki?",
-          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”. Nababasa rin nito ang mga notang naghahalo ng wika — Ingles at Tagalog o Cebuano, o kahit anong pares — eksaktong kung paano ito isinulat, sa halip na asahan kang isalin muna.",
+          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”. Nababasa rin nito ang mga notang naghahalo ng wika (Ingles at Tagalog o Cebuano, o kahit anong pares) eksaktong kung paano ito isinulat, sa halip na asahan kang isalin muna.",
         },
         {
           q: "Kailangan ko bang i-type ang bawat sagot?",
-          a: "Sa mga kard lang na sapat ang ikli para i-type, at pwede mo itong patayin sa settings o laktawan sa kahit anong kard. Naka-on ito bilang default dahil ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Pinapatawad ang spelling, ayos ng salita, accent at ang mga marka ng wika mo na baka isulat mo — hindi kailanman itinuturing na mali ang typo.",
+          a: "Sa mga kard lang na sapat ang ikli para i-type, at pwede mo itong patayin sa settings o laktawan sa kahit anong kard. Naka-on ito bilang default dahil ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Pinapatawad ang spelling, ayos ng salita, accent at ang mga marka ng wika mo na baka isulat mo: hindi kailanman itinuturing na mali ang typo.",
         },
         {
           q: "Pwede ba akong mag-aral kasama ang mga kaklase ko?",
-          a: "Oo, sa mga grupong imbitasyon lang: mag-share ng set, maglagay ng pinagsasaluhang deadline, at makita kung sino ang nag-aaral ngayon. Sadyang walang pampublikong silid at walang direktoryo — marami sa mga gumagamit ng Tuón ay menor de edad, at ang espasyong mapapasok ng estranghero ay nangangailangan ng moderasyong hindi namin kayang ipangako. Sumasali ka sa grupo dahil may nagpadala sa iyo ng code.",
+          a: "Oo, sa mga grupong imbitasyon lang: mag-share ng set, maglagay ng pinagsasaluhang deadline, at makita kung sino ang nag-aaral ngayon. Sadyang walang pampublikong silid at walang direktoryo. Marami sa mga gumagamit ng Tuón ay menor de edad, at ang espasyong mapapasok ng estranghero ay nangangailangan ng moderasyong hindi namin kayang ipangako. Sumasali ka sa grupo dahil may nagpadala sa iyo ng code.",
         },
         {
           q: "Makukuha ko bang muli ang mga nota ko?",
-          a: "Anumang oras, bilang Markdown, na buo ang [[links]] mo — isang download para sa buong library. Pwede ka ring magdala ng folder ng Markdown sa parehong paraan. Ang pagsasara ng labasan ang paraan ng mga app para pigilan ang gustong umalis, at hindi iyon plano namin.",
+          a: "Anumang oras, bilang Markdown, na buo ang [[links]] mo: isang download para sa buong library. Pwede ka ring magdala ng folder ng Markdown sa parehong paraan. Ang pagsasara ng labasan ang paraan ng mga app para pigilan ang gustong umalis, at hindi iyon plano namin.",
         },
         {
           q: "Paano kung makalimutan ko ng isang linggo?",
-          a: "Walang masisira at walang mawawala. Ang mga kard na nalaktawan mo ay due pa rin, at may hangganan ang isang session batay sa pang-araw-araw na target na itinakda mo, kaya hindi dumarating ang backlog bilang pader ng 300 kard. May study grid sa dashboard mo na nagbibilang ng mga araw na nag-aral ka, pero talaan ito at hindi banta — walang nangungulit sa iyo na ipagpatuloy ito, at nananatili sa screen ang pinakamahaba mong takbo kahit may puwang.",
+          a: "Walang masisira at walang mawawala. Ang mga kard na nalaktawan mo ay due pa rin, at may hangganan ang isang session batay sa pang-araw-araw na target na itinakda mo, kaya hindi dumarating ang backlog bilang pader ng 300 kard. May study grid sa dashboard mo na nagbibilang ng mga araw na nag-aral ka, pero talaan ito at hindi banta. Walang nangungulit sa iyo na ipagpatuloy ito, at nananatili sa screen ang pinakamahaba mong takbo kahit may puwang.",
         },
         {
           q: "Pwede ko ba itong gamitin sa telepono ko?",
-          a: "Oo — website ito, kaya walang i-i-install, at pwede mo itong idagdag sa home screen mo kung gusto mong bumukas ito na parang app. Ginawa ang pag-review para sa hinlalaki, dahil doon nangyayari ang karamihan nito — sa telepono, sa pagitan ng mga klase.",
+          a: "Oo. Website ito, kaya walang i-i-install, at pwede mo itong idagdag sa home screen mo kung gusto mong bumukas ito na parang app. Ginawa ang pag-review para sa hinlalaki, dahil doon nangyayari ang karamihan nito: sa telepono, sa pagitan ng mga klase.",
         },
       ],
     },
@@ -1781,7 +1787,7 @@ export const fil: Messages = {
     noAccount: "Tunay na nota, tunay na resulta, walang kailangang account.",
     reading: "Binabasa ang nota mo…",
     staged:
-      "Sa app, mga labindalawang segundo ito. Dito ay itinanghal lang — nauna nang ginawa ang mga kard sa ibaba.",
+      "Sa app, mga labindalawang segundo ito. Dito ay itinanghal lang: nauna nang ginawa ang mga kard sa ibaba.",
     cardsAndQuiz: (count: number) => `${count} flashcard at isang quiz`,
     progress: (index: number, total: number) => `${index} / ${total}`,
     showQuestion: "Ipakita ang tanong",

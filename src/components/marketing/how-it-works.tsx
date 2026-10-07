@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
-import { FileText, Layers, Sparkles } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 import { SAMPLE_FLASHCARDS, SAMPLE_NOTE } from "@/lib/marketing/sample-set";
@@ -24,7 +23,6 @@ import { cn } from "@/lib/utils";
  * do.
  */
 
-const STEP_ICONS = [FileText, Sparkles, Layers];
 const DWELL_MS = 5200;
 
 /** The cards the fan shows. Three is enough to read as "several". */
@@ -164,7 +162,6 @@ export function HowItWorks() {
       {/* The steps, as controls rather than as headings. */}
       <ol className="space-y-2">
         {t.marketing.how.steps.map((entry, index) => {
-          const Icon = STEP_ICONS[index];
           const active = index === step;
           return (
             <li key={entry.title}>
@@ -176,7 +173,7 @@ export function HowItWorks() {
                 }}
                 aria-current={active ? "step" : undefined}
                 className={cn(
-                  "flex w-full items-start gap-3.5 rounded-xl border p-4 text-left transition-colors",
+                  "flex w-full items-start gap-4 rounded-xl border p-4 text-left transition-colors",
                   active
                     ? "border-primary/40 bg-accent/30"
                     : "border-transparent hover:bg-secondary/60",
@@ -184,19 +181,14 @@ export function HowItWorks() {
               >
                 <span
                   className={cn(
-                    "grid size-9 shrink-0 place-items-center rounded-lg transition-colors",
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground",
+                    "font-display shrink-0 text-2xl font-semibold tabular-nums transition-colors",
+                    active ? "text-primary" : "text-muted-foreground/40",
                   )}
                 >
-                  <Icon className="size-4" />
+                  {index + 1}
                 </span>
                 <span className="min-w-0">
-                  <span className="text-muted-foreground block text-[11px] font-medium tracking-widest uppercase">
-                    {t.marketing.how.step(index + 1)}
-                  </span>
-                  <span className="font-display mt-0.5 block text-lg font-semibold tracking-tight">
+                  <span className="font-display block text-lg font-semibold tracking-tight">
                     {entry.title}
                   </span>
                   {active ? (

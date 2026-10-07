@@ -148,7 +148,7 @@ export const PLANS: Record<Plan, PlanDefinition> = {
   plus: {
     id: "plus",
     name: "Plus",
-    tagline: "A full course load — six subjects, twice a week.",
+    tagline: "A full course load: six subjects, twice a week.",
     monthlyGenerations: 50,
     phpMonthly: 149,
     // Ten months' price for twelve months' access — the clearest way to say
