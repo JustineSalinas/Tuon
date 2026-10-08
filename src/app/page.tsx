@@ -70,7 +70,17 @@ const productJsonLd = {
 export default function LandingPage() {
   return (
     <SmoothScroll>
-      <div className="flex min-h-dvh flex-col">
+      {/* Locked to dark + forest regardless of the visitor's own palette or
+          light/dark preference — those are per-student app settings, read
+          from localStorage or their profile, and have no business leaking
+          into the one page a signed-out visitor sees before they have
+          either. `dark` + `data-palette` scope every token this page reads
+          to this subtree, the same two attributes next-themes and
+          PaletteProvider would otherwise put on <html>. */}
+      <div
+        className="dark bg-background text-foreground flex min-h-dvh flex-col"
+        data-palette="forest"
+      >
         {/* Static, self-authored JSON — the same trusted-content pattern
             layout.tsx already uses for its own pre-paint scripts. */}
         <script

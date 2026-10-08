@@ -980,6 +980,7 @@ export const fil: Messages = {
       features: [
         "50 AI study set kada buwan",
         "Mga notang hanggang 60,000 karakter",
+        "Mas malalaking set — hanggang 20 kard at 7-tanong na quiz",
         "I-export ang study set sa Anki, CSV, o PDF",
         "Retention stats: kung ano ang malilimutan mo na",
         "Mag-share ng set sa link kasama ang mga blockmate mo",
@@ -991,6 +992,7 @@ export const fil: Messages = {
       features: [
         "120 AI study set kada buwan, mga apat sa isang araw",
         "Mga notang hanggang 120,000 karakter",
+        "Pinakamalaking set — hanggang 25 kard at 10-tanong na quiz",
         "Priority generation: walang paghihintay sa pagitan ng mga set",
         "Lahat ng nasa Plus",
       ],
