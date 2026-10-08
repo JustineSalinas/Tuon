@@ -27,7 +27,7 @@ export function TodaysPlan({ plan }: { plan: StudyPlan }) {
 
   return (
     <div>
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-2">
         {plan.steps.map((step, index) => (
           <motion.div
             key={`${step.kind}-${step.id}`}
@@ -81,7 +81,7 @@ export function TodaysPlan({ plan }: { plan: StudyPlan }) {
                       {t.common.cards(step.cards)}
                     </span>
                   ) : null}
-                  <span className="text-primary/80">
+                  <span className="text-[color-mix(in_oklab,var(--primary)_75%,var(--foreground))]">
                     {step.reason === "shaky"
                       ? t.dashboard.shakyCards(step.shakyCount ?? 0)
                       : t.dashboard[step.reason]}

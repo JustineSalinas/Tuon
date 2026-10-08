@@ -48,7 +48,7 @@ export default function GroupsPage() {
         </p>
       </header>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <CreateGroup disabled={!user} />
         <JoinGroup disabled={!user} />
       </div>
@@ -63,7 +63,7 @@ export default function GroupsPage() {
           </p>
         </div>
       ) : (
-        <ul className="mt-8 grid gap-3">
+        <ul className="mt-8 grid grid-cols-1 gap-3">
           {groups.map((group) => (
             <li key={group.id}>
               <Link

@@ -130,7 +130,7 @@ export function GroupStandings({ groupId }: { groupId: string }) {
 
                 <Avatar className="size-7 shrink-0">
                   {photo ? <AvatarImage src={photo} alt="" /> : null}
-                  <AvatarFallback className="bg-primary/15 text-primary text-[11px] font-semibold">
+                  <AvatarFallback className="bg-primary/15 text-[color-mix(in_oklab,var(--primary)_65%,var(--foreground))] text-[11px] font-semibold">
                     {member.displayName.trim().charAt(0).toUpperCase() || "S"}
                   </AvatarFallback>
                 </Avatar>

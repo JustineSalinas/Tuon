@@ -71,7 +71,7 @@ export default function NotesPage() {
           {t.notes.noMatch(search)}
         </p>
       ) : (
-        <div className="mt-4 grid gap-2">
+        <div className="mt-4 grid grid-cols-1 gap-2">
           {filtered.map((note, index) => (
             <motion.div
               key={note.id}

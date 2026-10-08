@@ -97,7 +97,7 @@ export function ProfilePicture() {
       <div className="mt-3 flex items-center gap-4">
         <Avatar className="size-16">
           {photo ? <AvatarImage src={photo} alt="" /> : null}
-          <AvatarFallback className="bg-primary/15 text-primary text-lg font-semibold">
+          <AvatarFallback className="bg-primary/15 text-[color-mix(in_oklab,var(--primary)_65%,var(--foreground))] text-lg font-semibold">
             {initial}
           </AvatarFallback>
         </Avatar>

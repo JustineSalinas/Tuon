@@ -70,7 +70,7 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
         title={t.exportSet.lockedTitle(upgrade.name)}
       >
         <Lock />
-        {t.exportSet.action}
+        <span className="max-[420px]:sr-only">{t.exportSet.action}</span>
       </Button>
     );
   }
@@ -81,7 +81,7 @@ export function ExportMenu({ payload }: { payload: ExportPayload | null }) {
         render={
           <Button variant="outline" size="sm" disabled={disabled}>
             <Download />
-            {t.exportSet.action}
+            <span className="max-[420px]:sr-only">{t.exportSet.action}</span>
           </Button>
         }
       />

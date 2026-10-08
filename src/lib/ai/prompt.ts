@@ -1,6 +1,11 @@
-import { QUIZ_CHOICES_PER_QUESTION, QUIZ_QUESTIONS, targetFlashcardCount } from "./config";
+import {
+  QUIZ_CHOICES_PER_QUESTION,
+  maxFlashcardsFor,
+  quizQuestionsFor,
+  targetFlashcardCount,
+} from "./config";
 import { educationLevelLabel, isSeniorHigh, strandLabel } from "@/lib/curriculum";
-import type { EducationLevel, Strand } from "@/lib/types";
+import type { EducationLevel, Plan, Strand } from "@/lib/types";
 
 export const SYSTEM_PROMPT = `You are the study-material generator for Tuón, a study app used by Senior High (Grades 11-12) students, college students, and people reviewing for a professional licensure exam or the bar.
 
@@ -55,6 +60,8 @@ export interface BuildPromptArgs {
   strand: Strand | null;
   /** Degree program for college students, e.g. "BS Nursing". */
   program: string | null;
+  /** Caller's effective plan — sets the flashcard ceiling and quiz length. */
+  plan: Plan;
 }
 
 export function buildUserPrompt({
@@ -64,8 +71,13 @@ export function buildUserPrompt({
   educationLevel,
   strand,
   program,
+  plan,
 }: BuildPromptArgs): string {
-  const flashcardTarget = targetFlashcardCount(noteContent.length);
+  const flashcardTarget = targetFlashcardCount(
+    noteContent.length,
+    maxFlashcardsFor(plan),
+  );
+  const quizQuestions = quizQuestionsFor(plan);
 
   const context: string[] = [`Education level: ${educationLevelLabel(educationLevel)}`];
   if (isSeniorHigh(educationLevel)) {
@@ -79,7 +91,7 @@ export function buildUserPrompt({
 
   return `${context.join("\n")}
 
-Generate exactly ${flashcardTarget} flashcards and exactly ${QUIZ_QUESTIONS} quiz questions from the note below.
+Generate exactly ${flashcardTarget} flashcards and exactly ${quizQuestions} quiz questions from the note below.
 
 Pitch the difficulty at the stated education level: a Grade 11 student meeting this material for the first time needs different cards than a college student in a major course. Someone reviewing for a board or licensure exam already knows the basics — give them the precise, examinable detail (figures, criteria, contraindications, exceptions) rather than definitions.
 

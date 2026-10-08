@@ -11,11 +11,11 @@ import { useI18n } from "@/components/providers/i18n-provider";
 import { useQuota } from "@/components/app/quota-indicator";
 import { countryOrDefault, isPhilippines } from "@/lib/countries";
 import {
-  GENERATION_EXPLAINER,
   PLANS,
   PLAN_ORDER,
   UPGRADE_TARGET,
   annualFreeMonths,
+  generationExplainerFor,
 } from "@/lib/ai/config";
 import {
   effectiveAccess,
@@ -113,7 +113,7 @@ export function BillingCard({ profile }: { profile: UserProfile }) {
             <Progress value={(quota.used / quota.limit) * 100} className="mt-2 h-1.5" />
             <p className="text-muted-foreground mt-2 text-xs">
               {t.billing.resets(
-                GENERATION_EXPLAINER,
+                generationExplainerFor(access.plan),
                 formatResetDate(quota.resetsAt),
               )}
             </p>
@@ -220,7 +220,7 @@ function UpgradePicker({ country }: { country?: string | null }) {
         </p>
       ) : null}
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {PLAN_ORDER.filter((id) => id !== "free").map((id) => {
           const definition = PLANS[id];
           // PayMongo settles in PHP only — GCash and Maya do not exist outside

@@ -72,7 +72,7 @@ export function ShareButton({ studySet }: { studySet: StudySet | null }) {
         title={t.share.lockedTitle(upgrade.name)}
       >
         <Lock />
-        {t.share.action}
+        <span className="max-[420px]:sr-only">{t.share.action}</span>
       </Button>
     );
   }
@@ -83,7 +83,7 @@ export function ShareButton({ studySet }: { studySet: StudySet | null }) {
         render={
           <Button variant="outline" size="sm" disabled={!studySet}>
             {isShared ? <Globe /> : <Link2 />}
-            {t.share.action}
+            <span className="max-[420px]:sr-only">{t.share.action}</span>
           </Button>
         }
       />

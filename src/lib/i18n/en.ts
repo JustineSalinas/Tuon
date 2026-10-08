@@ -995,6 +995,7 @@ export const en = {
       features: [
         "50 AI study sets a month",
         "Notes up to 60,000 characters",
+        "Bigger sets — up to 20 cards and a 7-question quiz",
         "Export study sets to Anki, CSV, or PDF",
         "Retention stats: what you're about to forget",
         "Share a set by link with your blockmates",
@@ -1006,6 +1007,7 @@ export const en = {
       features: [
         "120 AI study sets a month, about four a day",
         "Notes up to 120,000 characters",
+        "Largest sets — up to 25 cards and a 10-question quiz",
         "Priority generation: no waiting between sets",
         "Everything in Plus",
       ],

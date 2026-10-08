@@ -129,7 +129,10 @@ export function extractJson(raw: string): string | null {
  * the whole generation — but if too little survives, this returns an error so
  * the caller can offer a retry (and refund the quota).
  */
-export function parseGeneratedStudySet(raw: string): ParseResult {
+export function parseGeneratedStudySet(
+  raw: string,
+  maxFlashcards: number = MAX_FLASHCARDS,
+): ParseResult {
   const json = extractJson(raw);
   if (!json) {
     return { ok: false, error: "The AI response did not contain any JSON." };
@@ -165,7 +168,7 @@ export function parseGeneratedStudySet(raw: string): ParseResult {
   const survivingIndex = new Map<number, number>();
 
   result.data.flashcards.forEach((raw, modelIndex) => {
-    if (flashcards.length >= MAX_FLASHCARDS) return;
+    if (flashcards.length >= maxFlashcards) return;
     const front = raw.front.trim();
     const back = raw.back.trim();
     if (!front || !back) return;
