@@ -151,17 +151,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Link href="/" className="inline-block">
-          <Wordmark />
-        </Link>
+        <div className="bg-card border-border/70 shadow-primary/5 rounded-3xl border p-8 shadow-xl sm:p-10">
+          {/* Centered as its own block — the form fields below stay
+              left-aligned, which is where a label and the thing it labels
+              read best together; only the mark and the heading, which are
+              read rather than filled in, gain anything from being centred. */}
+          <div className="text-center">
+            <Link href="/" className="inline-block">
+              <Wordmark />
+            </Link>
 
-        <div className="bg-card border-border/70 shadow-primary/5 mt-7 rounded-3xl border p-8 shadow-xl sm:p-10">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-balance">
-            {isSignup ? t.auth.signupHeading : t.auth.loginHeading}
-          </h1>
-          <p className="text-muted-foreground mt-2.5 text-sm leading-relaxed">
-            {isSignup ? t.auth.signupSub : t.auth.loginSub}
-          </p>
+            <h1 className="font-display mt-7 text-3xl font-semibold tracking-tight text-balance">
+              {isSignup ? t.auth.signupHeading : t.auth.loginHeading}
+            </h1>
+            <p className="text-muted-foreground mt-2.5 text-sm leading-relaxed">
+              {isSignup ? t.auth.signupSub : t.auth.loginSub}
+            </p>
+          </div>
 
           {error ? (
             <Alert variant="destructive" className="mt-6">
