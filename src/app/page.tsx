@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useInView } from "motion/react";
 import { ArrowRight, Check, Clock } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
@@ -21,6 +21,7 @@ import { SetupFlow } from "@/components/marketing/setup-flow";
 import { MemoryDecay } from "@/components/marketing/memory-decay";
 import { ByHand } from "@/components/marketing/by-hand";
 import { HeroDashboard } from "@/components/marketing/hero-dashboard";
+import { ForestScene } from "@/components/marketing/forest-scene";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { ASK_INPUT_ID, AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaAside, TalaPerch } from "@/components/marketing/tala";
@@ -130,10 +131,10 @@ function SpacingMark({ className }: { className?: string }) {
 
 function Hero() {
   const { t } = useI18n();
-  const reduceMotion = useReducedMotion();
 
   return (
     <section className="paper-grain relative overflow-hidden border-b">
+      <ForestScene />
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-28">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -182,15 +183,14 @@ function Hero() {
         </motion.div>
 
         {/* The product itself, running, directly under the promise about it.
-            Tala perches on the corner so the first thing she does on the page
-            is say hello — before any feature does. */}
+            Tala already said hello from her branch in the canopy above —
+            see ForestScene — so she doesn't need a second perch here too. */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="relative mx-auto mt-14 w-full md:mt-16"
         >
-          <TalaPerch className="-top-10 -right-2 z-10 size-20 md:-top-12 md:-right-5 md:size-24" />
           <HeroDashboard />
         </motion.div>
       </div>
@@ -242,13 +242,6 @@ function Hero() {
           </Link>
         </motion.div>
       </div>
-
-      {!reduceMotion ? (
-        <div
-          aria-hidden="true"
-          className="bg-primary/10 pointer-events-none absolute -top-32 -right-32 size-[36rem] rounded-full blur-3xl"
-        />
-      ) : null}
     </section>
   );
 }
