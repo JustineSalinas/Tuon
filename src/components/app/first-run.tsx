@@ -79,7 +79,7 @@ export function FirstRun() {
       </motion.div>
 
       {/* The loop, across the page rather than down it. */}
-      <div className="mt-12 grid gap-8 sm:grid-cols-3 sm:gap-6">
+      <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
         {steps.map((step, index) => {
           const Icon = STEP_ICONS[index];
           return (

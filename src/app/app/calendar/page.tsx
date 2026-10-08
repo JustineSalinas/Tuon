@@ -297,7 +297,7 @@ function DayDetail({
               {t.common.cards(cards.length)}
               {isPast ? t.calendar.overdueSuffix : ""}
             </p>
-            <div className="mt-3 grid gap-2">
+            <div className="mt-3 grid grid-cols-1 gap-2">
               {bySet.map(([setId, entry]) => (
                 <Link
                   key={setId}

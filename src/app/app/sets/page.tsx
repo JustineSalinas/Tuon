@@ -160,7 +160,7 @@ export default function StudySetsPage() {
           {t.sets.noMatch(search)}
         </p>
       ) : (
-        <div className="mt-4 grid gap-2">
+        <div className="mt-4 grid grid-cols-1 gap-2">
           {withStats.map(({ set, due, fresh }, index) => (
             <motion.div
               key={set.id}

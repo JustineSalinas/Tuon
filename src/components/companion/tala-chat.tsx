@@ -296,7 +296,7 @@ export function TalaChat() {
           e.preventDefault();
           void send(draft);
         }}
-        className="bg-background/85 border-border sticky bottom-0 -mx-4 flex items-end gap-2 border-t px-4 py-3 backdrop-blur-md md:-mx-8 md:px-8 md:py-4"
+        className="bg-background/85 border-border sticky bottom-[calc(3.85rem+env(safe-area-inset-bottom))] z-10 md:bottom-0 -mx-4 flex items-end gap-2 border-t px-4 py-3 backdrop-blur-md md:-mx-8 md:px-8 md:py-4"
       >
         <textarea
           ref={inputRef}

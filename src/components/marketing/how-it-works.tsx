@@ -158,7 +158,7 @@ export function HowItWorks() {
   const Stage = STAGES[step];
 
   return (
-    <div ref={ref} className="mt-12 grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
+    <div ref={ref} className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
       {/* The steps, as controls rather than as headings. */}
       <ol className="space-y-2">
         {t.marketing.how.steps.map((entry, index) => {

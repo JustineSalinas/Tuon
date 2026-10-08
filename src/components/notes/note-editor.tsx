@@ -413,7 +413,7 @@ ${text}` : text;
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <span className="text-muted-foreground text-xs">
+            <span className="text-muted-foreground hidden text-xs sm:inline">
               {t.pdf.orDrop}
             </span>
           </div>
@@ -487,7 +487,7 @@ ${text}` : text;
 
       <NoteLinksPanel note={note ?? null} content={content} allNotes={allNotes} />
 
-      <div className="bg-background/85 sticky bottom-0 -mx-4 mt-6 border-t px-4 py-4 backdrop-blur-md md:-mx-8 md:px-8">
+      <div className="bg-background/85 sticky bottom-[calc(3.85rem+env(safe-area-inset-bottom))] z-10 md:bottom-0 -mx-4 mt-6 border-t px-4 py-4 backdrop-blur-md md:-mx-8 md:px-8">
         <GenerateStudySetButton
           noteId={noteId}
           existingSetId={existingSetId}

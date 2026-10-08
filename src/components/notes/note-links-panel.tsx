@@ -59,7 +59,7 @@ export function NoteLinksPanel({
               {outgoing.length}
             </Badge>
           </h2>
-          <ul className="mt-3 grid gap-1.5">
+          <ul className="mt-3 grid grid-cols-1 gap-1.5">
             {outgoing.map((link) => (
               <li key={link.title}>
                 {link.note ? (
@@ -95,7 +95,7 @@ export function NoteLinksPanel({
               {backlinks.length}
             </Badge>
           </h2>
-          <ul className="mt-3 grid gap-1.5">
+          <ul className="mt-3 grid grid-cols-1 gap-1.5">
             {backlinks.map((source) => (
               <li key={source.id}>
                 <Link

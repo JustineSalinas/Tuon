@@ -365,7 +365,7 @@ export function HeroDashboard() {
             {t.dashboard.goodAfternoon}, {STUDENT_NAME.split(" ")[0]}
           </h2>
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
+          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1.25fr_1fr]">
             {/* Today's plan — the working half. */}
             <div>
               <div className="flex items-baseline justify-between gap-4">
@@ -525,7 +525,7 @@ export function HeroDashboard() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
+          <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[1.25fr_1fr]">
             <div>
               <h3 className="font-display text-lg font-semibold tracking-tight">
                 {t.dashboard.thisWeek}

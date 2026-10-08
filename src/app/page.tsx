@@ -253,7 +253,7 @@ function WhyItSticks() {
       title={t.marketing.why.title}
       muted
     >
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
+      <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
         <div>
           <Reveal>
             <p className="text-muted-foreground max-w-xl leading-relaxed">
@@ -484,7 +484,7 @@ function Pricing() {
         </div>
       </Reveal>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {PLAN_ORDER.map((planId, index) => (
           <Reveal key={planId} delay={index * 0.08}>
             <PlanCard planId={planId} annual={annual} t={t} />

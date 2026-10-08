@@ -41,10 +41,10 @@ const SUPPORT_EMAIL = "hello@tuon.app";
  * buttons it explains are recognisably the same four things.
  */
 const RATING_STYLES = [
-  "bg-destructive/15 text-destructive",
+  "bg-destructive/15 text-[color-mix(in_oklab,var(--destructive)_65%,var(--foreground))]",
   "bg-warning/20 text-warning-text",
-  "bg-primary/15 text-primary",
-  "bg-success/15 text-success",
+  "bg-primary/15 text-[color-mix(in_oklab,var(--primary)_65%,var(--foreground))]",
+  "bg-success/15 text-[color-mix(in_oklab,var(--success)_60%,var(--foreground))]",
 ];
 
 export default function HelpPage() {

@@ -240,7 +240,7 @@ export default function DashboardPage() {
                     a student is holding while they read "what", and an
                     answer that arrives after the list has been scrolled past
                     is an answer to nobody. */}
-                <div className="mt-3 grid gap-3">
+                <div className="mt-3 grid grid-cols-1 gap-3">
                   <WhenToStudy
                     cards={plan.totalCards}
                     todayKey={dayKey(new Date(now), timeZone)}
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                   href="/app/notes"
                   linkLabel={t.dashboard.allNotes}
                 />
-                <div className="mt-3 grid gap-2">
+                <div className="mt-3 grid grid-cols-1 gap-2">
                   {notes.slice(0, 4).map((note) => (
                     <Link
                       key={note.id}
@@ -351,7 +351,7 @@ function HelpCard({ t }: { t: Messages }) {
         <span className="bg-secondary text-muted-foreground grid size-9 shrink-0 place-items-center rounded-xl">
           <LifeBuoy className="size-4" />
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[12rem] flex-1">
           <p className="font-medium">{t.dashboardHelp.title}</p>
           <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
             {t.dashboardHelp.body}

@@ -20,6 +20,7 @@ import {
   MIN_NOTE_CHARS,
   PLANS,
   cooldownSecondsFor,
+  maxFlashcardsFor,
   maxNoteCharsFor,
 } from "@/lib/ai/config";
 import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompt";
@@ -342,6 +343,7 @@ export async function POST(request: Request) {
     program: isSeniorHigh(profileForPrompt.educationLevel)
       ? null
       : (profileForPrompt.courses[0] ?? null),
+    plan: profileForPrompt.plan,
   });
 
   let rawText: string;
@@ -405,7 +407,10 @@ export async function POST(request: Request) {
   }
 
   // --- Parse defensively ---------------------------------------------------
-  const parsed = parseGeneratedStudySet(rawText);
+  const parsed = parseGeneratedStudySet(
+    rawText,
+    maxFlashcardsFor(profileForPrompt.plan),
+  );
   if (!parsed.ok) {
     await refund();
     return NextResponse.json(

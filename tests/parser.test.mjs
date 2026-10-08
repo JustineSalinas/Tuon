@@ -109,8 +109,13 @@ check("duplicate flashcard fronts are collapsed", () => {
   assert.equal(r.data.flashcards.length, 7);
 });
 
-check("flashcards are capped at 15", () => {
+check("flashcards are capped at the default (highest plan) ceiling", () => {
   const r = parseGeneratedStudySet(JSON.stringify(payload(40, 5)));
+  assert.equal(r.data.flashcards.length, 25);
+});
+
+check("flashcards are capped at a caller-supplied ceiling", () => {
+  const r = parseGeneratedStudySet(JSON.stringify(payload(40, 5)), 15);
   assert.equal(r.data.flashcards.length, 15);
 });
 

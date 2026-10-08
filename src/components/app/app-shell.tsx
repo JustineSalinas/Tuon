@@ -373,7 +373,7 @@ function UserMenu({ align }: { align: "start" | "end" }) {
       >
         <Avatar className="size-8">
           {photo ? <AvatarImage src={photo} alt="" /> : null}
-          <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
+          <AvatarFallback className="bg-primary/15 text-[color-mix(in_oklab,var(--primary)_65%,var(--foreground))] text-xs font-semibold">
             {initial}
           </AvatarFallback>
         </Avatar>

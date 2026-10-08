@@ -13,24 +13,36 @@ export const MIN_NOTE_CHARS = 120;
  */
 export const MAX_NOTE_CHARS = 120_000;
 
-export const MAX_OUTPUT_TOKENS = 8_000;
-
-/** Fixed number of quiz questions per generated set. */
-export const QUIZ_QUESTIONS = 5;
+// Pro's ceiling (25 cards, 10 questions) runs noticeably longer than Free's
+// — headroom kept generous rather than tuned tight against the old 15/5 cap.
+export const MAX_OUTPUT_TOKENS = 10_000;
 
 export const QUIZ_CHOICES_PER_QUESTION = 4;
 
-/** Hard bounds on flashcard count, regardless of note length. */
+/**
+ * Floor on flashcard count, shared by every plan — below this a set isn't
+ * worth reviewing regardless of how short the note is or what the student
+ * pays. The ceiling is per-plan; see `PLANS[plan].maxFlashcards`.
+ */
 export const MIN_FLASHCARDS = 8;
-export const MAX_FLASHCARDS = 15;
 
 /**
- * Scales the flashcard target to note length, clamped to [MIN, MAX].
- * Roughly one card per 180 characters of source material.
+ * Highest flashcard ceiling across all plans — the schema's defensive
+ * fallback when no plan is known, and the number documentation and tests
+ * reach for when they mean "the max anyone could ever get".
  */
-export function targetFlashcardCount(noteLength: number): number {
+export const MAX_FLASHCARDS = 25;
+
+/**
+ * Scales the flashcard target to note length, clamped to [MIN_FLASHCARDS,
+ * maxFlashcards]. Roughly one card per 180 characters of source material.
+ */
+export function targetFlashcardCount(
+  noteLength: number,
+  maxFlashcards: number,
+): number {
   const scaled = Math.round(noteLength / 180);
-  return Math.min(MAX_FLASHCARDS, Math.max(MIN_FLASHCARDS, scaled));
+  return Math.min(maxFlashcards, Math.max(MIN_FLASHCARDS, scaled));
 }
 
 /* ===========================================================================
@@ -99,6 +111,10 @@ export interface PlanDefinition {
   usdAnnual: number | null;
   /** Longest note this plan may send to the model. */
   maxNoteChars: number;
+  /** Highest flashcard count one generation can reach on this plan. */
+  maxFlashcards: number;
+  /** Quiz questions requested per generation on this plan. */
+  quizQuestions: number;
   /**
    * Enforced wait between generations. This is what "priority generation"
    * actually means: paid plans are not throttled. Enforced server-side.
@@ -129,6 +145,8 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     usdMonthly: 0,
     usdAnnual: null,
     maxNoteChars: 30_000,
+    maxFlashcards: 15,
+    quizQuestions: 5,
     cooldownSeconds: 20,
     canExport: false,
     canShare: false,
@@ -157,6 +175,8 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     usdMonthly: 2.99,
     usdAnnual: 29.9,
     maxNoteChars: 60_000,
+    maxFlashcards: 20,
+    quizQuestions: 7,
     cooldownSeconds: 5,
     canExport: true,
     canShare: true,
@@ -164,6 +184,7 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     features: [
       "50 AI study sets a month",
       "Notes up to 60,000 characters",
+      "Bigger sets — up to 20 cards and a 7-question quiz",
       "Export study sets to Anki, CSV, or PDF",
       "Retention stats — what you're about to forget",
       "Share a set by link with your blockmates",
@@ -182,6 +203,8 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     usdMonthly: 5.99,
     usdAnnual: 59.9,
     maxNoteChars: 120_000,
+    maxFlashcards: 25,
+    quizQuestions: 10,
     cooldownSeconds: 0,
     canExport: true,
     canShare: true,
@@ -189,6 +212,7 @@ export const PLANS: Record<Plan, PlanDefinition> = {
     features: [
       "120 AI study sets a month — about four a day",
       "Notes up to 120,000 characters",
+      "Largest sets — up to 25 cards and a 10-question quiz",
       "Priority generation — no waiting between sets",
       "Everything in Plus",
     ],
@@ -248,6 +272,14 @@ export function maxNoteCharsFor(plan: Plan): number {
   return PLANS[normalisePlan(plan)].maxNoteChars;
 }
 
+export function maxFlashcardsFor(plan: Plan): number {
+  return PLANS[normalisePlan(plan)].maxFlashcards;
+}
+
+export function quizQuestionsFor(plan: Plan): number {
+  return PLANS[normalisePlan(plan)].quizQuestions;
+}
+
 export function cooldownSecondsFor(plan: Plan): number {
   return PLANS[normalisePlan(plan)].cooldownSeconds;
 }
@@ -262,5 +294,15 @@ export function planCan(
 /** The tier we upsell free users to. */
 export const UPGRADE_TARGET: Plan = "plus";
 
-/** Plain-language gloss of what one generation buys. */
-export const GENERATION_EXPLAINER = `one note turned into ${MIN_FLASHCARDS}-${MAX_FLASHCARDS} flashcards and a ${QUIZ_QUESTIONS}-question quiz`;
+/** Plain-language gloss of what one generation buys on a given plan. */
+export function generationExplainerFor(plan: Plan): string {
+  const { maxFlashcards, quizQuestions } = PLANS[normalisePlan(plan)];
+  return `one note turned into ${MIN_FLASHCARDS}-${maxFlashcards} flashcards and a ${quizQuestions}-question quiz`;
+}
+
+/**
+ * The generic version shown where no specific student's plan is known —
+ * marketing copy and the FAQ, both logged-out surfaces. Free's numbers,
+ * since that's the plan anyone reading them actually starts on.
+ */
+export const GENERATION_EXPLAINER = generationExplainerFor("free");

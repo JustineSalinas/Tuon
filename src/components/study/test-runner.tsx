@@ -467,7 +467,7 @@ export function TestRunner({ studySetId }: { studySetId: string }) {
             </p>
 
             {current?.kind === "mcq" ? (
-              <div className="mt-6 grid gap-2">
+              <div className="mt-6 grid grid-cols-1 gap-2">
                 {current.choices?.map((choice, i) => (
                   <button
                     key={i}
