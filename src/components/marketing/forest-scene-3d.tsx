@@ -70,9 +70,21 @@ const TREES: TreeSpec[] = [
   { x: 10.5, z: -2, scale: 5.6, depth: "front", swaySpeed: 0.38, swayPhase: 1.4 },
 ];
 
+/** Deterministic per-tree jitter, seeded off position rather than
+ *  Math.random() — same reasoning as TREES being a fixed layout: a forest
+ *  where every tree is an identical cone stack scaled up or down reads as
+ *  obviously procedural, but true randomness would reshuffle on every Fast
+ *  Refresh. A cheap hash of each tree's own coordinates gives irregularity
+ *  that's stable across renders without needing a seed prop threaded in. */
+function hash(n: number) {
+  const s = Math.sin(n * 12.9898) * 43758.5453;
+  return s - Math.floor(s);
+}
+
 function Tree({ x, z, scale, depth, swaySpeed, swayPhase }: TreeSpec) {
   const canopyRef = useRef<THREE.Group>(null);
   const reduceMotion = useReducedMotionFlag();
+  const seed = x * 7.13 + z * 3.71;
 
   useFrame(({ clock }) => {
     if (reduceMotion || !canopyRef.current) return;
@@ -82,34 +94,89 @@ function Tree({ x, z, scale, depth, swaySpeed, swayPhase }: TreeSpec) {
   });
 
   const trunkH = 1.1 * scale;
-  const color = CANOPY_BY_DEPTH[depth];
+  const baseColor = useMemo(() => new THREE.Color(CANOPY_BY_DEPTH[depth]), [depth]);
+  // Small per-tree lightness jitter so a stand of trees isn't three flat,
+  // repeated colour swatches — real foliage never is.
+  const color = useMemo(() => {
+    const amount = (hash(seed) - 0.5) * 0.12;
+    return baseColor.clone().offsetHSL(0, 0, amount);
+  }, [baseColor, seed]);
+  const yRotation = hash(seed + 1) * Math.PI * 2;
 
   return (
-    <group position={[x, 0, z]}>
+    <group position={[x, 0, z]} rotation={[0, yRotation, 0]}>
       <mesh position={[0, trunkH / 2, 0]} castShadow>
-        <cylinderGeometry args={[0.07 * scale, 0.1 * scale, trunkH, 6]} />
+        <cylinderGeometry args={[0.07 * scale, 0.1 * scale, trunkH, 7]} />
         <meshStandardMaterial color={TRUNK} roughness={0.9} />
       </mesh>
 
       <group ref={canopyRef} position={[0, trunkH, 0]}>
         {[0, 1, 2].map((tier) => {
-          const tierScale = 1 - tier * 0.22;
+          // Each tier leans a little off-centre, rather than stacking dead
+          // straight — the asymmetry is most of what reads as "grown" rather
+          // than "extruded".
+          const lean = (hash(seed + tier * 2.3) - 0.5) * 0.32 * scale;
+          const tierScale = 1 - tier * 0.22 + (hash(seed + tier) - 0.5) * 0.08;
           const h = 1.5 * scale * tierScale;
           const r = 0.85 * scale * tierScale;
           const y = tier * 0.85 * scale;
           return (
-            <mesh key={tier} position={[0, y + h / 2, 0]}>
-              <coneGeometry args={[r, h, 8]} />
+            <mesh key={tier} position={[lean, y + h / 2, 0]} castShadow>
+              <coneGeometry args={[r, h, 9]} />
               <meshStandardMaterial
                 color={color}
-                roughness={0.75}
-                metalness={0.05}
+                roughness={0.78}
+                metalness={0.04}
               />
             </mesh>
           );
         })}
       </group>
     </group>
+  );
+}
+
+/** The forest floor. Without it the trunks read as planted in void — a flat
+ *  plane this dark barely shows as a shape, but it catches the directional
+ *  light at a grazing angle and gives the fog something to sit on top of. */
+function Ground() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, -6]} receiveShadow>
+      <planeGeometry args={[60, 40]} />
+      <meshStandardMaterial color="#0a120d" roughness={1} />
+    </mesh>
+  );
+}
+
+/** Three soft, additive-blended shafts angled off the directional "moon"
+ *  light — cheap god rays. Real volumetric light needs a raymarched shader;
+ *  this is a few transparent cones, which looks convincing at the size and
+ *  distance they're actually seen at here and costs nothing extra to draw. */
+function LightShafts() {
+  // A default cone has its apex at +height/2 and base at -height/2 — narrow
+  // end already "up", which is exactly a ray converging toward a light
+  // source above the scene and fanning out as it falls through the canopy.
+  // Positioned so the apex sits roughly where the directional light does.
+  const shafts = [
+    { x: -5, y: 6, z: -9, rot: -0.3, scale: 1 },
+    { x: -1, y: 5.5, z: -10, rot: -0.2, scale: 0.8 },
+    { x: 3, y: 6.2, z: -8.5, rot: -0.35, scale: 1.15 },
+  ];
+  return (
+    <>
+      {shafts.map((s, i) => (
+        <mesh key={i} position={[s.x, s.y, s.z]} rotation={[0, 0, s.rot]}>
+          <coneGeometry args={[1.8 * s.scale, 14, 24, 1, true]} />
+          <meshBasicMaterial
+            color="#bcd9c4"
+            transparent
+            opacity={0.035}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </>
   );
 }
 
@@ -272,6 +339,8 @@ export function ForestScene3D({
       />
       <pointLight position={[8, 3, 2]} intensity={0.4} color="#f2c879" />
 
+      <Ground />
+      <LightShafts />
       {TREES.map((tree, i) => (
         <Tree key={i} {...tree} />
       ))}

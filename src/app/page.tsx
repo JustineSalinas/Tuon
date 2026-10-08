@@ -83,7 +83,12 @@ export default function LandingPage() {
         data-palette="forest"
       >
         {/* Static, self-authored JSON — the same trusted-content pattern
-            layout.tsx already uses for its own pre-paint scripts. */}
+            layout.tsx already uses for its own pre-paint scripts. next/script
+            was tried here and made things worse: its default strategy never
+            renders into the server HTML at all, which would have dropped
+            this structured data from what crawlers actually see. Back to a
+            plain script tag, which does SSR correctly — see the real
+            hydration-mismatch investigation this is part of. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
