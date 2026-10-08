@@ -151,7 +151,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="bg-card border-border/70 shadow-primary/5 rounded-3xl border p-8 shadow-xl sm:p-10">
+        {/* A plain `shadow-xl` reads as a card someone dropped a shadow
+            preset onto. Layering a crisp near-card edge, a soft ambient
+            spread, and a hairline top highlight (the light-catches-an-edge
+            cue that sells a raised surface, not just a dark blur under it)
+            is what makes it read as a considered object rather than a
+            default. The ring doubles the border at a lower opacity instead
+            of just thickening it, which keeps the edge crisp at 1px while
+            still looking substantial. */}
+        <div className="bg-card border-border/70 relative rounded-[28px] border p-8 shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_24px_48px_-12px_rgba(0,0,0,0.55),0_8px_16px_-8px_rgba(0,0,0,0.4)] ring-1 ring-black/5 sm:p-10">
           {/* Centered as its own block — the form fields below stay
               left-aligned, which is where a label and the thing it labels
               read best together; only the mark and the heading, which are
@@ -193,7 +201,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={pending !== null}
-                  className="h-11 pl-9"
+                  className="h-12 rounded-xl pl-9 bg-background/40 border-border/80 focus-visible:ring-primary/30 focus-visible:border-primary/50 transition-shadow"
                 />
               </div>
             </div>
@@ -229,14 +237,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={pending !== null}
-                  className="h-11 pl-9"
+                  className="h-12 rounded-xl pl-9 bg-background/40 border-border/80 focus-visible:ring-primary/30 focus-visible:border-primary/50 transition-shadow"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full shadow-sm"
+              className="hover:shadow-primary/20 h-12 w-full rounded-xl shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
               size="lg"
               disabled={pending !== null}
             >
@@ -264,7 +272,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
             type="button"
             variant="outline"
             size="lg"
-            className="w-full"
+            className="bg-background/40 h-12 w-full rounded-xl transition-colors"
             onClick={handleGoogle}
             disabled={pending !== null}
           >

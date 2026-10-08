@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
-import { PaperCreature } from "@/components/brand/paper-creature";
 import { TuonMark } from "@/components/brand/logo";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { PLANS } from "@/lib/ai/config";
@@ -146,21 +145,6 @@ export function AuthAside() {
           ))}
         </motion.dl>
 
-        {/* Grounded rather than pinned to a corner: a small shadow under her
-            feet is what tells the eye she's standing on something, not
-            dropped onto the panel. Previously sat in the header row next to
-            the eyebrow text with nothing under her — "anchored to the mark
-            and eyebrow" only worked as a baseline argument, not a visual
-            one, and read as floating regardless of the reasoning behind it. */}
-        <motion.div {...item} className="mt-8">
-          <div className="relative inline-block">
-            <PaperCreature state="idle" className="size-16 shrink-0" />
-            <div
-              aria-hidden="true"
-              className="absolute -bottom-1 left-1/2 h-2 w-10 -translate-x-1/2 rounded-full bg-black/25 blur-sm"
-            />
-          </div>
-        </motion.div>
       </motion.div>
     </aside>
   );
