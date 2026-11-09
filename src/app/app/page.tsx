@@ -14,8 +14,14 @@ import {
   useNotes,
   usePlanItems,
   useReviewLogs,
+  useStudySessions,
   useStudySets,
 } from "@/lib/hooks/use-firestore";
+import { minutesByDay } from "@/lib/organiser/sessions";
+import { buildStreaks } from "@/lib/stats/heatmap";
+import { DashboardHero } from "@/components/app/dashboard-hero";
+import { StatRow } from "@/components/app/stat-row";
+import { SetCards } from "@/components/app/set-cards";
 import { dayKey } from "@/lib/hooks/use-review-cards";
 import { nextDeadline } from "@/lib/organiser/plan-items";
 import { useNow } from "@/lib/hooks/use-now";
@@ -45,6 +51,7 @@ export default function DashboardPage() {
   const { data: sets, loading: setsLoading } = useStudySets(user?.uid);
   const { data: notes, loading: notesLoading } = useNotes(user?.uid);
   const { logs, loading: logsLoading } = useReviewLogs(user?.uid);
+  const { sessions } = useStudySessions(user?.uid);
   const { dailyCardGoal, timeZone } = usePreferences();
   const { items: planItems } = usePlanItems(user?.uid);
   // Refreshed every minute so a card becoming due appears without a reload.
@@ -82,6 +89,7 @@ export default function DashboardPage() {
         due: entry.due,
         fresh,
         shaky: entry.shaky,
+        reviewed: entry.reviewed,
         pending: entry.due + fresh,
       };
     });
@@ -144,25 +152,43 @@ export default function DashboardPage() {
 
   const firstName = (profile?.displayName || "there").trim().split(/\s+/)[0];
 
+  const streakDays = useMemo(() => {
+    const byDay = minutesByDay(sessions);
+    return buildStreaks(byDay, dayKey(new Date(now), timeZone)).current;
+  }, [sessions, now, timeZone]);
+
+  const setsInProgress = setStats.filter((s) => s.pending > 0).length;
+
+  const cardsThisWeek = useMemo(() => {
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    return logs.filter(
+      (log) => (log.lastReviewedAt?.toDate?.().getTime() ?? 0) >= weekAgo,
+    ).length;
+  }, [logs, now]);
+
+  const readinessPct =
+    readiness.total > 0
+      ? Math.round((readiness.onTrack / readiness.total) * 100)
+      : null;
+
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-10">
-      <motion.header
+      <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {/* One line rather than two. The greeting is warmth, not content,
-            and stacking it above the name pushed the readiness card — the
-            thing the student actually opened the app for — most of a screen
-            down on a laptop. */}
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {greeting(t)}, {firstName}
-        </h1>
-        <ExamCountdown
-          examDate={profile?.examDate}
-          examName={profile?.courses?.[0]}
+        <DashboardHero
+          greeting={greeting(t)}
+          firstName={firstName}
+          subhead={
+            <ExamCountdown
+              examDate={profile?.examDate}
+              examName={profile?.courses?.[0]}
+            />
+          }
         />
-      </motion.header>
+      </motion.div>
 
       {loading ? (
         <div className="mt-8 space-y-3">
@@ -173,6 +199,36 @@ export default function DashboardPage() {
         <FirstRun />
       ) : (
         <>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.03 }}
+            className="mt-6"
+          >
+            <StatRow
+              streakDays={streakDays}
+              setsInProgress={setsInProgress}
+              cardsThisWeek={cardsThisWeek}
+              readinessPct={readinessPct}
+            />
+          </motion.div>
+
+          {/* "My sets", as cards — the question "what should I open" answered
+              before the review summary below answers the slower one, "how am
+              I actually doing". */}
+          {setStats.length > 0 ? (
+            <section className="mt-8">
+              <SectionHeading
+                title={t.dashboard.mySets}
+                href="/app/sets"
+                linkLabel={t.dashboard.allSets}
+              />
+              <div className="mt-3">
+                <SetCards sets={setStats} />
+              </div>
+            </section>
+          ) : null}
+
           {/* Review summary */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
