@@ -10,6 +10,7 @@ import {
   FileText,
   Home,
   Layers,
+  Lock,
   MessageCircle,
   Flag,
   Network,
@@ -343,21 +344,45 @@ export function HeroDashboard() {
   }
 
   return (
-    <div className="border-border bg-background overflow-hidden rounded-2xl border shadow-[0_24px_70px_-30px_rgba(0,0,0,0.35)]">
+    <div className="border-border bg-background ring-foreground/[0.04] overflow-hidden rounded-2xl border shadow-[0_32px_80px_-28px_rgba(0,0,0,0.45)] ring-1">
       {/* Window chrome — furniture, so it is drawn rather than described. It is
-          what makes the panel read as an application rather than a figure. */}
-      <div className="border-border bg-secondary/60 flex items-center gap-2 border-b px-4 py-2.5">
-        <span className="flex gap-1.5" aria-hidden="true">
+          what makes the panel read as an application rather than a figure.
+          A real browser bar, not a label: traffic lights, then an address
+          pill with a lock, the way an actual loaded tab looks rather than a
+          flat strip with a sentence floating in the middle of it. */}
+      <div className="border-border bg-secondary/70 flex items-center gap-3 border-b px-4 py-2.5">
+        <span className="flex shrink-0 gap-1.5" aria-hidden="true">
           <span className="size-2.5 rounded-full bg-[#ED6A5E]" />
           <span className="size-2.5 rounded-full bg-[#F4BF4F]" />
           <span className="size-2.5 rounded-full bg-[#61C554]" />
         </span>
-        <span className="text-muted-foreground mx-auto text-[13px]">
-          tuon.app
+        <span className="border-border bg-background/70 text-muted-foreground mx-auto flex max-w-56 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-1 text-[12px] sm:flex-initial">
+          <Lock className="size-3 shrink-0" aria-hidden="true" />
+          <span className="truncate">tuon.app</span>
+        </span>
+        {/* Balances the traffic lights so the address pill stays visually
+            centred rather than drifting left. */}
+        <span className="hidden w-[52px] shrink-0 sm:block" aria-hidden="true" />
+      </div>
+
+      {/* Below lg the real sidebar is gone (see Sidebar's own `lg:flex`), and
+          a window that just stops at the left edge reads as a broken shell
+          rather than a responsive one. This is what the same app looks like
+          on the narrower layout it actually ships — wordmark, the page you're
+          on, the one action everyone reaches for. */}
+      <div className="border-border bg-sidebar flex items-center justify-between gap-3 border-b px-4 py-2.5 lg:hidden">
+        <span className="flex items-center gap-2">
+          <TuonMark className="text-primary size-5" />
+          <span className="font-display text-base font-semibold tracking-tight">
+            Tuón
+          </span>
+        </span>
+        <span className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+          <Plus className="size-4" />
         </span>
       </div>
 
-      <div className="flex min-h-[27rem] md:min-h-[33rem]">
+      <div className="flex min-h-[26rem] sm:min-h-[29rem] lg:min-h-[33rem]">
         <Sidebar />
 
         <div className="min-w-0 flex-1 p-5 sm:p-7">
