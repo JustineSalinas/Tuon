@@ -105,6 +105,7 @@ export const fil: Messages = {
     statReady: "Handa para i-review",
     mySets: "Mga set ko",
     setProgress: (done: number, total: number) => `${done}/${total} kard`,
+    continueSet: "Ituloy",
   },
 
   review: {

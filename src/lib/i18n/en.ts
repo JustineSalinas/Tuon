@@ -98,6 +98,7 @@ export const en = {
     statReady: "Ready for review",
     mySets: "My sets",
     setProgress: (done: number, total: number) => `${done}/${total} cards`,
+    continueSet: "Continue",
   },
 
   review: {
