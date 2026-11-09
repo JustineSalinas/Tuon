@@ -17,6 +17,12 @@ import {
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
+import {
+  playCorrectSound,
+  playIncorrectSound,
+  playTapSound,
+  triggerHaptic,
+} from "@/lib/feedback";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CardFeedback } from "@/components/study/card-feedback";
 import { useI18n } from "@/components/providers/i18n-provider";
@@ -95,7 +101,8 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     [profile?.examDate],
   );
   const { cards, setsById, loading } = useReviewCards(user?.uid, studySetId);
-  const { dailyCardGoal, typedRecall } = usePreferences();
+  const { dailyCardGoal, typedRecall, soundsEnabled, hapticsEnabled } =
+    usePreferences();
   const reduceMotion = useReducedMotion();
   // Frozen for the session: the queue must not shift while the student rates.
   const now = useNow();
@@ -174,12 +181,20 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
   const typing =
     typedRecall && !skipTyping && currentCard !== null && isTypeable(currentCard.back);
 
+  function flipCard() {
+    playTapSound(soundsEnabled);
+    triggerHaptic(hapticsEnabled);
+    setFlipped(true);
+  }
+
   /** Grades what was typed and reveals the answer. */
   const submitTyped = useCallback(() => {
     if (!currentCard || flipped) return;
     setGrade(gradeAnswer(typed, currentCard.back).grade);
+    playTapSound(soundsEnabled);
+    triggerHaptic(hapticsEnabled);
     setFlipped(true);
-  }, [currentCard, flipped, typed]);
+  }, [currentCard, flipped, typed, soundsEnabled, hapticsEnabled]);
 
   const intervals = useMemo(
     () =>
@@ -193,6 +208,14 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     async (rating: SrsRating) => {
       if (!user || !currentCard || !queue || saving) return;
       setSaving(true);
+
+      if (rating === "again") {
+        playIncorrectSound(soundsEnabled);
+        triggerHaptic(hapticsEnabled, [10, 40, 10]);
+      } else {
+        playCorrectSound(soundsEnabled);
+        triggerHaptic(hapticsEnabled, 12);
+      }
 
       const next = scheduleNextReview(
         srsStateFor(currentCard),
@@ -254,7 +277,17 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
       setHintLevel(0);
       setSaving(false);
     },
-    [user, currentCard, queue, saving, srsStateFor, position, examDate],
+    [
+      user,
+      currentCard,
+      queue,
+      saving,
+      srsStateFor,
+      position,
+      examDate,
+      soundsEnabled,
+      hapticsEnabled,
+    ],
   );
 
   // Keyboard: space/enter flips, 1-4 rate. While an answer is being typed the
@@ -271,7 +304,11 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
       }
       if (event.key === " " || event.key === "Enter") {
         event.preventDefault();
-        setFlipped((f) => !f);
+        if (!flipped) {
+          flipCard();
+        } else {
+          setFlipped(false);
+        }
         return;
       }
       if (!flipped) return;
@@ -283,7 +320,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [currentCard, flipped, handleRate, typing, submitTyped]);
+  }, [currentCard, flipped, handleRate, typing, submitTyped, soundsEnabled, hapticsEnabled]);
 
   function startCram() {
     setCramming(true);
@@ -548,7 +585,7 @@ export function FlashcardReview({ studySetId }: { studySetId?: string }) {
                         </div>
                       </div>
                     ) : (
-                      <Button size="lg" className="w-full" onClick={() => setFlipped(true)}>
+                      <Button size="lg" className="w-full" onClick={flipCard}>
                         {t.review.showAnswer}
                       </Button>
                     )}

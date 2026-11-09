@@ -7,6 +7,10 @@ import {
   PaletteProvider,
   paletteScript,
 } from "@/components/providers/palette-provider";
+import {
+  FontSizeProvider,
+  fontSizeScript,
+} from "@/components/providers/font-size-provider";
 import { I18nProvider } from "@/components/providers/i18n-provider";
 import { localeScript } from "@/lib/i18n/locales";
 import { Toaster } from "@/components/ui/sonner";
@@ -94,6 +98,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             renders terracotta and then swaps colour once the profile lands,
             which is worse than not offering palettes at all. */}
         <script dangerouslySetInnerHTML={{ __html: paletteScript }} />
+        <script dangerouslySetInnerHTML={{ __html: fontSizeScript }} />
 
         {/* Sets `lang` before hydration for the same reason. `suppressHydrationWarning`
             on <html> is what lets this and the server's own "en" disagree
@@ -116,6 +121,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           <AuthProvider>
             <PaletteProvider />
+            <FontSizeProvider />
             <I18nProvider>{children}</I18nProvider>
           </AuthProvider>
           <Toaster position="top-center" richColors closeButton />

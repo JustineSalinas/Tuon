@@ -107,6 +107,12 @@ export interface UserProfile {
   palette?: string;
   /** Language for Tuón's own words. Notes and cards are unaffected. */
   locale?: string;
+  /** Text scale for the whole app. Absent means "default". */
+  fontSize?: string;
+  /** UI sound effects (card flip, grading). Absent means on. */
+  soundsEnabled?: boolean;
+  /** Vibration feedback on supported devices. Absent means on. */
+  hapticsEnabled?: boolean;
   /**
    * Profile picture as a small JPEG data URL, not a Storage path.
    * See lib/profile/avatar for why, and for the ceiling that keeps this

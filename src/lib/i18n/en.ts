@@ -823,6 +823,13 @@ export const en = {
     dailyGoalSaved: "Daily goal updated.",
     dailyGoalFailed: "Could not save your daily goal.",
     cardsUnit: "cards",
+    fontSizeHint:
+      "Scales the whole app, not just cards. Large is the one step up that actually helps on a phone.",
+    fontSizeFailed: "Could not save that text size.",
+    soundsHint: "A short tone on flip and on grading a card.",
+    soundsFailed: "Could not save that setting.",
+    hapticsHint: "A light vibration on flip and on grading a card, on devices that support it.",
+    hapticsFailed: "Could not save that setting.",
   },
 
   reminder: {
@@ -841,6 +848,10 @@ export const en = {
      */
     cardsReady: (count: number) =>
       `${count} ${count === 1 ? "card is" : "cards are"} ready for review.`,
+    dndTitle: "Do not disturb",
+    dndHint: "No reminder fires during these hours, even if cards are due.",
+    dndFrom: "From",
+    dndTo: "To",
   },
 
   examDate: {
@@ -855,6 +866,10 @@ export const en = {
 
   security: {
     title: "Account & security",
+    signInMethod: "Sign-in method",
+    signInGoogle: "Google",
+    signInEmail: "Email and password",
+    memberSince: (year: number) => `Member since ${year}`,
     emailAddress: "Email address",
     verified: "Verified",
     notVerified: "Not verified",
@@ -1972,6 +1987,16 @@ export const en = {
     picture: "Picture",
     upload: "Upload",
     change: "Change",
+    fontSize: "Text size",
+    fontSizeDefault: "Default",
+    fontSizeLarge: "Large",
+    sounds: "Sounds",
+    haptics: "Haptics",
+    accountInformation: "Account information",
+    community: "Community",
+    discord: "Discord",
+    getTheApp: "Get the app",
+    comingSoon: "Coming soon",
   },
 } as const;
 

@@ -2,7 +2,14 @@
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { DEFAULT_TIME_ZONE, detectTimeZone, normaliseTimeZone } from "@/lib/time-zone";
-import { clampGoal, readTypedRecall } from "@/lib/preferences";
+import {
+  clampGoal,
+  readFontSize,
+  readHapticsEnabled,
+  readSoundsEnabled,
+  readTypedRecall,
+  type FontSize,
+} from "@/lib/preferences";
 import {
   readPomodoroSettings,
   type PomodoroSettings,
@@ -14,13 +21,21 @@ export {
   MIN_DAILY_CARD_GOAL,
   clampGoal,
   DEFAULT_TYPED_RECALL,
+  FONT_SIZES,
+  DEFAULT_FONT_SIZE,
+  DEFAULT_SOUNDS_ENABLED,
+  DEFAULT_HAPTICS_ENABLED,
 } from "@/lib/preferences";
+export type { FontSize } from "@/lib/preferences";
 
 export interface Preferences {
   timeZone: string;
   dailyCardGoal: number;
   typedRecall: boolean;
   pomodoro: PomodoroSettings;
+  fontSize: FontSize;
+  soundsEnabled: boolean;
+  hapticsEnabled: boolean;
 }
 
 /**
@@ -46,5 +61,8 @@ export function usePreferences(): Preferences {
     dailyCardGoal: clampGoal(profile?.dailyCardGoal),
     typedRecall: readTypedRecall(profile?.typedRecall),
     pomodoro: readPomodoroSettings(profile ?? {}),
+    fontSize: readFontSize(profile?.fontSize),
+    soundsEnabled: readSoundsEnabled(profile?.soundsEnabled),
+    hapticsEnabled: readHapticsEnabled(profile?.hapticsEnabled),
   };
 }

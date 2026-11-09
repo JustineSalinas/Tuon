@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { en } from "../src/lib/i18n/en.ts";
 import {
   reminderIsDue,
+  withinQuietHours,
 } from "../src/lib/reminders.ts";
 
 let passed = 0;
@@ -55,6 +56,49 @@ check("respects the off switch", () => {
 
 check("a malformed time never fires rather than firing at midnight", () => {
   assert.equal(reminderIsDue({ ...base, time: "not-a-time" }), false);
+});
+
+console.log("\nDo not disturb");
+
+check("stays quiet inside an overnight quiet-hours window", () => {
+  assert.equal(
+    reminderIsDue({
+      ...base,
+      now: at(23, 0),
+      dnd: { enabled: true, start: "22:00", end: "07:00" },
+    }),
+    false,
+  );
+});
+
+check("fires outside the quiet-hours window", () => {
+  assert.equal(
+    reminderIsDue({
+      ...base,
+      dnd: { enabled: true, start: "22:00", end: "07:00" },
+    }),
+    true,
+  );
+});
+
+check("a disabled quiet-hours window never suppresses the reminder", () => {
+  assert.equal(
+    reminderIsDue({
+      ...base,
+      now: at(23, 0),
+      dnd: { enabled: false, start: "22:00", end: "07:00" },
+    }),
+    true,
+  );
+});
+
+check("an equal start and end is treated as no window, not all day", () => {
+  assert.equal(withinQuietHours(at(23, 0), "22:00", "22:00"), false);
+});
+
+check("a same-day window does not wrap", () => {
+  assert.equal(withinQuietHours(at(13, 0), "12:00", "14:00"), true);
+  assert.equal(withinQuietHours(at(15, 0), "12:00", "14:00"), false);
 });
 
 console.log("\nReminder wording");

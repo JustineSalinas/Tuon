@@ -432,6 +432,13 @@
   }
 }
 
+/* Text scale, a separate axis from palette and light/dark — see
+   font-size-provider.tsx. Scales the root rem unit rather than individual
+   components, so every Tailwind text-* size grows together. */
+html[data-font-size="large"] {
+  font-size: 112.5%;
+}
+
 /* Thin, warm scrollbars */
 @supports (scrollbar-width: thin) {
   * {

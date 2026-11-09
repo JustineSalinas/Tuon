@@ -43,10 +43,12 @@ export function AccountSecurity() {
   return (
     <section className="rounded-xl border bg-card p-6 shadow-sm">
       <h2 className="font-display text-lg font-semibold tracking-tight">
-        {t.security.title}
+        {t.settings.accountInformation}
       </h2>
 
       <div className="mt-4 space-y-6">
+        <SignInMethodRow />
+        <Separator />
         <EmailRow />
         <Separator />
         {usesPassword ? (
@@ -63,6 +65,31 @@ export function AccountSecurity() {
         <SessionsRow />
       </div>
     </section>
+  );
+}
+
+/** Sign-in method and member-since date — the part of "account information" that never changes here. */
+function SignInMethodRow() {
+  const { user, profile } = useAuth();
+  const { t } = useI18n();
+
+  const usesGoogle = user?.providerData.some((p) => p.providerId === "google.com") ?? false;
+  const memberSince = profile?.createdAt?.toDate?.();
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium">{t.security.signInMethod}</p>
+        <p className="text-muted-foreground text-sm">
+          {usesGoogle ? t.security.signInGoogle : t.security.signInEmail}
+        </p>
+      </div>
+      {memberSince ? (
+        <Badge variant="secondary">
+          {t.security.memberSince(memberSince.getFullYear())}
+        </Badge>
+      ) : null}
+    </div>
   );
 }
 
