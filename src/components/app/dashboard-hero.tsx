@@ -1,21 +1,24 @@
 "use client";
 
 /**
- * The dashboard's greeting banner.
+ * The dashboard's greeting.
  *
- * A gradient surface, a way into Tala, and the handful of places a student
- * actually goes first — new note, review, calendar. Plain action chips
- * rather than restating the plan or the stats, both of which already have
- * their own sections a scroll away; the hero's job is to get a returning
- * student moving in under a second, not to repeat the page under it.
+ * Earlier version of this was a flat gradient banner with a fake search bar
+ * and four identical icon chips — the generic AI-dashboard furniture a lot of
+ * SaaS templates ship, and none of it was actually Tuón's: the "ask
+ * anything" bar duplicated the real entry point at /app/tala instead of
+ * being it, and the four chips just restated the sidebar nav one scroll up.
+ * This keeps the quiet, plain-background header the rest of the app uses and
+ * adds exactly one thing that is actually Tuón's own: Tala, beside the
+ * greeting, the same way she shows up everywhere else in the product.
  */
 
 import Link from "next/link";
-import { CalendarDays, FileText, Layers, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
-import { CREATURE_NAME } from "@/lib/brand";
-import { cn } from "@/lib/utils";
+import { CREATURE_NAME, CREATURE_ROLE } from "@/lib/brand";
+import { PaperCreature } from "@/components/brand/paper-creature";
 
 export function DashboardHero({
   greeting,
@@ -30,74 +33,30 @@ export function DashboardHero({
   const { t } = useI18n();
 
   return (
-    <section
-      className="relative overflow-hidden rounded-3xl p-6 md:p-8"
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, var(--primary), color-mix(in oklch, var(--primary) 62%, black))",
-      }}
-    >
-      <div className="relative z-10">
-        <h1 className="text-primary-foreground font-display text-2xl font-semibold tracking-tight md:text-[1.75rem]">
+    <div className="flex items-start gap-4">
+      <PaperCreature
+        state="idle"
+        className="size-14 shrink-0 sm:size-16"
+        title={CREATURE_ROLE}
+      />
+      <div className="min-w-0 flex-1">
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
           {greeting}, {firstName}
         </h1>
-        <div
-          className="mt-1.5 text-sm"
-          style={{ color: "color-mix(in oklch, var(--primary-foreground) 78%, transparent)" }}
-        >
-          {subhead ?? t.dashboard.heroSubtitle(CREATURE_NAME)}
-        </div>
+        {subhead ?? (
+          <p className="text-muted-foreground mt-1 text-sm">
+            {t.dashboard.heroSubtitle(CREATURE_NAME)}
+          </p>
+        )}
 
         <Link
           href="/app/tala"
-          className="bg-background text-foreground mt-5 flex w-full items-center gap-3 rounded-full px-4 py-3 text-left shadow-sm transition-transform hover:scale-[1.01] sm:max-w-md"
+          className="text-primary group mt-2 inline-flex items-center gap-1 text-sm font-medium"
         >
-          <Sparkles className="text-primary size-4 shrink-0" aria-hidden="true" />
-          <span className="text-muted-foreground min-w-0 flex-1 truncate text-sm">
-            {t.tala.placeholder}
-          </span>
+          {t.dashboard.quickAsk(CREATURE_NAME)}
+          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <HeroChip href="/app/notes/new" icon={FileText}>
-            {t.dashboard.quickNewNote}
-          </HeroChip>
-          <HeroChip href="/app/review" icon={Layers}>
-            {t.dashboard.quickReview}
-          </HeroChip>
-          <HeroChip href="/app/tala" icon={Sparkles}>
-            {t.dashboard.quickAsk(CREATURE_NAME)}
-          </HeroChip>
-          <HeroChip href="/app/calendar" icon={CalendarDays}>
-            {t.dashboard.quickCalendar}
-          </HeroChip>
-        </div>
       </div>
-    </section>
-  );
-}
-
-function HeroChip({
-  href,
-  icon: Icon,
-  children,
-  className,
-}: {
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "bg-background/15 text-primary-foreground hover:bg-background/25 flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
-        className,
-      )}
-    >
-      <Icon className="size-3.5 shrink-0" />
-      {children}
-    </Link>
+    </div>
   );
 }

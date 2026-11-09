@@ -10,7 +10,7 @@ import { useI18n } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 
 /** Anchors, with their names looked up per render. */
-const LINKS = ["how", "local", "pricing", "faq"] as const;
+const LINKS = ["local", "pricing", "faq"] as const;
 
 /**
  * Landing header.

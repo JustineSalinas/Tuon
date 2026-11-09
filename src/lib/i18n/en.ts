@@ -1735,7 +1735,9 @@ export const en = {
     local: {
       eyebrow: "Built for your curriculum",
       title: "It already knows how school works where you are",
+      lede: "Plainly: Tuón takes a note you paste in and turns it into flashcards and a short quiz, then schedules when each card comes back so the material is still there when the test is. What this section is actually about is the setup underneath that — because a reviewer that doesn't know what class it's for isn't a study tool, it's a pile of cards.",
       body: "Pick your country once. In the Philippines, Tuón already knows the K-12 system: strands, core subjects and board exams built in, so setting up takes three taps instead of typing out every subject yourself. Everywhere else, you just type what you're taking; Tuón learns it from there.",
+      impact: "In practice: your General Chemistry cards never drift into your Pre-Calc deck, a licensure reviewer gets scheduled like the months-long effort it is instead of like a weekly quiz, and the strand picker means setup is three taps rather than a blank text field staring back at you.",
       phLabel: "In the Philippines",
       everywhereLabel: "Everywhere",
       points: [
@@ -1802,58 +1804,26 @@ export const en = {
           a: "Yes, and the free plan is not a trial. You get {count} AI study sets a month, forever. Writing notes, importing PDFs, making your own flashcards, and the whole review schedule are unlimited on every plan. The only thing that costs money is the AI turning a note into cards, because that is the only thing that costs us money.",
         },
         {
-          q: "What happens when I hit the monthly cap?",
-          a: "Generation pauses until the 1st. Nothing else changes: every note, card, and review you already have keeps working, and the schedule carries on. You can still write your own flashcards without limit.",
-        },
-        {
           q: "Who can see my notes?",
           a: "Only you. Sharing is off by default and per study set: turn it on and anyone with that link can see those cards; turn it off and access stops immediately. Your notes and review history are never shared. {link} spells out exactly what we hold and who processes it.",
           linkHref: "/privacy",
           linkLabel: "The privacy notice",
         },
         {
-          q: "Does my note get sent to an AI company?",
-          a: "The text of a note is sent to Anthropic only when you press Generate. Your name, email, and review history are not. Nothing is sent while you are just writing or reviewing, and PDFs are read in your browser and never uploaded.",
-        },
-        {
           q: "Are the flashcards ever wrong?",
           a: "Sometimes, yes. The AI works only from your note, so if the note has an error the cards will repeat it, and like any AI it can occasionally be confidently wrong on its own. Check anything that matters against your textbook. It is a study aid, not a source of truth.",
-        },
-        {
-          q: "Can I use it for entrance exams or board review?",
-          a: "That is what spaced repetition is best at. In the Philippines, entrance-exam subjects like UPCAT are built into setup alongside your strand; everywhere else you add them as free text the same way. Either way, the schedule is designed for material you need to hold for months rather than until Friday.",
         },
         {
           q: "Does it work offline?",
           a: "Reviewing does. Data is not free and campus wifi is not reliable, so cards you already have keep working with no connection and your ratings sync when one comes back. Generating a new study set needs the network, because that part happens on a server.",
         },
         {
-          q: "What exactly is one study set?",
-          a: "One study set is {explainer}.",
-        },
-        {
           q: "How is this different from Quizlet or Anki?",
-          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”. It also reads notes that mix languages (English with Tagalog or Cebuano, or any other pair) exactly as written, rather than expecting you to translate first.",
-        },
-        {
-          q: "Do I have to type every answer?",
-          a: "Only on cards short enough to type, and you can turn it off in settings or skip it on any single card. It is on by default because reading the back and thinking “yeah, I knew that” is not the same as remembering it. Spelling, word order, accents and whatever markers your language uses are all forgiven: a typo never counts as wrong.",
+          a: "Anki is the better scheduler and has a reputation for being hard to start; Quizlet is easier to start and its free tier keeps shrinking. Tuón sits between them and adds the thing neither does: it knows your exam date, so it can answer “will I be ready?” rather than just “what is due?”.",
         },
         {
           q: "Can I study with my classmates?",
           a: "Yes, in invite-only groups: share a set, put a shared deadline in, and see who is studying right now. There is deliberately no public room and no directory. Many students on Tuón are minors, and a space strangers can walk into needs moderation we are not able to promise. You join a group because someone in it sent you a code.",
-        },
-        {
-          q: "Can I get my notes back out?",
-          a: "Any time, as Markdown, with your [[links]] intact: one download for the whole library. You can bring a folder of Markdown in the same way. Locking the exit is how apps keep people who want to leave, and it is not a plan.",
-        },
-        {
-          q: "What if I miss a week?",
-          a: "Nothing breaks and nothing is lost. Cards you missed are simply still due, and a session is capped at a daily goal you set, so a backlog never arrives as a wall of 300 cards. There is a study grid on your dashboard that counts the days you studied, but it is a record rather than a threat. Nothing nags you about keeping it going, and your best run stays on screen even after a gap.",
-        },
-        {
-          q: "Can I use it on my phone?",
-          a: "Yes. It is a website, so there is nothing to install, and you can add it to your home screen if you want it to open like an app. Reviewing is built thumb-first, because most of it happens on a phone between classes.",
         },
       ],
     },

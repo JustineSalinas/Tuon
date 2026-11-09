@@ -20,6 +20,7 @@ import {
 import { minutesByDay } from "@/lib/organiser/sessions";
 import { buildStreaks } from "@/lib/stats/heatmap";
 import { DashboardHero } from "@/components/app/dashboard-hero";
+import { Panel } from "@/components/app/panel";
 import { StatRow } from "@/components/app/stat-row";
 import { SetCards } from "@/components/app/set-cards";
 import { dayKey } from "@/lib/hooks/use-review-cards";
@@ -205,12 +206,14 @@ export default function DashboardPage() {
             transition={{ duration: 0.3, delay: 0.03 }}
             className="mt-6"
           >
-            <StatRow
-              streakDays={streakDays}
-              setsInProgress={setsInProgress}
-              cardsThisWeek={cardsThisWeek}
-              readinessPct={readinessPct}
-            />
+            <Panel className="p-4 sm:p-5">
+              <StatRow
+                streakDays={streakDays}
+                setsInProgress={setsInProgress}
+                cardsThisWeek={cardsThisWeek}
+                readinessPct={readinessPct}
+              />
+            </Panel>
           </motion.div>
 
           {/* "My sets", as cards — the question "what should I open" answered
