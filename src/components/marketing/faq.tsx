@@ -177,7 +177,7 @@ export function Faq() {
   };
 
   return (
-    <div className="border-border bg-card mx-auto mt-12 max-w-3xl divide-y rounded-2xl border px-6 sm:px-8">
+    <div className="neu-raised-sm divide-border mx-auto mt-12 max-w-3xl divide-y rounded-2xl px-6 sm:px-8">
       {t.marketing.faq.items.map((item, index) => (
         <FaqRow
           key={item.q}

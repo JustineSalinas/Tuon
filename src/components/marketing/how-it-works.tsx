@@ -204,7 +204,7 @@ export function HowItWorks() {
       </ol>
 
       {/* The same material, at whichever point in its life the step describes. */}
-      <div className="border-border bg-card min-h-[19rem] rounded-2xl border p-4 sm:p-6">
+      <div className="neu-raised-sm min-h-[19rem] rounded-2xl p-4 sm:p-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}

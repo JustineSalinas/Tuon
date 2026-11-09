@@ -16,7 +16,6 @@ const PLACEHOLDER_COUNT = 5;
  * seeded with invented quotes.
  */
 export function Testimonials() {
-  const { t } = useI18n();
   const real = TESTIMONIALS;
   const slideCount = real.length > 0 ? real.length : PLACEHOLDER_COUNT;
 
@@ -45,7 +44,7 @@ function CardShell({
   return (
     <div
       className={cn(
-        "w-72 shrink-0 snap-center rounded-2xl border p-6 sm:w-80",
+        "w-72 shrink-0 snap-center rounded-2xl p-6 sm:w-80",
         className,
       )}
     >
@@ -62,7 +61,7 @@ function TestimonialCard({
   const initial = testimonial.name.trim().charAt(0).toUpperCase() || "?";
 
   return (
-    <CardShell className="bg-card">
+    <CardShell className="neu-raised-sm">
       <Quote className="text-primary/60 size-5" aria-hidden="true" />
       <p className="mt-4 text-sm leading-relaxed">{testimonial.quote}</p>
       <div className="mt-5 flex items-center gap-3">
@@ -85,7 +84,7 @@ function PlaceholderCard() {
   const { t } = useI18n();
 
   return (
-    <CardShell className="border-dashed bg-transparent">
+    <CardShell className="border-muted-foreground/25 border border-dashed">
       <Quote className="text-muted-foreground/40 size-5" aria-hidden="true" />
       <p className="text-muted-foreground mt-4 text-sm italic leading-relaxed">
         {t.marketing.testimonials.placeholderQuote}

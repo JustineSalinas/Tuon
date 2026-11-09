@@ -20,7 +20,6 @@ import {
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { SetupFlow } from "@/components/marketing/setup-flow";
 import { HeroDashboard } from "@/components/marketing/hero-dashboard";
-import { ForestScene } from "@/components/marketing/forest-scene";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { ASK_INPUT_ID, AskTuon } from "@/components/marketing/ask-tuon";
 import { TalaPerch } from "@/components/marketing/tala";
@@ -70,16 +69,19 @@ const productJsonLd = {
 export default function LandingPage() {
   return (
     <SmoothScroll>
-      {/* Locked to dark + forest regardless of the visitor's own palette or
-          light/dark preference — those are per-student app settings, read
-          from localStorage or their profile, and have no business leaking
-          into the one page a signed-out visitor sees before they have
-          either. `dark` + `data-palette` scope every token this page reads
-          to this subtree, the same two attributes next-themes and
-          PaletteProvider would otherwise put on <html>. */}
+      {/* Locked to light + the brand's own terracotta regardless of the
+          visitor's own palette or light/dark preference — those are
+          per-student app settings, read from localStorage or their profile,
+          and have no business leaking into the one page a signed-out
+          visitor sees before they have either. `data-palette` scopes every
+          token this page reads to this subtree, the same attribute
+          PaletteProvider would otherwise put on <html>; no `dark` class
+          means it always renders the light values regardless of the
+          visitor's OS theme, which is what the soft-UI hero below is built
+          against. */}
       <div
-        className="dark bg-background text-foreground flex min-h-dvh flex-col"
-        data-palette="forest"
+        className="bg-background text-foreground flex min-h-dvh flex-col"
+        data-palette="terracotta"
       >
         {/* Static, self-authored JSON — the same trusted-content pattern
             layout.tsx already uses for its own pre-paint scripts. next/script
@@ -136,32 +138,56 @@ function Hero() {
   const { t } = useI18n();
 
   return (
-    <section className="paper-grain relative overflow-hidden border-b">
-      {/* A static backdrop under the 3D scene, not a replacement for it —
-          ForestScene only mounts at md+ (see its own docstring on why phones
-          get nothing from it), which otherwise left small screens with a flat
-          page-colour band behind the headline. Two radial washes in the
-          palette's own primary hue, cheap enough to ship on every device. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[640px] lg:h-[720px]"
-        style={{
-          background:
-            "radial-gradient(60% 50% at 18% 8%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 70%), radial-gradient(45% 40% at 85% 0%, color-mix(in oklch, var(--primary) 10%, transparent), transparent 70%)",
-        }}
-      />
-      <ForestScene />
-      <div className="relative z-10 mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-28">
+    <section className="relative overflow-hidden">
+      {/* Two large, very soft blobs in the brand's own sage and terracotta —
+          the only colour in an otherwise flat cream field, there so the
+          neumorphic cards below have something besides their own shadows to
+          sit against. Blurred enough that they read as light rather than
+          shape, and placed behind everything else. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute -top-24 -left-32 size-[32rem] rounded-full opacity-60 blur-3xl"
+          style={{ background: "color-mix(in oklch, var(--success) 30%, transparent)" }}
+        />
+        <div
+          className="absolute -top-10 -right-24 size-[28rem] rounded-full opacity-50 blur-3xl"
+          style={{ background: "color-mix(in oklch, var(--primary) 26%, transparent)" }}
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-28">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-w-3xl text-center"
+          className="relative mx-auto max-w-3xl text-center"
         >
-          <Badge variant="secondary" className="gap-2">
-            <SpacingMark className="h-2 w-5" />
+          <Badge className="neu-raised-sm text-foreground gap-2 border-none px-4 py-2">
+            <SpacingMark className="text-primary h-2 w-5" />
             {t.marketing.hero.badge}
           </Badge>
+
+          {/* Two facts, in the same soft-raised surface as every other card
+              on the page — the honest version of a reviewer-avatar cluster:
+              what she's called and what the free tier includes, rather than
+              invented people. A row in normal flow, not floated against the
+              headline: the headline's own wrap point moves with viewport
+              width and font load, and an absolutely-positioned chip has no
+              way to know where that will land. */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <FloatingFact
+              icon={<PaperCreature state="idle" className="size-7" />}
+              label={CREATURE_NAME}
+              sublabel={t.marketing.hero.askTala(CREATURE_NAME)}
+              delay={0.5}
+            />
+            <FloatingFact
+              icon={<Check className="text-success size-4" />}
+              label={t.marketing.hero.freeForever(PLANS.free.monthlyGenerations).split("·")[1]?.trim()}
+              sublabel={t.marketing.hero.languages.replace("· ", "")}
+              delay={0.65}
+            />
+          </div>
 
           <h1 className="font-display mt-6 text-4xl leading-[1.03] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
             {t.marketing.hero.headline}
@@ -177,7 +203,7 @@ function Hero() {
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
               size="lg"
-              className="text-base"
+              className="neu-raised-primary text-base shadow-none"
               render={<Link href="/signup" />}
             >
               {t.marketing.hero.startFree}
@@ -186,7 +212,7 @@ function Hero() {
             <Button
               size="lg"
               variant="outline"
-              className="text-base"
+              className="neu-raised-sm border-none text-base"
               render={<Link href="/login" />}
             >
               {t.marketing.hero.haveAccount}
@@ -198,20 +224,21 @@ function Hero() {
           </p>
         </motion.div>
 
-        {/* The product itself, running, directly under the promise about it.
-            Tala already said hello from her branch in the canopy above —
-            see ForestScene — so she doesn't need a second perch here too. */}
+        {/* The product itself, running, directly under the promise about it —
+            in the same soft-raised surface as the rest of the hero. */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="relative mx-auto mt-14 w-full md:mt-16"
         >
-          <HeroDashboard />
+          <div className="neu-raised rounded-3xl p-2">
+            <HeroDashboard />
+          </div>
         </motion.div>
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-16 md:px-8 md:pb-20">
+      <div className="relative mx-auto max-w-6xl px-4 pb-16 md:px-8 md:pb-20">
         {/* Meaning of the name */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -245,7 +272,7 @@ function Hero() {
                 .getElementById(ASK_INPUT_ID)
                 ?.focus({ preventScroll: true })
             }
-            className="border-border hover:border-primary/40 hover:bg-accent/30 group inline-flex shrink-0 items-center gap-3 rounded-full border py-2 pr-5 pl-2.5 transition-colors"
+            className="neu-raised-sm group inline-flex shrink-0 items-center gap-3 rounded-full py-2 pr-5 pl-2.5 transition-transform hover:scale-[1.02]"
           >
             <PaperCreature state="idle" className="size-9 shrink-0" />
             <span className="text-sm font-medium">
@@ -259,6 +286,46 @@ function Hero() {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+/**
+ * A fact, floating beside the headline in a small raised pill — the honest
+ * stand-in for a cluster of reviewer avatars. See its call sites for which
+ * two facts.
+ */
+function FloatingFact({
+  icon,
+  label,
+  sublabel,
+  delay,
+}: {
+  icon: React.ReactNode;
+  label?: string;
+  sublabel?: string;
+  delay: number;
+}) {
+  if (!label) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="neu-raised-sm flex items-center gap-2.5 rounded-2xl py-2 pr-4 pl-2.5"
+    >
+      <span className="bg-background flex size-8 shrink-0 items-center justify-center rounded-full">
+        {icon}
+      </span>
+      <span className="text-left">
+        <span className="block text-sm font-medium whitespace-nowrap">{label}</span>
+        {sublabel ? (
+          <span className="text-muted-foreground block text-xs whitespace-nowrap">
+            {sublabel}
+          </span>
+        ) : null}
+      </span>
+    </motion.div>
   );
 }
 
@@ -487,8 +554,8 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-2xl border p-7",
-        plan.highlighted && "border-primary/50 bg-accent/30 lg:-my-2 lg:py-9",
+        "neu-raised-sm flex h-full flex-col rounded-2xl p-7",
+        plan.highlighted && "ring-primary/40 ring-2 lg:-my-2 lg:py-9",
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -582,7 +649,7 @@ function FinalCta() {
   const { t } = useI18n();
 
   return (
-    <section className="border-t">
+    <section className="bg-secondary/40">
       <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
         <Reveal>
           {/* No mark here. The Ask section directly above already shows Tala,
@@ -597,7 +664,7 @@ function FinalCta() {
           </p>
           <Button
             size="lg"
-            className="mt-9 text-base"
+            className="neu-raised-primary mt-9 text-base shadow-none"
             render={<Link href="/signup" />}
           >
             {t.marketing.finalCta.action}
@@ -631,11 +698,10 @@ function Section({
   return (
     <section
       id={id}
-      // Clears the sticky header, so an anchor does not land under it.
-      className={cn(
-        "relative scroll-mt-16",
-        muted ? "bg-secondary/40 border-t" : "border-t",
-      )}
+      // Clears the sticky header, so an anchor does not land under it. No
+      // hard border between sections — the soft-UI hero set the rule that
+      // surfaces separate by shadow and colour wash, not a ruled line.
+      className={cn("relative scroll-mt-16", muted ? "bg-secondary/40" : "")}
     >
       {perch}
       <div className="mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28">
