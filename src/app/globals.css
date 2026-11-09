@@ -267,8 +267,34 @@
    is done once rather than five times and a new palette cannot quietly make
    error text unreadable.
 
-   Terracotta is the default and lives in :root, so it needs no block here.
-   ========================================================================= */
+   Terracotta is the default and lives in :root, which is enough for <html>
+   itself — an un-set `data-palette` naturally falls through to it. It is
+   NOT enough for a palette forced on a node nested under something that
+   already carries a different `data-palette` (the landing page locks itself
+   to terracotta regardless of the visitor's own saved choice; see
+   page.tsx) — CSS custom properties inherit by computed value, so a bare
+   `data-palette="terracotta"` with no matching selector here would do
+   nothing against an ancestor `[data-palette="indigo"]` the visitor's own
+   profile set. This block exists for that one case, kept identical to
+   :root's own values. */
+
+[data-palette="terracotta"] {
+  --primary: oklch(0.56 0.154 37.4);
+  --ring: oklch(0.575 0.126 42);
+  --accent: oklch(0.925 0.023 62);
+  --accent-foreground: oklch(0.42 0.085 42);
+  --chart-1: oklch(0.575 0.126 42);
+
+  --background: oklch(0.973 0.007 84);
+  --paper: oklch(0.973 0.007 84);
+  --card: oklch(0.995 0.004 84);
+  --popover: oklch(0.995 0.004 84);
+  --secondary: oklch(0.938 0.01 82);
+  --muted: oklch(0.938 0.01 82);
+  --muted-foreground: oklch(0.495 0.015 62);
+  --border: oklch(0.892 0.011 78);
+  --input: oklch(0.892 0.011 78);
+}
 
 [data-palette="indigo"] {
   --primary: oklch(0.545 0.168 275);
@@ -437,6 +463,46 @@
    components, so every Tailwind text-* size grows together. */
 html[data-font-size="large"] {
   font-size: 112.5%;
+}
+
+/* ===========================================================================
+   Neumorphism (soft UI) — marketing site only.
+   Two low-contrast shadows, one dark and one light, mixed from the surface's
+   own colour rather than a fixed grey, so a raised or pressed surface still
+   reads as warm cream rather than a generic light-mode card. Deliberately
+   not exposed as a dark-mode variant: the softness only reads against a
+   bright, low-chroma surface, and the signed-in app keeps its own separate
+   look.
+   =========================================================================== */
+.neu-raised {
+  background: var(--background);
+  box-shadow:
+    8px 8px 20px -4px color-mix(in oklch, var(--foreground) 16%, transparent),
+    -8px -8px 20px -4px color-mix(in oklch, white 85%, transparent);
+}
+
+.neu-raised-sm {
+  background: var(--background);
+  box-shadow:
+    4px 4px 10px -2px color-mix(in oklch, var(--foreground) 14%, transparent),
+    -4px -4px 10px -2px color-mix(in oklch, white 85%, transparent);
+}
+
+.neu-pressed {
+  background: var(--background);
+  box-shadow:
+    inset 3px 3px 7px color-mix(in oklch, var(--foreground) 14%, transparent),
+    inset -3px -3px 7px color-mix(in oklch, white 85%, transparent);
+}
+
+/* A raised surface in the brand's own primary colour (buttons, the hero
+   card) — same two-shadow recipe, mixed from primary instead of background
+   so it stays legible against itself rather than disappearing into it. */
+.neu-raised-primary {
+  background: var(--primary);
+  box-shadow:
+    8px 8px 20px -4px color-mix(in oklch, var(--primary) 55%, black 30%),
+    -6px -6px 16px -4px color-mix(in oklch, var(--primary) 70%, white 25%);
 }
 
 /* Thin, warm scrollbars */

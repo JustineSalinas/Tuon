@@ -244,7 +244,7 @@ export function AskTuon() {
   const canRetry = !pending && turns.some((t) => t.role === "assistant");
 
   return (
-    <section id="ask" className="scroll-mt-16 border-t">
+    <section id="ask" className="scroll-mt-16">
       <div className="mx-auto max-w-3xl px-4 py-20 md:px-8 md:py-28">
         <div className="text-center">
           <PaperCreature
@@ -259,7 +259,7 @@ export function AskTuon() {
           </p>
         </div>
 
-        <div className="border-border bg-card mt-10 overflow-hidden rounded-2xl border shadow-sm">
+        <div className="neu-raised mt-10 overflow-hidden rounded-2xl">
           {started ? (
             <div
               ref={threadRef}

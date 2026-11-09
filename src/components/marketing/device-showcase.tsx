@@ -407,7 +407,7 @@ export function NativeAppsNotice() {
   const { t } = useI18n();
 
   return (
-    <div className="border-border bg-card mt-12 flex flex-col gap-6 rounded-2xl border p-6 md:mt-14 md:flex-row md:items-center md:gap-8 md:p-7">
+    <div className="neu-raised-sm mt-12 flex flex-col gap-6 rounded-2xl p-6 md:mt-14 md:flex-row md:items-center md:gap-8 md:p-7">
       <div className="min-w-0 flex-1">
         <span className="bg-accent text-accent-foreground inline-flex h-[22px] items-center rounded-full px-2.5 text-[11px] font-medium tracking-wider">
           {t.marketing.devices.inTheWorks}
@@ -421,7 +421,7 @@ export function NativeAppsNotice() {
       </div>
 
       <div className="flex shrink-0 gap-2.5">
-        <div className="border-border bg-background flex h-[52px] items-center gap-2.5 rounded-xl border px-4">
+        <div className="neu-pressed flex h-[52px] items-center gap-2.5 rounded-xl px-4">
           <AppleLogo />
           <div>
             <p className="text-muted-foreground text-[10.5px] tracking-wider uppercase">
@@ -430,7 +430,7 @@ export function NativeAppsNotice() {
             <p className="text-sm font-medium">App Store</p>
           </div>
         </div>
-        <div className="border-border bg-background flex h-[52px] items-center gap-2.5 rounded-xl border px-4">
+        <div className="neu-pressed flex h-[52px] items-center gap-2.5 rounded-xl px-4">
           <PlayStoreLogo />
           <div>
             <p className="text-muted-foreground text-[10.5px] tracking-wider uppercase">
