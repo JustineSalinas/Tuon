@@ -190,7 +190,7 @@ function ComingUp() {
  * so the mockup has to do both or the two do not look like the same screen.
  * One constant, used in both places, so they cannot drift apart.
  */
-const STUDENT_NAME = "Tim Tolosa";
+const STUDENT_NAME = "Faye Tolosa";
 const STUDENT_CONTEXT = "College · IT";
 
 function Sidebar() {

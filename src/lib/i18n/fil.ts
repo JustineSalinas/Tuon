@@ -1732,7 +1732,9 @@ export const fil: Messages = {
     local: {
       eyebrow: "Gawa para sa kurikulum mo",
       title: "Alam na nito kung paano ang eskwela sa lugar mo",
+      lede: "Sa madaling salita: kinukuha ng Tuón ang nota mong i-paste at ginagawa itong flashcard at maikling pagsusulit, tapos ini-iskedyul kung kailan babalik ang bawat kard para nandoon pa rin ang materyal pagdating ng exam. Ang seksyong ito ay tungkol sa set-up sa likod niyan — dahil ang reviewer na hindi alam kung para saang klase ay hindi tool sa pag-aaral, bunton lang ito ng kard.",
       body: "Piliin ang bansa mo nang isang beses. Sa Pilipinas, alam na ng Tuón ang K-12 system: nakapaloob ang mga strand, core subjects at board exams, kaya tatlong pindot lang ang pag-set up. Kung saan ka man, i-type mo lang ang kinukuha mo; matututunan ni Tuón mula roon.",
+      impact: "Sa totoong buhay: hindi kailanman maghahalo ang mga kard mo sa General Chemistry at Pre-Calc, ini-iskedyul ang isang reviewer para sa board exam bilang buwan-buwang pagsisikap sa halip na linggu-linggong pagsusulit, at dahil sa strand picker, tatlong pindot na lang ang set-up sa halip na blankong text field na nakatitig sa iyo.",
       phLabel: "Sa Pilipinas",
       everywhereLabel: "Kahit saan",
       points: [
@@ -1795,58 +1797,26 @@ export const fil: Messages = {
           a: "Oo, at hindi trial ang libreng plan. Makakakuha ka ng {count} AI study set kada buwan, habambuhay. Walang limitasyon sa lahat ng plan ang pagsusulat ng nota, pag-import ng PDF, paggawa ng sariling flashcard, at ang buong review schedule. Ang tanging may bayad ay ang AI na gumagawa ng kard mula sa nota, dahil iyon lang ang may gastos sa amin.",
         },
         {
-          q: "Ano ang mangyayari kapag naabot ko ang buwanang limitasyon?",
-          a: "Hihinto ang paggawa hanggang sa ika-1. Walang ibang magbabago: patuloy na gumagana ang bawat nota, kard at review na meron ka na, at tumutuloy ang iskedyul. Pwede ka pa ring gumawa ng sariling flashcard nang walang limitasyon.",
-        },
-        {
           q: "Sino ang nakakakita ng mga nota ko?",
           a: "Ikaw lang. Naka-off ang pag-share bilang default at kada study set: buksan ito at makikita ng kahit sinong may link ang mga kard na iyon; patayin ito at agad na hihinto ang access. Hindi kailanman ibinabahagi ang mga nota at review history mo. Detalyado sa {link} kung ano ang hawak namin at sino ang nagpoproseso nito.",
           linkHref: "/privacy",
           linkLabel: "paunawa sa privacy",
         },
         {
-          q: "Ipinapadala ba ang nota ko sa isang kompanya ng AI?",
-          a: "Ipinapadala ang teksto ng nota sa Anthropic kapag lang pinindot mo ang Generate. Hindi ipinapadala ang pangalan, email, at review history mo. Walang ipinapadala habang nagsusulat o nagre-review ka lang, at binabasa ang mga PDF sa browser mo at hindi kailanman ina-upload.",
-        },
-        {
           q: "Nagkakamali ba ang mga flashcard?",
           a: "Minsan, oo. Ang AI ay gumagawa lamang mula sa nota mo, kaya kung may mali ang nota, uulitin ito ng mga kard, at tulad ng anumang AI, minsan ay tiwala itong nagkakamali nang mag-isa. Suriin sa textbook mo ang anumang mahalaga. Pantulong ito sa pag-aaral, hindi pinagmumulan ng katotohanan.",
-        },
-        {
-          q: "Pwede ko ba itong gamitin sa entrance exam o board review?",
-          a: "Iyan ang pinakamagaling na gawin ng spaced repetition. Sa Pilipinas, nakapaloob na sa setup ang mga subject sa entrance exam tulad ng UPCAT kasama ng strand mo; kung saan ka man, idagdag mo lang bilang free text sa parehong paraan. Sa kahit alin, ang iskedyul ay ginawa para sa materyal na kailangan mong tandaan nang ilang buwan sa halip na hanggang Biyernes.",
         },
         {
           q: "Gumagana ba ito offline?",
           a: "Ang pag-review, oo. Hindi libre ang data at hindi maaasahan ang wifi sa campus, kaya patuloy na gumagana nang walang koneksyon ang mga kard na meron ka na at nagsi-sync ang mga rating mo pagbalik nito. Kailangan ng network sa paggawa ng bagong study set, dahil sa server nangyayari ang bahaging iyon.",
         },
         {
-          q: "Ano ba talaga ang isang study set?",
-          a: "Ang isang study set ay {explainer}.",
-        },
-        {
           q: "Ano ang pinagkaiba nito sa Quizlet o Anki?",
-          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”. Nababasa rin nito ang mga notang naghahalo ng wika (Ingles at Tagalog o Cebuano, o kahit anong pares) eksaktong kung paano ito isinulat, sa halip na asahan kang isalin muna.",
-        },
-        {
-          q: "Kailangan ko bang i-type ang bawat sagot?",
-          a: "Sa mga kard lang na sapat ang ikli para i-type, at pwede mo itong patayin sa settings o laktawan sa kahit anong kard. Naka-on ito bilang default dahil ang pagbasa sa likod at pag-isip ng “ay alam ko iyan” ay hindi katulad ng pagkakaalala nito. Pinapatawad ang spelling, ayos ng salita, accent at ang mga marka ng wika mo na baka isulat mo: hindi kailanman itinuturing na mali ang typo.",
+          a: "Mas magaling mag-iskedyul ang Anki pero kilala itong mahirap simulan; mas madaling simulan ang Quizlet pero paliit nang paliit ang libreng bersyon nito. Nasa gitna ang Tuón at may dagdag na walang sa kanilang dalawa: alam nito ang petsa ng exam mo, kaya nasasagot nito ang “handa na ba ako?” at hindi lang “ano ang due?”.",
         },
         {
           q: "Pwede ba akong mag-aral kasama ang mga kaklase ko?",
           a: "Oo, sa mga grupong imbitasyon lang: mag-share ng set, maglagay ng pinagsasaluhang deadline, at makita kung sino ang nag-aaral ngayon. Sadyang walang pampublikong silid at walang direktoryo. Marami sa mga gumagamit ng Tuón ay menor de edad, at ang espasyong mapapasok ng estranghero ay nangangailangan ng moderasyong hindi namin kayang ipangako. Sumasali ka sa grupo dahil may nagpadala sa iyo ng code.",
-        },
-        {
-          q: "Makukuha ko bang muli ang mga nota ko?",
-          a: "Anumang oras, bilang Markdown, na buo ang [[links]] mo: isang download para sa buong library. Pwede ka ring magdala ng folder ng Markdown sa parehong paraan. Ang pagsasara ng labasan ang paraan ng mga app para pigilan ang gustong umalis, at hindi iyon plano namin.",
-        },
-        {
-          q: "Paano kung makalimutan ko ng isang linggo?",
-          a: "Walang masisira at walang mawawala. Ang mga kard na nalaktawan mo ay due pa rin, at may hangganan ang isang session batay sa pang-araw-araw na target na itinakda mo, kaya hindi dumarating ang backlog bilang pader ng 300 kard. May study grid sa dashboard mo na nagbibilang ng mga araw na nag-aral ka, pero talaan ito at hindi banta. Walang nangungulit sa iyo na ipagpatuloy ito, at nananatili sa screen ang pinakamahaba mong takbo kahit may puwang.",
-        },
-        {
-          q: "Pwede ko ba itong gamitin sa telepono ko?",
-          a: "Oo. Website ito, kaya walang i-i-install, at pwede mo itong idagdag sa home screen mo kung gusto mong bumukas ito na parang app. Ginawa ang pag-review para sa hinlalaki, dahil doon nangyayari ang karamihan nito: sa telepono, sa pagitan ng mga klase.",
         },
       ],
     },

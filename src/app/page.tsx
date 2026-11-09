@@ -3,7 +3,17 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
-import { ArrowRight, Check, Clock } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Brain,
+  Check,
+  Clock,
+  Globe2,
+  GraduationCap,
+  Languages,
+  Target,
+} from "lucide-react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
@@ -17,7 +27,6 @@ import {
   DeviceLineup,
   NativeAppsNotice,
 } from "@/components/marketing/device-showcase";
-import { HowItWorks } from "@/components/marketing/how-it-works";
 import { SetupFlow } from "@/components/marketing/setup-flow";
 import { HeroDashboard } from "@/components/marketing/hero-dashboard";
 import { PaperCreature } from "@/components/brand/paper-creature";
@@ -98,7 +107,6 @@ export default function LandingPage() {
         <SiteHeader />
         <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           <Hero />
-          <HowItWorksSection />
           <EveryDevice />
           <BuiltForPH />
           <Pricing />
@@ -110,27 +118,6 @@ export default function LandingPage() {
         <SiteFooter />
       </div>
     </SmoothScroll>
-  );
-}
-
-/**
- * Three marks, each gap and each dot a little larger than the last: the
- * spacing effect itself, as a mark rather than a sparkle. A wide viewBox so
- * it reads as a widening sequence rather than an ellipsis at badge size.
- * Plain geometry in `currentColor`, no gradient or shadow.
- */
-function SpacingMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 26 10"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-    >
-      <circle cx="1.5" cy="5" r="1.3" />
-      <circle cx="9" cy="5" r="1.6" />
-      <circle cx="22" cy="5" r="2" />
-    </svg>
   );
 }
 
@@ -163,7 +150,7 @@ function Hero() {
           className="relative mx-auto max-w-3xl text-center"
         >
           <Badge className="neu-raised-sm text-foreground gap-2 border-none px-4 py-2">
-            <SpacingMark className="text-primary h-2 w-5" />
+            <Brain className="text-primary size-4" aria-hidden="true" />
             {t.marketing.hero.badge}
           </Badge>
 
@@ -184,7 +171,7 @@ function Hero() {
             <FloatingFact
               icon={<Check className="text-success size-4" />}
               label={t.marketing.hero.freeForever(PLANS.free.monthlyGenerations).split("·")[1]?.trim()}
-              sublabel={t.marketing.hero.languages.replace("· ", "")}
+              sublabel={t.marketing.hero.freeForever(PLANS.free.monthlyGenerations).split("·")[0]?.trim()}
               delay={0.65}
             />
           </div>
@@ -252,9 +239,7 @@ function Hero() {
               <span className="text-foreground font-display text-lg font-semibold">
                 tuón
               </span>{" "}
-              <span className="text-sm">{t.marketing.hero.languages}</span>
-              <br />
-              {t.marketing.hero.meaning}
+              — {t.marketing.hero.meaning}
             </p>
           </div>
 
@@ -329,22 +314,6 @@ function FloatingFact({
   );
 }
 
-function HowItWorksSection() {
-  const { t } = useI18n();
-
-  return (
-    <Section
-      id="how"
-      eyebrow={t.marketing.how.eyebrow}
-      title={t.marketing.how.title}
-    >
-      <Reveal>
-        <HowItWorks />
-      </Reveal>
-    </Section>
-  );
-}
-
 function TestimonialsSection() {
   const { t } = useI18n();
 
@@ -393,6 +362,7 @@ function EveryDevice() {
       id="devices"
       eyebrow={t.marketing.devices.eyebrow}
       title={t.marketing.devices.title}
+      tint="sage"
     >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
@@ -409,18 +379,34 @@ function EveryDevice() {
   );
 }
 
-function PointGroup({ label, items }: { label: string; items: string[] }) {
+/** One icon per point, assigned by position so each row reads as distinct rather than a repeated bullet. */
+const POINT_ICONS = [GraduationCap, BookOpen, Target, Globe2, Languages];
+
+function PointGroup({
+  label,
+  items,
+  iconOffset,
+}: {
+  label: string;
+  items: string[];
+  /** Where this group's items start in the shared icon sequence. */
+  iconOffset: number;
+}) {
   return (
     <div>
       <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
         {label}
       </p>
-      <ul className="mt-3 space-y-3">
-        {items.map((item) => (
-          <li key={item} className="border-primary/40 border-l-2 py-0.5 pl-3.5">
-            <span className="text-sm leading-relaxed">{item}</span>
-          </li>
-        ))}
+      <ul className="mt-3 space-y-2">
+        {items.map((item, i) => {
+          const Icon = POINT_ICONS[(iconOffset + i) % POINT_ICONS.length];
+          return (
+            <li key={item} className="neu-raised-sm flex gap-3 rounded-xl p-3.5">
+              <Icon className="text-primary mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span className="text-sm leading-relaxed">{item}</span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -449,20 +435,42 @@ function BuiltForPH() {
         />
       }
     >
+      {/* Upfront: what Tuón actually is, before this section narrows to the
+          one thing it's about — curriculum fit. A reader who lands here
+          first, from a search result or a shared link, should not need the
+          hero to know what the product does. */}
       <Reveal>
-        <p className="text-muted-foreground mt-4 max-w-2xl text-lg leading-relaxed">
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed font-medium">
+          {t.marketing.local.lede}
+        </p>
+      </Reveal>
+
+      <Reveal delay={0.03}>
+        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
           {t.marketing.local.body}
         </p>
       </Reveal>
 
-      <div className="mt-10 grid gap-10 sm:grid-cols-2 sm:gap-12">
+      <div className="mt-10 grid gap-8 sm:grid-cols-2 sm:gap-10">
         <Reveal delay={0.05}>
-          <PointGroup label={t.marketing.local.phLabel} items={ph} />
+          <PointGroup label={t.marketing.local.phLabel} items={ph} iconOffset={0} />
         </Reveal>
         <Reveal delay={0.1}>
-          <PointGroup label={t.marketing.local.everywhereLabel} items={everywhere} />
+          <PointGroup
+            label={t.marketing.local.everywhereLabel}
+            items={everywhere}
+            iconOffset={ph.length}
+          />
         </Reveal>
       </div>
+
+      {/* The payoff, stated plainly rather than left for the reader to
+          infer from the feature list above it. */}
+      <Reveal delay={0.12}>
+        <p className="border-primary/30 bg-background/60 mt-8 max-w-2xl rounded-xl border border-dashed p-4 text-sm leading-relaxed">
+          {t.marketing.local.impact}
+        </p>
+      </Reveal>
 
       <Reveal delay={0.15}>
         <SetupFlow />
@@ -481,6 +489,7 @@ function Pricing() {
       id="pricing"
       eyebrow={t.marketing.pricing.eyebrow}
       title={t.marketing.pricing.title}
+      tint="primary"
     >
       <Reveal>
         <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
@@ -607,8 +616,14 @@ function PlanCard({
         ) : (
           <Button
             size="lg"
-            variant={plan.highlighted ? "default" : "outline"}
+            variant="outline"
             disabled
+            // The default Button's disabled state is a 50%-opacity fade,
+            // which blends a coloured variant toward the page background
+            // and quietly drops it below readable contrast — exactly what
+            // happened to the highlighted plan's "Coming soon" button here.
+            // A solid muted surface stays legible regardless of variant.
+            className="disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100"
           >
             {t.marketing.pricing.comingSoon}
           </Button>
@@ -649,8 +664,21 @@ function FinalCta() {
   const { t } = useI18n();
 
   return (
-    <section className="bg-secondary/40">
-      <div className="mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
+    // The one place on the page that inverts to ink-on-paper instead of
+    // paper-on-ink — "cream paper, warm charcoal ink" is literally how the
+    // brand's own colour system describes itself (globals.css), and the
+    // close is the one moment that earns being the dark side of that pair
+    // rather than another pale section like everything above it.
+    <section className="bg-foreground text-background relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(55% 60% at 80% 20%, color-mix(in oklch, var(--primary) 35%, transparent), transparent 70%)",
+        }}
+      />
+      <div className="relative mx-auto max-w-6xl px-4 py-24 text-center md:px-8 md:py-32">
         <Reveal>
           {/* No mark here. The Ask section directly above already shows Tala,
               and a second owl one screen later reads as a stutter — the closing
@@ -659,7 +687,10 @@ function FinalCta() {
           <h2 className="font-display mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             {t.marketing.finalCta.title}
           </h2>
-          <p className="text-muted-foreground mx-auto mt-5 max-w-md leading-relaxed">
+          <p
+            className="mx-auto mt-5 max-w-md leading-relaxed"
+            style={{ color: "color-mix(in oklch, var(--background) 65%, transparent)" }}
+          >
             {t.marketing.finalCta.body}
           </p>
           <Button
@@ -670,7 +701,10 @@ function FinalCta() {
             {t.marketing.finalCta.action}
             <ArrowRight />
           </Button>
-          <p className="text-muted-foreground mt-4 text-sm">
+          <p
+            className="mt-4 text-sm"
+            style={{ color: "color-mix(in oklch, var(--background) 55%, transparent)" }}
+          >
             {t.marketing.finalCta.note}
           </p>
         </Reveal>
@@ -685,6 +719,7 @@ function Section({
   title,
   children,
   muted,
+  tint,
   perch,
 }: {
   id?: string;
@@ -692,6 +727,10 @@ function Section({
   title: string;
   children: React.ReactNode;
   muted?: boolean;
+  /** A faint colour wash in one corner — the hero's blobs, dialled down,
+   * so the page reads as more than one long cream field without every
+   * section competing for the same attention. Used sparingly. */
+  tint?: "sage" | "primary";
   /** Optional <TalaPerch>, positioned against this section's own box. */
   perch?: React.ReactNode;
 }) {
@@ -701,8 +740,20 @@ function Section({
       // Clears the sticky header, so an anchor does not land under it. No
       // hard border between sections — the soft-UI hero set the rule that
       // surfaces separate by shadow and colour wash, not a ruled line.
-      className={cn("relative scroll-mt-16", muted ? "bg-secondary/40" : "")}
+      className={cn(
+        "relative scroll-mt-16 overflow-hidden",
+        muted ? "bg-secondary/40" : "",
+      )}
     >
+      {tint ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 -right-32 -z-10 size-[30rem] rounded-full opacity-50 blur-3xl"
+          style={{
+            background: `color-mix(in oklch, var(--${tint === "sage" ? "success" : "primary"}) 22%, transparent)`,
+          }}
+        />
+      ) : null}
       {perch}
       <div className="mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28">
         <Reveal>

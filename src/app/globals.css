@@ -505,6 +505,51 @@ html[data-font-size="large"] {
     -6px -6px 16px -4px color-mix(in oklch, var(--primary) 70%, white 25%);
 }
 
+/* Double-row testimonial marquee — two rows of cards scrolling opposite
+   directions, each row's content duplicated once so the loop point is
+   invisible (translate exactly -50%, the width of one copy). Paused on
+   hover/focus so a reader can actually read one, and skipped entirely under
+   reduced motion, where the row just becomes a normal scroll container. */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.marquee-row {
+  animation: marquee-left 46s linear infinite;
+}
+
+.marquee-row-reverse {
+  animation: marquee-right 46s linear infinite;
+}
+
+.marquee-track:hover .marquee-row,
+.marquee-track:focus-within .marquee-row,
+.marquee-track:hover .marquee-row-reverse,
+.marquee-track:focus-within .marquee-row-reverse {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-row,
+  .marquee-row-reverse {
+    animation: none;
+  }
+}
+
 /* Thin, warm scrollbars */
 @supports (scrollbar-width: thin) {
   * {
