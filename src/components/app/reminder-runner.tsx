@@ -6,6 +6,9 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/components/providers/i18n-provider";
 import { bucketByDue, useReviewCards } from "@/lib/hooks/use-review-cards";
 import {
+  dndEnabled,
+  dndEnd,
+  dndStart,
   lastReminderShown,
   markReminderShown,
   reminderEnabled,
@@ -48,6 +51,7 @@ export function ReminderRunner() {
           lastShown: lastReminderShown(),
           enabled: reminderEnabled(),
           dueCount,
+          dnd: { enabled: dndEnabled(), start: dndStart(), end: dndEnd() },
         })
       ) {
         return;

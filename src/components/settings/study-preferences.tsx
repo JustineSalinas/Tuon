@@ -9,6 +9,8 @@ import {
   readPalette,
   type PaletteId,
 } from "@/lib/theme/palettes";
+import { applyFontSize } from "@/components/providers/font-size-provider";
+import { FONT_SIZES, type FontSize } from "@/lib/preferences";
 import { applyPalette } from "@/components/providers/palette-provider";
 import {
   isReady,
@@ -70,6 +72,12 @@ export function StudyPreferences() {
         <ThemeRow />
         <Separator />
         <PaletteRow />
+        <Separator />
+        <FontSizeRow />
+        <Separator />
+        <SoundsRow />
+        <Separator />
+        <HapticsRow />
         <Separator />
         <LanguageRow />
         <Separator />
@@ -204,6 +212,139 @@ function PaletteRow() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+const FONT_SIZE_LABEL_KEY = { default: "fontSizeDefault", large: "fontSizeLarge" } as const;
+
+/** Text scale for the whole app — see font-size-provider.tsx. */
+function FontSizeRow() {
+  const { user, profile } = useAuth();
+  const { t } = useI18n();
+  const current = profile?.fontSize === "large" ? "large" : "default";
+  const [saving, setSaving] = useState<FontSize | null>(null);
+
+  async function choose(size: FontSize) {
+    applyFontSize(size);
+    if (!user || size === current) return;
+    setSaving(size);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        fontSize: size,
+        updatedAt: serverTimestamp(),
+      });
+    } catch {
+      toast.error(t.preferences.fontSizeFailed);
+    }
+    setSaving(null);
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-medium">{t.settings.fontSize}</p>
+      <p className="text-muted-foreground mt-0.5 text-sm">
+        {t.preferences.fontSizeHint}
+      </p>
+
+      <div className="mt-3 grid max-w-md grid-cols-2 gap-2">
+        {FONT_SIZES.map((size) => (
+          <button
+            key={size}
+            type="button"
+            onClick={() => choose(size)}
+            aria-pressed={current === size}
+            className={cn(
+              "flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm transition-colors",
+              "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
+              current === size
+                ? "border-primary bg-accent/60"
+                : "border-border hover:border-primary/50 hover:bg-accent/30",
+            )}
+          >
+            {saving === size ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : null}
+            {t.settings[FONT_SIZE_LABEL_KEY[size]]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SoundsRow() {
+  const { user, profile } = useAuth();
+  const { t } = useI18n();
+  const enabled = profile?.soundsEnabled !== false;
+  const [saving, setSaving] = useState(false);
+
+  async function toggle(next: boolean) {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        soundsEnabled: next,
+        updatedAt: serverTimestamp(),
+      });
+    } catch {
+      toast.error(t.preferences.soundsFailed);
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <Label htmlFor="sounds-enabled">{t.settings.sounds}</Label>
+        <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+          {t.preferences.soundsHint}
+        </p>
+      </div>
+      <Switch
+        id="sounds-enabled"
+        checked={enabled}
+        disabled={saving}
+        onCheckedChange={(next) => void toggle(next === true)}
+      />
+    </div>
+  );
+}
+
+function HapticsRow() {
+  const { user, profile } = useAuth();
+  const { t } = useI18n();
+  const enabled = profile?.hapticsEnabled !== false;
+  const [saving, setSaving] = useState(false);
+
+  async function toggle(next: boolean) {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        hapticsEnabled: next,
+        updatedAt: serverTimestamp(),
+      });
+    } catch {
+      toast.error(t.preferences.hapticsFailed);
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <Label htmlFor="haptics-enabled">{t.settings.haptics}</Label>
+        <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+          {t.preferences.hapticsHint}
+        </p>
+      </div>
+      <Switch
+        id="haptics-enabled"
+        checked={enabled}
+        disabled={saving}
+        onCheckedChange={(next) => void toggle(next === true)}
+      />
     </div>
   );
 }

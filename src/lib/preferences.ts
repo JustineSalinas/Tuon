@@ -24,6 +24,35 @@ export function readTypedRecall(value: unknown): boolean {
   return typeof value === "boolean" ? value : DEFAULT_TYPED_RECALL;
 }
 
+/** UI sound effects and haptic feedback are on by default — both are a tap away from off. */
+export const DEFAULT_SOUNDS_ENABLED = true;
+export const DEFAULT_HAPTICS_ENABLED = true;
+
+export function readSoundsEnabled(value: unknown): boolean {
+  return typeof value === "boolean" ? value : DEFAULT_SOUNDS_ENABLED;
+}
+
+export function readHapticsEnabled(value: unknown): boolean {
+  return typeof value === "boolean" ? value : DEFAULT_HAPTICS_ENABLED;
+}
+
+/**
+ * Text scale for the whole app, applied as a class on <html> (see
+ * `src/app/layout.tsx` and `globals.css`). "default" renders at the
+ * project's normal type scale; "large" is the one step up that actually
+ * helps on a phone — anything past that starts breaking card layouts rather
+ * than helping anyone read them.
+ */
+export const FONT_SIZES = ["default", "large"] as const;
+export type FontSize = (typeof FONT_SIZES)[number];
+export const DEFAULT_FONT_SIZE: FontSize = "default";
+
+export function readFontSize(value: unknown): FontSize {
+  return FONT_SIZES.includes(value as FontSize)
+    ? (value as FontSize)
+    : DEFAULT_FONT_SIZE;
+}
+
 export function clampGoal(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return DEFAULT_DAILY_CARD_GOAL;

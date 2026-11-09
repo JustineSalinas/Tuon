@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { Check, Loader2, LogOut, Plus, X } from "lucide-react";
+import { Check, Loader2, LogOut, MessageCircle, Plus, Smartphone, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { db } from "@/lib/firebase/client";
@@ -38,6 +38,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+/**
+ * Filled in once real links exist. Left null means the button renders
+ * disabled with a "Coming soon" badge rather than linking nowhere.
+ */
+const DISCORD_URL: string | null = null;
+const APP_STORE_URL: string | null = null;
 
 export default function SettingsPage() {
   const { user, profile } = useAuth();
@@ -494,6 +501,8 @@ function SettingsForm({
 
           <DataAndAccount />
 
+          <CommunityCard />
+
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{email}</p>
@@ -509,6 +518,66 @@ function SettingsForm({
         </div>
       </div>
     </main>
+  );
+}
+
+function CommunityCard() {
+  const { t } = useI18n();
+
+  return (
+    <section className="rounded-xl border bg-card p-6 shadow-sm">
+      <h2 className="font-display text-lg font-semibold tracking-tight">
+        {t.settings.community}
+      </h2>
+
+      <div className="mt-4 space-y-3">
+        <CommunityLinkRow
+          icon={<MessageCircle />}
+          label={t.settings.discord}
+          href={DISCORD_URL}
+        />
+        <CommunityLinkRow
+          icon={<Smartphone />}
+          label={t.settings.getTheApp}
+          href={APP_STORE_URL}
+        />
+      </div>
+    </section>
+  );
+}
+
+function CommunityLinkRow({
+  icon,
+  label,
+  href,
+}: {
+  icon: ReactNode;
+  label: string;
+  href: string | null;
+}) {
+  const { t } = useI18n();
+
+  if (!href) {
+    return (
+      <div className="flex items-center justify-between gap-3">
+        <Button variant="outline" disabled className="flex-1 justify-start">
+          {icon}
+          {label}
+        </Button>
+        <Badge variant="secondary">{t.settings.comingSoon}</Badge>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      className="w-full justify-start"
+      render={<a href={href} target="_blank" rel="noopener noreferrer" />}
+    >
+      {icon}
+      {label}
+    </Button>
   );
 }
 

@@ -22,9 +22,16 @@
 const ENABLED_KEY = "tuon.reminder.enabled";
 const TIME_KEY = "tuon.reminder.time";
 const LAST_SHOWN_KEY = "tuon.reminder.lastShown";
+const DND_ENABLED_KEY = "tuon.dnd.enabled";
+const DND_START_KEY = "tuon.dnd.start";
+const DND_END_KEY = "tuon.dnd.end";
 
 /** Default nudge time — after class, before the evening disappears. */
 export const DEFAULT_REMINDER_TIME = "19:00";
+
+/** Default quiet hours — asleep, not revising. */
+export const DEFAULT_DND_START = "22:00";
+export const DEFAULT_DND_END = "07:00";
 
 export type ReminderPermission = "unsupported" | "default" | "granted" | "denied";
 
@@ -68,6 +75,63 @@ export function setReminderTime(time: string) {
   write(TIME_KEY, time);
 }
 
+export function dndEnabled(): boolean {
+  return read(DND_ENABLED_KEY) === "true";
+}
+
+export function dndStart(): string {
+  return read(DND_START_KEY) ?? DEFAULT_DND_START;
+}
+
+export function dndEnd(): string {
+  return read(DND_END_KEY) ?? DEFAULT_DND_END;
+}
+
+export function setDndEnabled(enabled: boolean) {
+  write(DND_ENABLED_KEY, String(enabled));
+}
+
+export function setDndStart(time: string) {
+  write(DND_START_KEY, time);
+}
+
+export function setDndEnd(time: string) {
+  write(DND_END_KEY, time);
+}
+
+/**
+ * Whether `now` falls inside a quiet-hours window.
+ *
+ * Handles the overnight wrap (22:00 -> 07:00) the way a student actually
+ * means it: "start" can be later in the clock than "end", and the window
+ * still covers midnight. An equal start and end is treated as "no window"
+ * rather than "all day" — a slider dragged to one point should turn DND off,
+ * not silence every reminder forever.
+ */
+export function withinQuietHours(now: Date, start: string, end: string): boolean {
+  const [startH, startM] = start.split(":").map(Number);
+  const [endH, endM] = end.split(":").map(Number);
+  if (
+    !Number.isFinite(startH) ||
+    !Number.isFinite(startM) ||
+    !Number.isFinite(endH) ||
+    !Number.isFinite(endM)
+  ) {
+    return false;
+  }
+
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+  if (startMinutes === endMinutes) return false;
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  if (startMinutes < endMinutes) {
+    return nowMinutes >= startMinutes && nowMinutes < endMinutes;
+  }
+  // Wraps past midnight.
+  return nowMinutes >= startMinutes || nowMinutes < endMinutes;
+}
+
 /** Local YYYY-MM-DD, so "once today" means the student's today. */
 function todayKey(now: Date): string {
   const y = now.getFullYear();
@@ -88,17 +152,21 @@ export function reminderIsDue({
   lastShown,
   enabled,
   dueCount,
+  dnd,
 }: {
   now: Date;
   time: string;
   lastShown: string | null;
   enabled: boolean;
   dueCount: number;
+  /** Quiet hours. Omitted means no quiet hours are in effect. */
+  dnd?: { enabled: boolean; start: string; end: string };
 }): boolean {
   if (!enabled) return false;
   // Nothing to review is not a reason to interrupt someone.
   if (dueCount <= 0) return false;
   if (lastShown === todayKey(now)) return false;
+  if (dnd?.enabled && withinQuietHours(now, dnd.start, dnd.end)) return false;
 
   const [h, m] = time.split(":").map(Number);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return false;

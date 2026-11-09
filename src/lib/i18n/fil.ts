@@ -815,6 +815,13 @@ export const fil: Messages = {
     dailyGoalSaved: "Na-update ang pang-araw-araw na target.",
     dailyGoalFailed: "Hindi ma-save ang pang-araw-araw na target mo.",
     cardsUnit: "kard",
+    fontSizeHint:
+      "Sinusukat ang buong app, hindi lang ang mga kard. Ang Malaki ang isang hakbang na talagang nakakatulong sa telepono.",
+    fontSizeFailed: "Hindi ma-save ang laki ng teksto.",
+    soundsHint: "Isang maikling tono sa flip at sa pag-grade ng kard.",
+    soundsFailed: "Hindi ma-save ang setting na iyon.",
+    hapticsHint: "Magaang vibration sa flip at sa pag-grade ng kard, sa mga device na suportado ito.",
+    hapticsFailed: "Hindi ma-save ang setting na iyon.",
   },
 
   reminder: {
@@ -828,6 +835,10 @@ export const fil: Messages = {
       "Hinarang ng browser mo ang mga notification. Pwede mo itong payagan sa site settings.",
     set: (time: string) => `Nakatakda ang paalala sa ${time}.`,
     cardsReady: (count: number) => `${count} kard ang handa nang i-review.`,
+    dndTitle: "Huwag abalahin",
+    dndHint: "Walang paalalang lalabas sa mga oras na ito, kahit may due na kard.",
+    dndFrom: "Mula",
+    dndTo: "Hanggang",
   },
 
   examDate: {
@@ -842,6 +853,10 @@ export const fil: Messages = {
 
   security: {
     title: "Account at seguridad",
+    signInMethod: "Paraan ng sign-in",
+    signInGoogle: "Google",
+    signInEmail: "Email at password",
+    memberSince: (year: number) => `Miyembro mula ${year}`,
     emailAddress: "Email address",
     verified: "Na-verify",
     notVerified: "Hindi pa na-verify",
@@ -1966,5 +1981,15 @@ export const fil: Messages = {
     picture: "Larawan",
     upload: "Mag-upload",
     change: "Palitan",
+    fontSize: "Laki ng teksto",
+    fontSizeDefault: "Default",
+    fontSizeLarge: "Malaki",
+    sounds: "Tunog",
+    haptics: "Haptics",
+    accountInformation: "Impormasyon ng account",
+    community: "Komunidad",
+    discord: "Discord",
+    getTheApp: "Kunin ang app",
+    comingSoon: "Malapit na",
   },
 };

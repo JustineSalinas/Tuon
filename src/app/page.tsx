@@ -18,13 +18,11 @@ import {
 } from "@/components/marketing/device-showcase";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { SetupFlow } from "@/components/marketing/setup-flow";
-import { MemoryDecay } from "@/components/marketing/memory-decay";
-import { ByHand } from "@/components/marketing/by-hand";
 import { HeroDashboard } from "@/components/marketing/hero-dashboard";
 import { ForestScene } from "@/components/marketing/forest-scene";
 import { PaperCreature } from "@/components/brand/paper-creature";
 import { ASK_INPUT_ID, AskTuon } from "@/components/marketing/ask-tuon";
-import { TalaAside, TalaPerch } from "@/components/marketing/tala";
+import { TalaPerch } from "@/components/marketing/tala";
 import { TuonMark } from "@/components/brand/logo";
 import { CREATURE_NAME } from "@/lib/brand";
 import type { Messages } from "@/lib/i18n/en";
@@ -97,9 +95,7 @@ export default function LandingPage() {
         <SiteHeader />
         <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
           <Hero />
-          <WhyItSticks />
           <HowItWorksSection />
-          <VersusByHand />
           <EveryDevice />
           <BuiltForPH />
           <Pricing />
@@ -248,79 +244,6 @@ function Hero() {
         </motion.div>
       </div>
     </section>
-  );
-}
-
-function WhyItSticks() {
-  const { t } = useI18n();
-
-  return (
-    <Section
-      id="why"
-      eyebrow={t.marketing.why.eyebrow}
-      title={t.marketing.why.title}
-      muted
-    >
-      <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
-        <div>
-          <Reveal>
-            <p className="text-muted-foreground max-w-xl leading-relaxed">
-              {t.marketing.why.body}
-            </p>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <TalaAside state="asleep" className="mt-8">
-              {t.marketing.why.aside}
-            </TalaAside>
-          </Reveal>
-        </div>
-
-        {/* The citation, set apart as a fact rather than folded into the
-            pitch's own paragraph rhythm — a claim this specific earns a
-            different typographic register than the sentence beside it. */}
-        <Reveal delay={0.05}>
-          <div className="border-primary/25 bg-background rounded-2xl border p-6">
-            <p className="text-primary text-xs font-medium tracking-widest uppercase">
-              {t.marketing.why.scienceLabel}
-            </p>
-            <p className="font-display mt-3 text-4xl font-semibold tracking-tight">
-              {t.marketing.why.scienceStat}
-              <span className="text-muted-foreground ml-2 font-sans text-sm font-normal tracking-normal normal-case">
-                {t.marketing.why.scienceStatUnit}
-              </span>
-            </p>
-            <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
-              {t.marketing.why.science}
-            </p>
-          </div>
-        </Reveal>
-      </div>
-
-      <Reveal delay={0.1}>
-        <MemoryDecay />
-      </Reveal>
-    </Section>
-  );
-}
-
-function VersusByHand() {
-  const { t } = useI18n();
-
-  return (
-    <Section
-      id="versus"
-      eyebrow={t.marketing.versus.eyebrow}
-      title={t.marketing.versus.title}
-    >
-      <Reveal>
-        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-          {t.marketing.versus.body}
-        </p>
-      </Reveal>
-      <Reveal delay={0.05}>
-        <ByHand />
-      </Reveal>
-    </Section>
   );
 }
 
