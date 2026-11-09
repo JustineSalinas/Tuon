@@ -12,6 +12,7 @@ import { SkipLink } from "@/components/ui/skip-link";
 import { siteUrl } from "@/lib/site";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Faq } from "@/components/marketing/faq";
+import { Testimonials } from "@/components/marketing/testimonials";
 import {
   DeviceLineup,
   NativeAppsNotice,
@@ -99,6 +100,7 @@ export default function LandingPage() {
           <EveryDevice />
           <BuiltForPH />
           <Pricing />
+          <TestimonialsSection />
           <FaqSection />
           <AskTuon />
           <FinalCta />
@@ -135,6 +137,19 @@ function Hero() {
 
   return (
     <section className="paper-grain relative overflow-hidden border-b">
+      {/* A static backdrop under the 3D scene, not a replacement for it —
+          ForestScene only mounts at md+ (see its own docstring on why phones
+          get nothing from it), which otherwise left small screens with a flat
+          page-colour band behind the headline. Two radial washes in the
+          palette's own primary hue, cheap enough to ship on every device. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[640px] lg:h-[720px]"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 18% 8%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 70%), radial-gradient(45% 40% at 85% 0%, color-mix(in oklch, var(--primary) 10%, transparent), transparent 70%)",
+        }}
+      />
       <ForestScene />
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-28">
         <motion.div
@@ -258,6 +273,30 @@ function HowItWorksSection() {
     >
       <Reveal>
         <HowItWorks />
+      </Reveal>
+    </Section>
+  );
+}
+
+function TestimonialsSection() {
+  const { t } = useI18n();
+
+  return (
+    <Section
+      id="testimonials"
+      eyebrow={t.marketing.testimonials.eyebrow}
+      title={t.marketing.testimonials.title}
+      muted
+    >
+      <Reveal>
+        <p className="text-muted-foreground mt-4 max-w-2xl leading-relaxed">
+          {t.marketing.testimonials.body}
+        </p>
+      </Reveal>
+      <Reveal delay={0.05}>
+        <div className="mt-8">
+          <Testimonials />
+        </div>
       </Reveal>
     </Section>
   );

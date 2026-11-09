@@ -87,6 +87,17 @@ export const en = {
     testYourselfOn: (title: string) => `Test yourself on ${title}`,
     shakyCards: (count: number) =>
       `${count} shaky ${count === 1 ? "card" : "cards"}`,
+    heroSubtitle: (creature: string) => `${creature} is ready when you are.`,
+    quickNewNote: "New note",
+    quickReview: "Review due",
+    quickAsk: (creature: string) => `Ask ${creature}`,
+    quickCalendar: "Calendar",
+    statStreak: "Day streak",
+    statSets: "Sets in progress",
+    statCardsWeek: "Cards this week",
+    statReady: "Ready for review",
+    mySets: "My sets",
+    setProgress: (done: number, total: number) => `${done}/${total} cards`,
   },
 
   review: {
@@ -1763,6 +1774,14 @@ export const en = {
       comingSoon: "Coming soon",
       footnote:
         "Why numbers instead of “unlimited”: every study set costs us real money to generate. A cap we can honour beats an unlimited promise we’d have to quietly throttle. For scale, a student carrying six subjects and making a reviewer for each twice a week uses about 48 a month.",
+    },
+
+    testimonials: {
+      eyebrow: "Students",
+      title: "Reserved for the people actually using it",
+      body: "Tuón is new enough that we are not going to put words in anyone's mouth yet. Real stories go here once students have had time to use it — not before.",
+      placeholderQuote: "A real story from a real student will go here.",
+      placeholderName: "Awaiting a first review",
     },
 
     faq: {

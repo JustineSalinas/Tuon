@@ -94,6 +94,17 @@ export const fil: Messages = {
     turnIntoCards: (title: string) => `Gawing kard ang “${title}”`,
     testYourselfOn: (title: string) => `Subukan ang sarili sa ${title}`,
     shakyCards: (count: number) => `${count} marupok na kard`,
+    heroSubtitle: (creature: string) => `Handa na si ${creature} kapag handa ka na.`,
+    quickNewNote: "Bagong nota",
+    quickReview: "I-review ang due",
+    quickAsk: (creature: string) => `Tanungin si ${creature}`,
+    quickCalendar: "Kalendaryo",
+    statStreak: "Araw na sunod-sunod",
+    statSets: "Mga set na ginagawa",
+    statCardsWeek: "Kard ngayong linggo",
+    statReady: "Handa para i-review",
+    mySets: "Mga set ko",
+    setProgress: (done: number, total: number) => `${done}/${total} kard`,
   },
 
   review: {
@@ -1762,6 +1773,14 @@ export const fil: Messages = {
       comingSoon: "Malapit na",
       footnote:
         "Bakit bilang sa halip na “walang limitasyon”: totoong pera ang gastos namin sa paggawa ng bawat study set. Mas mabuti ang limitasyong kaya naming tuparin kaysa sa pangakong walang limitasyon na tahimik naming babagalan. Bilang gabay, ang estudyanteng may anim na subject na gumagawa ng reviewer sa bawat isa dalawang beses sa isang linggo ay gumagamit ng mga 48 kada buwan.",
+    },
+
+    testimonials: {
+      eyebrow: "Mga estudyante",
+      title: "Nakareserba para sa mga totoong gumagamit nito",
+      body: "Bago pa lang ang Tuón kaya hindi pa kami maglalagay ng gawa-gawang salita. Dito mapupunta ang mga totoong kwento kapag may sapat nang panahon ang mga estudyante gamitin ito — hindi bago.",
+      placeholderQuote: "Dito mapupunta ang totoong kwento ng isang totoong estudyante.",
+      placeholderName: "Hinihintay ang unang review",
     },
 
     faq: {
